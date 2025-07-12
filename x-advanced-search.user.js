@@ -1,26 +1,27 @@
 // ==UserScript==
-// @name         X.com 高度検索モーダル 🔍
-// @name:ja      X.com（旧Twitter）高度検索モーダル 🔍
-// @name:en      X.com (formerly Twitter) Advanced Search Modal 🔍
-// @name:zh-CN   X.com（原Twitter）高级搜索模态框 🔍
-// @name:zh-TW   X.com（原Twitter）高級搜尋模態框 🔍
-// @name:ko      X.com (구 Twitter) 고급 검색 모달 🔍
-// @name:fr      X.com (anciennement Twitter) : Modal de recherche avancée 🔍
-// @name:es      Modal de búsqueda avanzada para X.com (anteriormente Twitter) 🔍
-// @name:de      Erweiterte Suchmodal für X.com (ehemals Twitter) 🔍
-// @name:pt-BR   Modal de busca avançada no X.com (antigo Twitter) 🔍
-// @name:ru      Расширенный поиск для X.com (ранее Twitter) 🔍
+// @name         X.com (Twitter) Advanced Search Modal 🔍
+// @name:ja      X.com（Twitter）高度検索モーダル 🔍
+// @name:en      X.com (Twitter) Advanced Search Modal 🔍
+// @name:zh-CN   X.com（Twitter）高级搜索模态框 🔍
+// @name:zh-TW   X.com（Twitter）高級搜尋模態框 🔍
+// @name:ko      X.com (Twitter) 고급 검색 모달 🔍
+// @name:fr      X.com (Twitter) : Modal de recherche avancée 🔍
+// @name:es      Modal de búsqueda avanzada para X.com (Twitter) 🔍
+// @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
+// @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
+// @name:ru      Расширенный поиск для X.com (Twitter) 🔍
 // @version      2.0.0
-// @description         X.com（旧Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。
+// @description         Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state.。
+// @description:ja      X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。
 // @description:en      Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state.
-// @description:zh-CN   为X.com（原Twitter）添加高级搜索浮动模态框，支持与搜索框双向同步并记住位置与显示状态。
-// @description:zh-TW   為 X.com（原Twitter）增加高級搜尋模態框，支援與搜尋框雙向同步並記住位置與顯示狀態。
-// @description:ko      X.com(구 Twitter)에 고급 검색 모달을 추가합니다. 검색창과 양방향 동기화하며 위치와 표시 상태를 기억합니다。
-// @description:fr      Ajoute une fenêtre modale de recherche avancée à X.com (anciennement Twitter), synchronisée avec la barre de recherche et mémoire de l’état d’affichage.
-// @description:es      Agrega un modal flotante de búsqueda avanzada en X.com (anteriormente Twitter), sincronizado con la caja de búsqueda y con estado persistente.
-// @description:de      Fügt X.com (ehemals Twitter) ein modales Fenster für erweiterte Suche hinzu, synchronisiert mit der Suchleiste und speichert Position/Zustand.
-// @description:pt-BR   Adiciona um modal de busca avançada flutuante no X.com (antigo Twitter), sincronizado com a caixa de busca e com estado salvo.
-// @description:ru      Добавляет модальное окно расширенного поиска на X.com (ранее Twitter). Синхронизируется с поисковой строкой и запоминает состояние.
+// @description:zh-CN   为X.com（Twitter）添加高级搜索浮动模态框，支持与搜索框双向同步并记住位置与显示状态。
+// @description:zh-TW   為 X.com（Twitter）增加高級搜尋模態框，支援與搜尋框雙向同步並記住位置與顯示狀態。
+// @description:ko      X.com(Twitter)에 고급 검색 모달을 추가합니다. 검색창과 양방향 동기화하며 위치와 표시 상태를 기억합니다。
+// @description:fr      Ajoute une fenêtre modale de recherche avancée à X.com (Twitter), synchronisée avec la barre de recherche et mémoire de l’état d’affichage.
+// @description:es      Agrega un modal flotante de búsqueda avanzada en X.com (Twitter), sincronizado con la caja de búsqueda y con estado persistente.
+// @description:de      Fügt X.com (Twitter) ein modales Fenster für erweiterte Suche hinzu, synchronisiert mit der Suchleiste und speichert Position/Zustand.
+// @description:pt-BR   Adiciona um modal de busca avançada flutuante no X.com (Twitter), sincronizado com a caixa de busca e com estado salvo.
+// @description:ru      Добавляет модальное окно расширенного поиска на X.com (Twitter). Синхронизируется с поисковой строкой и запоминает состояние.
 // @namespace    https://github.com/koyasi777/x-advanced-search-userscript
 // @author       koyasi777
 // @match        https://x.com/*
