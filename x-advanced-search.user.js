@@ -10,18 +10,18 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      2.0.0
-// @description         Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state.。
-// @description:ja      X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。
-// @description:en      Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state.
-// @description:zh-CN   为X.com（Twitter）添加高级搜索浮动模态框，支持与搜索框双向同步并记住位置与显示状态。
-// @description:zh-TW   為 X.com（Twitter）增加高級搜尋模態框，支援與搜尋框雙向同步並記住位置與顯示狀態。
-// @description:ko      X.com(Twitter)에 고급 검색 모달을 추가합니다. 검색창과 양방향 동기화하며 위치와 표시 상태를 기억합니다。
-// @description:fr      Ajoute une fenêtre modale de recherche avancée à X.com (Twitter), synchronisée avec la barre de recherche et mémoire de l’état d’affichage.
-// @description:es      Agrega un modal flotante de búsqueda avanzada en X.com (Twitter), sincronizado con la caja de búsqueda y con estado persistente.
-// @description:de      Fügt X.com (Twitter) ein modales Fenster für erweiterte Suche hinzu, synchronisiert mit der Suchleiste und speichert Position/Zustand.
-// @description:pt-BR   Adiciona um modal de busca avançada flutuante no X.com (Twitter), sincronizado com a caixa de busca e com estado salvo.
-// @description:ru      Добавляет модальное окно расширенного поиска на X.com (Twitter). Синхронизируется с поисковой строкой и запоминает состояние.
+// @version      2.1.0
+// @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state.
+// @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。
+// @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state.
+// @description:zh-CN 为X.com（Twitter）添加高级搜索浮动模态框，支持与搜索框双向同步并记住位置与显示状态。
+// @description:zh-TW 為 X.com（Twitter）增加高級搜尋模態框，支援與搜尋框雙向同步並記住位置與顯示狀態。
+// @description:ko   X.com(Twitter)에 고급 검색 모달을 추가합니다. 검색창과 양방향 동기화하며 위치와 표시 상태를 기억합니다。
+// @description:fr   Ajoute une fenêtre modale de recherche avancée à X.com (Twitter), synchronisée avec la barre de recherche et mémoire de l’état d’affichage.
+// @description:es   Agrega un modal flotante de búsqueda avanzada en X.com (Twitter), sincronizado con la caja de búsqueda y con estado persistente.
+// @description:de   Fügt X.com (Twitter) ein modales Fenster für erweiterte Suche hinzu, synchronisiert mit der Suchleiste und speichert Position/Zustand.
+// @description:pt-BR Adiciona um modal de busca avançada flutuante no X.com (Twitter), sincronizado com a caixa de busca e com estado salvo.
+// @description:ru   Добавляет модальное окно расширенного поиска на X.com (Twitter). Синхронизируется с поисковой строкой и запоминает состояние.
 // @namespace    https://github.com/koyasi777/x-advanced-search-userscript
 // @author       koyasi777
 // @match        https://x.com/*
@@ -37,9 +37,7 @@
 
     // --- 1. 国際化 (i18n) モジュール ---
     const i18n = {
-        // サポートする全言語の翻訳をここに集約
         translations: {
-            // English (Default)
             'en': {
                 modalTitle: "Advanced Search", tooltipClose: "Close",
                 labelAllWords: "All of these words", placeholderAllWords: "e.g., AI news",
@@ -65,7 +63,6 @@
                 buttonClear: "Clear", buttonApply: "Search",
                 tooltipTrigger: "Open Advanced Search"
             },
-            // Japanese
             'ja': {
                 modalTitle: "高度な検索", tooltipClose: "閉じる",
                 labelAllWords: "すべての語句を含む", placeholderAllWords: "例: AI ニュース",
@@ -91,7 +88,6 @@
                 buttonClear: "クリア", buttonApply: "検索実行",
                 tooltipTrigger: "高度な検索を開く"
             },
-            // Add other languages here following the same structure
             'zh-CN': {
                 modalTitle: "高级搜索", tooltipClose: "关闭",
                 labelAllWords: "包含所有这些词语", placeholderAllWords: "例如：AI 新闻",
@@ -140,32 +136,25 @@
                 buttonClear: "지우기", buttonApply: "검색",
                 tooltipTrigger: "고급 검색 열기"
             },
-            // ... (zh-TW, fr, es, de, pt-BR, ru would be added here in the same fashion)
         },
-        lang: 'en', // Default language
+        lang: 'en',
         init: function() {
             const supportedLangs = Object.keys(this.translations);
             let detectedLang = document.documentElement.lang || navigator.language || 'en';
-
-            // Exact match (e.g., "zh-CN")
             if (supportedLangs.includes(detectedLang)) {
                 this.lang = detectedLang;
                 return;
             }
-            // Base language match (e.g., "ja-JP" -> "ja")
             const baseLang = detectedLang.split('-')[0];
             if (supportedLangs.includes(baseLang)) {
                 this.lang = baseLang;
                 return;
             }
-            // Fallback to English
             this.lang = 'en';
         },
-        // Translator function: gets translation for a key
         t: function(key) {
             return this.translations[this.lang]?.[key] || this.translations['en'][key] || `[${key}]`;
         },
-        // Function to apply translations to a DOM container
         apply: function(container) {
             container.querySelectorAll('[data-i18n]').forEach(el => {
                 el.textContent = this.t(el.dataset.i18n);
@@ -190,7 +179,7 @@
         .adv-modal-header{padding:12px 16px;border-bottom:1px solid #333;cursor:move;display:flex;justify-content:space-between;align-items:center}.adv-modal-header h2{margin:0;font-size:18px;font-weight:700}.adv-modal-close{background:0 0;border:none;color:#e7e9ea;font-size:24px;cursor:pointer}.adv-modal-body{flex:1;overflow-y:auto;padding:16px}.adv-form-group{margin-bottom:16px}.adv-form-group label{display:block;margin-bottom:6px;font-size:14px;font-weight:700;color:#8b98a5}.adv-form-group input[type=text],.adv-form-group input[type=number],.adv-form-group input[type=date],.adv-form-group select{width:100%;background-color:#202327;border:1px solid #38444d;border-radius:4px;padding:8px 12px;color:#e7e9ea;font-size:15px;box-sizing:border-box}.adv-form-group input:focus{outline:0;border-color:#1d9bf0}.adv-form-group input::-moz-placeholder{color:#536471}.adv-form-group input::placeholder{color:#536471}.adv-form-group-date-container{display:flex;gap:10px}.adv-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.adv-checkbox-group{background-color:#202327;border:1px solid #38444d;border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}.adv-checkbox-group span{font-weight:700;font-size:14px;color:#e7e9ea}.adv-checkbox-item{display:flex;align-items:center}.adv-checkbox-item input{margin-right:8px}.adv-checkbox-item label{color:#8b98a5;margin-bottom:0}.adv-modal-footer{padding:12px 16px;border-top:1px solid #333;display:flex;justify-content:flex-end;gap:12px}.adv-modal-button{padding:8px 16px;border-radius:9999px;border:1px solid #536471;background-color:transparent;color:#e7e9ea;font-weight:700;cursor:pointer;transition:background-color .2s}.adv-modal-button.primary{background-color:#1d9bf0;border-color:#1d9bf0;color:#fff}.adv-modal-button:hover{background-color:rgba(231,233,234,.1)}.adv-modal-button.primary:hover{background-color:#1a8cd8}.adv-modal-body::-webkit-scrollbar{width:8px}.adv-modal-body::-webkit-scrollbar-track{background:#202327}.adv-modal-body::-webkit-scrollbar-thumb{background:#536471;border-radius:4px}body.adv-dragging{-webkit-user-select:none;moz-user-select:none;user-select:none}
     `);
 
-    // --- 4. HTML構造の定義 (data-i18n属性を使用) ---
+    // --- 4. HTML構造の定義 ---
     const modalHTML = `
         <div id="advanced-search-modal">
             <div class="adv-modal-header">
@@ -254,12 +243,12 @@
         const trigger = document.createElement('button');
         trigger.id = 'advanced-search-trigger';
         trigger.innerHTML = '🔍';
-        trigger.title = i18n.t('tooltipTrigger'); // ツールチップも多言語化
+        trigger.title = i18n.t('tooltipTrigger');
         document.body.appendChild(trigger);
 
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = modalHTML;
-        i18n.apply(modalContainer); // ここで翻訳を適用
+        i18n.apply(modalContainer);
         document.body.appendChild(modalContainer);
 
         // 5.3. DOM要素の参照を取得
@@ -268,9 +257,10 @@
         const closeButton = modal.querySelector('.adv-modal-close');
         const clearButton = document.getElementById('adv-clear-button');
         const applyButton = document.getElementById('adv-apply-button');
+        const searchInputSelector = 'input[data-testid="SearchBox_Search_Input"]';
 
         // 5.4. 状態管理（永続化）ロジック
-        const STATE_KEY = 'advSearchModalState_v2.0';
+        const STATE_KEY = 'advSearchModalState_v2.1'; // バージョンアップ
         const loadState = () => {
             try {
                 const state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
@@ -312,7 +302,7 @@
                  until: document.getElementById('adv-until').value,
              };
              if(fields.all) q.push(fields.all);
-             if(fields.exact) q.push(`"${fields.exact.replace(/"/g, '')}"`); // 内側の引用符を除去
+             if(fields.exact) q.push(`"${fields.exact.replace(/"/g, '')}"`);
              if(fields.any) q.push(`(${fields.any.split(/\s+/).filter(Boolean).join(" OR ")})`);
              if(fields.not) q.push(...fields.not.split(/\s+/).filter(Boolean).map(w=>`-${w}`));
              if(fields.hash) q.push(...fields.hash.split(/\s+/).filter(Boolean).map(h=>`#${h.replace(/^#/,"")}`));
@@ -348,13 +338,13 @@
             if (isUpdating) return;
             isUpdating = true;
             form.reset();
-            let q = ` ${query} `; // 前後にスペースを追加して正規表現のマッチを容易に
+            let q = ` ${query} `;
 
             const extract = (regex, callback) => {
                 let match;
                 while ((match = regex.exec(q)) !== null) {
                     callback(match[1].trim());
-                    q = q.replace(match[0], ' '); // マッチした部分を空白に置換
+                    q = q.replace(match[0], ' ');
                 }
             };
 
@@ -372,25 +362,25 @@
 
             const filterMap = {
                 'is:verified': 'verified', 'filter:links': 'links', 'filter:images': 'images', 'filter:videos': 'videos',
-                'include:replies': 'replies-include', 'filter:replies': 'replies-only'
             };
             Object.entries(filterMap).forEach(([op, id]) => {
-                const regex = new RegExp(`\\s(-?)${op}\\s`, 'g');
-                q = q.replace(regex, (match, prefix) => {
-                    if (id.startsWith('replies-')) {
-                        document.getElementById('adv-replies').value = id.split('-')[1];
-                    } else {
-                        document.getElementById(`adv-filter-${id}-${prefix ? 'exclude' : 'include'}`).checked = true;
-                    }
-                    return ' ';
-                });
+                 const regex = new RegExp(`\\s(-?)${op.replace(':', '\\:')}\\s`, 'g');
+                 q = q.replace(regex, (match, prefix) => {
+                     document.getElementById(`adv-filter-${id}-${prefix ? 'exclude' : 'include'}`).checked = true;
+                     return ' ';
+                 });
             });
-            // 返信除外は `-filter:replies`
-             q = q.replace(/\s-filter:replies\s/g, () => {
-                document.getElementById('adv-replies').value = 'exclude';
-                return ' ';
-             });
 
+             if (/\sinclude:replies\s/.test(q)) {
+                 document.getElementById('adv-replies').value = 'include';
+                 q = q.replace(/\sinclude:replies\s/, ' ');
+             } else if (/\sfilter:replies\s/.test(q)) {
+                 document.getElementById('adv-replies').value = 'only';
+                 q = q.replace(/\sfilter:replies\s/, ' ');
+             } else if (/\s-filter:replies\s/.test(q)) {
+                 document.getElementById('adv-replies').value = 'exclude';
+                 q = q.replace(/\s-filter:replies\s/, ' ');
+             }
 
             const orGroups = q.match(/\(([^)]+)\)/g);
             if(orGroups){
@@ -406,12 +396,12 @@
             isUpdating = false;
         };
 
-        // 5.6. イベントハンドラ
-        const syncToSearchBox = () => {
+        // 5.6. イベントハンドラと同期ロジック
+        const syncFromModalToSearchBox = () => {
             if (isUpdating) return;
             isUpdating = true;
             const finalQuery = buildQueryStringFromModal();
-            const searchInput = document.querySelector('input[data-testid="SearchBox_Search_Input"]');
+            const searchInput = document.querySelector(searchInputSelector);
             if (searchInput) {
                 searchInput.value = finalQuery;
                 searchInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -419,10 +409,18 @@
             isUpdating = false;
         };
 
+        const syncFromSearchBoxToModal = () => {
+            if (isUpdating || modal.style.display === 'none') return;
+            const searchInput = document.querySelector(searchInputSelector);
+            if (searchInput) {
+                parseQueryAndApplyToModal(searchInput.value);
+            }
+        };
+
         const executeSearch = () => {
             const finalQuery = buildQueryStringFromModal();
             if (!finalQuery.trim()) return;
-            const searchInput = document.querySelector('input[data-testid="SearchBox_Search_Input"]');
+            const searchInput = document.querySelector(searchInputSelector);
             if (searchInput) {
                 searchInput.value = finalQuery;
                 searchInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -446,10 +444,9 @@
             });
             document.addEventListener('mousemove', e => {
                 if (!isDragging) return;
-                modal.style.right = 'auto'; // 'right'を無効化して'left'で制御
+                modal.style.right = 'auto';
                 let newX = e.clientX - offset.x;
                 let newY = e.clientY - offset.y;
-                // 画面外に出ないように制限
                 newX = Math.max(0, Math.min(newX, window.innerWidth - modal.offsetWidth));
                 newY = Math.max(0, Math.min(newY, window.innerHeight - modal.offsetHeight));
                 modal.style.left = `${newX}px`;
@@ -469,17 +466,14 @@
             const isVisible = modal.style.display === 'flex';
             modal.style.display = isVisible ? 'none' : 'flex';
             if (!isVisible) {
-                const searchInput = document.querySelector('input[data-testid="SearchBox_Search_Input"]');
-                if(searchInput && searchInput.value) {
-                    parseQueryAndApplyToModal(searchInput.value);
-                }
+                syncFromSearchBoxToModal();
             }
             saveState();
         });
         closeButton.addEventListener('click', () => { modal.style.display = 'none'; saveState(); });
-        clearButton.addEventListener('click', () => { form.reset(); syncToSearchBox(); });
+        clearButton.addEventListener('click', () => { form.reset(); syncFromModalToSearchBox(); });
         applyButton.addEventListener('click', executeSearch);
-        form.addEventListener('input', syncToSearchBox);
+        form.addEventListener('input', syncFromModalToSearchBox);
         form.addEventListener('keydown', e => {
             if (e.key === 'Enter' && e.target.matches('input[type="text"], input[type="number"]')) {
                 e.preventDefault();
@@ -488,21 +482,68 @@
         });
         setupDrag();
 
-        // 5.8. MutationObserverでX.comの動的なUI変化に対応
-        const observer = new MutationObserver(() => {
-            const searchInput = document.querySelector('input[data-testid="SearchBox_Search_Input"]');
-            if (searchInput && !searchInput.dataset.advSearchAttached) {
-                searchInput.dataset.advSearchAttached = 'true';
-                searchInput.addEventListener('input', () => parseQueryAndApplyToModal(searchInput.value));
-                if (searchInput.value) {
-                    parseQueryAndApplyToModal(searchInput.value);
-                }
-            }
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
+        // 5.8. 変更監視ロジックの強化
+        const observeURLChanges = (callback) => {
+            let lastUrl = location.href;
+            const debouncedCallback = (() => {
+                let timeout;
+                return () => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(callback, 100); // 100msのデバウンス
+                };
+            })();
 
-        // 5.9. 初期状態のロード
+            const checkURL = () => {
+                 requestAnimationFrame(() => {
+                    const currentUrl = location.href;
+                    if (currentUrl !== lastUrl) {
+                        lastUrl = currentUrl;
+                        debouncedCallback();
+                    }
+                });
+            };
+
+            ['pushState', 'replaceState'].forEach(method => {
+                const original = history[method];
+                history[method] = function() {
+                    const result = original.apply(this, arguments);
+                    checkURL();
+                    return result;
+                };
+            });
+
+            window.addEventListener('popstate', checkURL);
+            new MutationObserver(checkURL).observe(document.querySelector('title'), {childList: true});
+        };
+
+        const setupObservers = () => {
+            const attachInputListener = (inputElement) => {
+                if (inputElement.dataset.advSearchAttached) return;
+                inputElement.dataset.advSearchAttached = 'true';
+                inputElement.addEventListener('input', () => {
+                    syncFromSearchBoxToModal();
+                });
+            };
+
+            const domObserver = new MutationObserver(() => {
+                const searchInput = document.querySelector(searchInputSelector);
+                if (searchInput) {
+                    attachInputListener(searchInput);
+                    syncFromSearchBoxToModal();
+                }
+            });
+            domObserver.observe(document.body, { childList: true, subtree: true });
+
+            observeURLChanges(() => {
+                syncFromSearchBoxToModal();
+            });
+        };
+
+        // 5.9. 初期化
         loadState();
+        setupObservers();
+
+        setTimeout(syncFromSearchBoxToModal, 1000); // 初期読み込み時の同期
     };
 
     // --- 6. スクリプトの実行 ---
