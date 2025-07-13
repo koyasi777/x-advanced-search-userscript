@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      2.3.3
+// @version      3.1.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state.
@@ -39,153 +39,89 @@
     // --- 1. 国際化 (i18n) モジュール ---
     const i18n = {
         translations: {
-            'en': {
-                modalTitle: "Advanced Search", tooltipClose: "Close",
-                labelAllWords: "All of these words", placeholderAllWords: "e.g., AI news",
-                labelExactPhrase: "This exact phrase", placeholderExactPhrase: 'e.g., "ChatGPT 4o"',
-                labelAnyWords: "Any of these words (OR)", placeholderAnyWords: "e.g., iPhone Android",
-                labelNotWords: "None of these words (-)", placeholderNotWords: "e.g., -sale -ads",
-                labelHashtag: "Hashtags (#)", placeholderHashtag: "e.g., #TechEvent",
-                labelLang: "Language (lang:)",
-                optLangDefault: "Any language", optLangJa: "Japanese (ja)", optLangEn: "English (en)",
-                hrSeparator: " ",
-                labelFilters: "Filters",
-                labelVerified: "Verified accounts", labelLinks: "Links", labelImages: "Images", labelVideos: "Videos",
-                checkInclude: "Include", checkExclude: "Exclude",
-                labelReplies: "Replies",
-                optRepliesDefault: "Default (Show all)", optRepliesInclude: "Include replies", optRepliesOnly: "Replies only", optRepliesExclude: "Exclude replies",
-                labelEngagement: "Engagement",
-                placeholderMinReplies: "Min replies", placeholderMinLikes: "Min likes", placeholderMinRetweets: "Min retweets",
-                labelDateRange: "Date range",
-                tooltipSince: "From this date", tooltipUntil: "Until this date",
-                labelFromUser: "From these accounts (from:)", placeholderFromUser: "e.g., @X user2",
-                labelToUser: "To these accounts (to:)", placeholderToUser: "e.g., @google",
-                labelMentioning: "Mentioning these accounts (@)", placeholderMentioning: "e.g., @OpenAI",
-                buttonClear: "Clear", buttonApply: "Search",
-                tooltipTrigger: "Open Advanced Search"
-            },
-            'ja': {
-                modalTitle: "高度な検索", tooltipClose: "閉じる",
-                labelAllWords: "すべての語句を含む", placeholderAllWords: "例: AI ニュース",
-                labelExactPhrase: "この語句を完全に含む", placeholderExactPhrase: '例: "ChatGPT 4o"',
-                labelAnyWords: "いずれかの語句を含む (OR)", placeholderAnyWords: "例: iPhone Android",
-                labelNotWords: "含まない語句 (-)", placeholderNotWords: "例: -セール -広告",
-                labelHashtag: "ハッシュタグ (#)", placeholderHashtag: "例: #技術書典",
-                labelLang: "言語 (lang:)",
-                optLangDefault: "指定しない", optLangJa: "日本語 (ja)", optLangEn: "英語 (en)",
-                hrSeparator: " ",
-                labelFilters: "フィルター",
-                labelVerified: "認証済みアカウント", labelLinks: "リンク", labelImages: "画像", labelVideos: "動画",
-                checkInclude: "含む", checkExclude: "含まない",
-                labelReplies: "返信",
-                optRepliesDefault: "指定しない", optRepliesInclude: "返信を含める", optRepliesOnly: "返信のみ", optRepliesExclude: "返信を除外",
-                labelEngagement: "エンゲージメント",
-                placeholderMinReplies: "最小返信数", placeholderMinLikes: "最小いいね数", placeholderMinRetweets: "最小リポスト数",
-                labelDateRange: "期間指定",
-                tooltipSince: "この日以降", tooltipUntil: "この日以前",
-                labelFromUser: "このアカウントから (from:)", placeholderFromUser: "例: @X user2",
-                labelToUser: "このアカウントへ (to:)", placeholderToUser: "例: @google",
-                labelMentioning: "このアカウントへのメンション (@)", placeholderMentioning: "例: @OpenAI",
-                buttonClear: "クリア", buttonApply: "検索実行",
-                tooltipTrigger: "高度な検索を開く"
-            },
-            'zh-CN': {
-                modalTitle: "高级搜索", tooltipClose: "关闭",
-                labelAllWords: "包含所有这些词语", placeholderAllWords: "例如：AI 新闻",
-                labelExactPhrase: "包含此完整短语", placeholderExactPhrase: "例如：\"ChatGPT 4o\"",
-                labelAnyWords: "包含这些词语中的任何一个 (OR)", placeholderAnyWords: "例如：iPhone Android",
-                labelNotWords: "不包含这些词语 (-)", placeholderNotWords: "例如：-促销 -广告",
-                labelHashtag: "话题标签 (#)", placeholderHashtag: "例如：#技术活动",
-                labelLang: "语言 (lang:)",
-                optLangDefault: "任何语言", optLangJa: "日语 (ja)", optLangEn: "英语 (en)",
-                labelFilters: "筛选",
-                labelVerified: "认证账户", labelLinks: "链接", labelImages: "图片", labelVideos: "视频",
-                checkInclude: "包括", checkExclude: "排除",
-                labelReplies: "回复",
-                optRepliesDefault: "默认 (显示全部)", optRepliesInclude: "包括回复", optRepliesOnly: "仅回复", optRepliesExclude: "排除回复",
-                labelEngagement: "互动",
-                placeholderMinReplies: "最少回复", placeholderMinLikes: "最少喜欢", placeholderMinRetweets: "最少转推",
-                labelDateRange: "日期范围",
-                tooltipSince: "从此日期", tooltipUntil: "至此日期",
-                labelFromUser: "来自这些账户 (from:)", placeholderFromUser: "例如：@X user2",
-                labelToUser: "发往这些账户 (to:)", placeholderToUser: "例如：@google",
-                labelMentioning: "提及这些账户 (@)", placeholderMentioning: "例如：@OpenAI",
-                buttonClear: "清除", buttonApply: "搜索",
-                tooltipTrigger: "打开高级搜索"
-            },
-            'ko': {
-                modalTitle: "고급 검색", tooltipClose: "닫기",
-                labelAllWords: "다음 단어 모두 포함", placeholderAllWords: "예: AI 뉴스",
-                labelExactPhrase: "정확히 일치하는 문구", placeholderExactPhrase: "예: \"ChatGPT 4o\"",
-                labelAnyWords: "다음 단어 중 하나라도 포함 (OR)", placeholderAnyWords: "예: iPhone Android",
-                labelNotWords: "다음 단어 제외 (-)", placeholderNotWords: "예: -세일 -광고",
-                labelHashtag: "해시태그 (#)", placeholderHashtag: "예: #기술이벤트",
-                labelLang: "언어 (lang:)",
-                optLangDefault: "모든 언어", optLangJa: "일본어 (ja)", optLangEn: "영어 (en)",
-                labelFilters: "필터",
-                labelVerified: "인증된 계정", labelLinks: "링크", labelImages: "이미지", labelVideos: "동영상",
-                checkInclude: "포함", checkExclude: "제외",
-                labelReplies: "답글",
-                optRepliesDefault: "기본 (모두 표시)", optRepliesInclude: "답글 포함", optRepliesOnly: "답글만", optRepliesExclude: "답글 제외",
-                labelEngagement: "참여",
-                placeholderMinReplies: "최소 답글 수", placeholderMinLikes: "최소 좋아요 수", placeholderMinRetweets: "최소 리트윗 수",
-                labelDateRange: "날짜 범위",
-                tooltipSince: "이 날짜부터", tooltipUntil: "이 날짜까지",
-                labelFromUser: "이 계정에서 보낸 트윗 (from:)", placeholderFromUser: "예: @X user2",
-                labelToUser: "이 계정으로 보낸 트윗 (to:)", placeholderToUser: "예: @google",
-                labelMentioning: "이 계정을 맨션 (@)", placeholderMentioning: "예: @OpenAI",
-                buttonClear: "지우기", buttonApply: "검색",
-                tooltipTrigger: "고급 검색 열기"
-            },
+            'en': { modalTitle: "Advanced Search", tooltipClose: "Close", labelAllWords: "All of these words", placeholderAllWords: "e.g., AI news", labelExactPhrase: "This exact phrase", placeholderExactPhrase: 'e.g., "ChatGPT 4o"', labelAnyWords: "Any of these words (OR)", placeholderAnyWords: "e.g., iPhone Android", labelNotWords: "None of these words (-)", placeholderNotWords: "e.g., -sale -ads", labelHashtag: "Hashtags (#)", placeholderHashtag: "e.g., #TechEvent", labelLang: "Language (lang:)", optLangDefault: "Any language", optLangJa: "Japanese (ja)", optLangEn: "English (en)", hrSeparator: " ", labelFilters: "Filters", labelVerified: "Verified accounts", labelLinks: "Links", labelImages: "Images", labelVideos: "Videos", checkInclude: "Include", checkExclude: "Exclude", labelReplies: "Replies", optRepliesDefault: "Default (Show all)", optRepliesInclude: "Include replies", optRepliesOnly: "Replies only", optRepliesExclude: "Exclude replies", labelEngagement: "Engagement", placeholderMinReplies: "Min replies", placeholderMinLikes: "Min likes", placeholderMinRetweets: "Min retweets", labelDateRange: "Date range", tooltipSince: "From this date", tooltipUntil: "Until this date", labelFromUser: "From these accounts (from:)", placeholderFromUser: "e.g., @X", labelToUser: "To these accounts (to:)", placeholderToUser: "e.g., @google", labelMentioning: "Mentioning these accounts (@)", placeholderMentioning: "e.g., @OpenAI", buttonClear: "Clear", buttonApply: "Search", tooltipTrigger: "Open Advanced Search" },
+            'ja': { modalTitle: "高度な検索", tooltipClose: "閉じる", labelAllWords: "すべての語句を含む", placeholderAllWords: "例: AI ニュース", labelExactPhrase: "この語句を完全に含む", placeholderExactPhrase: '例: "ChatGPT 4o"', labelAnyWords: "いずれかの語句を含む (OR)", placeholderAnyWords: "例: iPhone Android", labelNotWords: "含まない語句 (-)", placeholderNotWords: "例: -セール -広告", labelHashtag: "ハッシュタグ (#)", placeholderHashtag: "例: #技術書典", labelLang: "言語 (lang:)", optLangDefault: "指定しない", optLangJa: "日本語 (ja)", optLangEn: "英語 (en)", hrSeparator: " ", labelFilters: "フィルター", labelVerified: "認証済みアカウント", labelLinks: "リンク", labelImages: "画像", labelVideos: "動画", checkInclude: "含む", checkExclude: "含まない", labelReplies: "返信", optRepliesDefault: "指定しない", optRepliesInclude: "返信を含める", optRepliesOnly: "返信のみ", optRepliesExclude: "返信を除外", labelEngagement: "エンゲージメント", placeholderMinReplies: "最小返信数", placeholderMinLikes: "最小いいね数", placeholderMinRetweets: "最小リポスト数", labelDateRange: "期間指定", tooltipSince: "この日以降", tooltipUntil: "この日以前", labelFromUser: "このアカウントから (from:)", placeholderFromUser: "例: @X", labelToUser: "このアカウントへ (to:)", placeholderToUser: "例: @google", labelMentioning: "このアカウントへのメンション (@)", placeholderMentioning: "例: @OpenAI", buttonClear: "クリア", buttonApply: "検索実行", tooltipTrigger: "高度な検索を開く" },
+            'zh-CN': { modalTitle: "高级搜索", tooltipClose: "关闭", labelAllWords: "包含所有这些词语", placeholderAllWords: "例如：AI 新闻", labelExactPhrase: "包含此完整短语", placeholderExactPhrase: "例如：\"ChatGPT 4o\"", labelAnyWords: "包含这些词语中的任何一个 (OR)", placeholderAnyWords: "例如：iPhone Android", labelNotWords: "不包含这些词语 (-)", placeholderNotWords: "例如：-促销 -广告", labelHashtag: "话题标签 (#)", placeholderHashtag: "例如：#技术活动", labelLang: "语言 (lang:)", optLangDefault: "任何语言", optLangJa: "日语 (ja)", optLangEn: "英语 (en)", labelFilters: "筛选", labelVerified: "认证账户", labelLinks: "链接", labelImages: "图片", labelVideos: "视频", checkInclude: "包括", checkExclude: "排除", labelReplies: "回复", optRepliesDefault: "默认 (显示全部)", optRepliesInclude: "包括回复", optRepliesOnly: "仅回复", optRepliesExclude: "排除回复", labelEngagement: "互动", placeholderMinReplies: "最少回复", placeholderMinLikes: "最少喜欢", placeholderMinRetweets: "最少转推", labelDateRange: "日期范围", tooltipSince: "从此日期", tooltipUntil: "至此日期", labelFromUser: "来自这些账户 (from:)", placeholderFromUser: "例如：@X", labelToUser: "发往这些账户 (to:)", placeholderToUser: "例如：@google", labelMentioning: "提及这些账户 (@)", placeholderMentioning: "例如：@OpenAI", buttonClear: "清除", buttonApply: "搜索", tooltipTrigger: "打开高级搜索" },
+            'ko': { modalTitle: "고급 검색", tooltipClose: "닫기", labelAllWords: "다음 단어 모두 포함", placeholderAllWords: "예: AI 뉴스", labelExactPhrase: "정확히 일치하는 문구", placeholderExactPhrase: "예: \"ChatGPT 4o\"", labelAnyWords: "다음 단어 중 하나라도 포함 (OR)", placeholderAnyWords: "예: iPhone Android", labelNotWords: "다음 단어 제외 (-)", placeholderNotWords: "예: -세일 -광고", labelHashtag: "해시태그 (#)", placeholderHashtag: "예: #기술이벤트", labelLang: "언어 (lang:)", optLangDefault: "모든 언어", optLangJa: "일본어 (ja)", optLangEn: "영어 (en)", labelFilters: "필터", labelVerified: "인증된 계정", labelLinks: "링크", labelImages: "이미지", labelVideos: "동영상", checkInclude: "포함", checkExclude: "제외", labelReplies: "답글", optRepliesDefault: "기본 (모두 표시)", optRepliesInclude: "답글 포함", optRepliesOnly: "답글만", optRepliesExclude: "답글 제외", labelEngagement: "참여", placeholderMinReplies: "최소 답글 수", placeholderMinLikes: "최소 좋아요 수", placeholderMinRetweets: "최소 리트윗 수", labelDateRange: "날짜 범위", tooltipSince: "이 날짜부터", tooltipUntil: "이 날짜까지", labelFromUser: "이 계정에서 보낸 트윗 (from:)", placeholderFromUser: "예: @X", labelToUser: "이 계정으로 보낸 트윗 (to:)", placeholderToUser: "예: @google", labelMentioning: "이 계정을 맨션 (@)", placeholderMentioning: "예: @OpenAI", buttonClear: "지우기", buttonApply: "검색", tooltipTrigger: "고급 검색 열기" }
         },
         lang: 'en',
         init: function() {
             const supportedLangs = Object.keys(this.translations);
             let detectedLang = document.documentElement.lang || navigator.language || 'en';
-            if (supportedLangs.includes(detectedLang)) {
-                this.lang = detectedLang;
-                return;
-            }
+            if (supportedLangs.includes(detectedLang)) { this.lang = detectedLang; return; }
             const baseLang = detectedLang.split('-')[0];
-            if (supportedLangs.includes(baseLang)) {
-                this.lang = baseLang;
-                return;
-            }
+            if (supportedLangs.includes(baseLang)) { this.lang = baseLang; return; }
             this.lang = 'en';
         },
-        t: function(key) {
-            return this.translations[this.lang]?.[key] || this.translations['en'][key] || `[${key}]`;
-        },
+        t: function(key) { return this.translations[this.lang]?.[key] || this.translations['en'][key] || `[${key}]`; },
         apply: function(container) {
-            container.querySelectorAll('[data-i18n]').forEach(el => {
-                el.textContent = this.t(el.dataset.i18n);
-            });
-            container.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                el.placeholder = this.t(el.dataset.i18nPlaceholder);
-            });
-            container.querySelectorAll('[data-i18n-title]').forEach(el => {
-                el.title = this.t(el.dataset.i18nTitle);
-            });
+            container.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = this.t(el.dataset.i18n); });
+            container.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = this.t(el.dataset.i18nPlaceholder); });
+            container.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = this.t(el.dataset.i18nTitle); });
         }
     };
 
-    // --- 2. グローバル変数と状態管理 ---
+    // --- ★★★ 新機能: テーマ管理モジュール ★★★ ---
+    const themeManager = {
+        colors: {
+            light: {
+                '--modal-bg': '#ffffff', '--modal-text-primary': '#0f1419', '--modal-text-secondary': '#536471', '--modal-border': '#d9e1e8',
+                '--modal-input-bg': '#eff3f4', '--modal-input-border': '#cfd9de', '--modal-button-hover-bg': 'rgba(15, 20, 25, 0.1)',
+                '--modal-scrollbar-thumb': '#aab8c2', '--modal-scrollbar-track': '#eff3f4', '--modal-close-color': '#0f1419',
+                '--modal-close-hover-bg': 'rgba(15, 20, 25, 0.1)', '--hr-color': '#eff3f4',
+            },
+            dim: {
+                '--modal-bg': '#15202b', '--modal-text-primary': '#f7f9f9', '--modal-text-secondary': '#8899a6', '--modal-border': '#38444d',
+                '--modal-input-bg': '#192734', '--modal-input-border': '#38444d', '--modal-button-hover-bg': 'rgba(247, 249, 249, 0.1)',
+                '--modal-scrollbar-thumb': '#536471', '--modal-scrollbar-track': '#192734', '--modal-close-color': '#f7f9f9',
+                '--modal-close-hover-bg': 'rgba(247, 249, 249, 0.1)', '--hr-color': '#38444d',
+            },
+            dark: {
+                '--modal-bg': '#000000', '--modal-text-primary': '#e7e9ea', '--modal-text-secondary': '#71767b', '--modal-border': '#2f3336',
+                '--modal-input-bg': '#16181c', '--modal-input-border': '#54595d', '--modal-button-hover-bg': 'rgba(231, 233, 234, 0.1)',
+                '--modal-scrollbar-thumb': '#536471', '--modal-scrollbar-track': '#16181c', '--modal-close-color': '#e7e9ea',
+                '--modal-close-hover-bg': 'rgba(231, 233, 234, 0.1)', '--hr-color': '#2f3336',
+            }
+        },
+        applyTheme: function(modalElement) {
+            if (!modalElement) return;
+            const bodyBg = getComputedStyle(document.body).backgroundColor;
+            let theme = 'dark';
+            if (bodyBg === 'rgb(21, 32, 43)') theme = 'dim';
+            else if (bodyBg === 'rgb(255, 255, 255)') theme = 'light';
+            const themeColors = this.colors[theme] || this.colors.dark;
+            for (const [key, value] of Object.entries(themeColors)) {
+                modalElement.style.setProperty(key, value);
+            }
+        },
+        observeChanges: function(modalElement) {
+            const observer = new MutationObserver(() => this.applyTheme(modalElement));
+            observer.observe(document.body, { attributes: true, attributeFilter: ['style'] });
+            this.applyTheme(modalElement);
+        }
+    };
+
+    // --- グローバル変数と状態管理 ---
     let isUpdating = false;
 
-    // --- 3. スタイルの定義 ---
+    // --- スタイルの定義 (CSS変数を使用) ---
     GM_addStyle(`
-        #advanced-search-trigger { position: fixed; top: 18px; right: 20px; z-index: 9999; background-color: #1D9BF0; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease-in-out; }
-        #advanced-search-trigger:hover { transform: scale(1.1); }
-        #advanced-search-modal { position: fixed; z-index: 10000; width: 380px; max-height: 80vh; background-color: black; border: 1px solid #333; border-radius: 16px; box-shadow: 0 8px 24px rgba(29, 155, 240, 0.2); display: none; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #E7E9EA; }
-        .adv-modal-header{padding:12px 16px;border-bottom:1px solid #333;cursor:move;display:flex;justify-content:space-between;align-items:center}.adv-modal-header h2{margin:0;font-size:18px;font-weight:700}.adv-modal-close{background:0 0;border:none;color:#e7e9ea;font-size:24px;cursor:pointer}.adv-modal-body{flex:1;overflow-y:auto;padding:16px}.adv-form-group{margin-bottom:16px}.adv-form-group label{display:block;margin-bottom:6px;font-size:14px;font-weight:700;color:#8b98a5}.adv-form-group input[type=text],.adv-form-group input[type=number],.adv-form-group input[type=date],.adv-form-group select{width:100%;background-color:#202327;border:1px solid #38444d;border-radius:4px;padding:8px 12px;color:#e7e9ea;font-size:15px;box-sizing:border-box}.adv-form-group input:focus{outline:0;border-color:#1d9bf0}.adv-form-group input::-moz-placeholder{color:#536471}.adv-form-group input::placeholder{color:#536471}.adv-form-group-date-container{display:flex;gap:10px}.adv-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.adv-checkbox-group{background-color:#202327;border:1px solid #38444d;border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}.adv-checkbox-group span{font-weight:700;font-size:14px;color:#e7e9ea}.adv-checkbox-item{display:flex;align-items:center}.adv-checkbox-item input{margin-right:8px}.adv-checkbox-item label{color:#8b98a5;margin-bottom:0}.adv-modal-footer{padding:12px 16px;border-top:1px solid #333;display:flex;justify-content:flex-end;gap:12px}.adv-modal-button{padding:8px 16px;border-radius:9999px;border:1px solid #536471;background-color:transparent;color:#e7e9ea;font-weight:700;cursor:pointer;transition:background-color .2s}.adv-modal-button.primary{background-color:#1d9bf0;border-color:#1d9bf0;color:#fff}.adv-modal-button:hover{background-color:rgba(231,233,234,.1)}.adv-modal-button.primary:hover{background-color:#1a8cd8}.adv-modal-body::-webkit-scrollbar{width:8px}.adv-modal-body::-webkit-scrollbar-track{background:#202327}.adv-modal-body::-webkit-scrollbar-thumb{background:#536471;border-radius:4px}body.adv-dragging{-webkit-user-select:none;moz-user-select:none;user-select:none}
+        :root {
+            --modal-primary-color: #1d9bf0; --modal-primary-color-hover: #1a8cd8; --modal-primary-text-color: #ffffff;
+        }
+        #advanced-search-trigger { position: fixed; top: 18px; right: 20px; z-index: 9999; background-color: var(--modal-primary-color); color: var(--modal-primary-text-color); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease-in-out, background-color 0.2s; }
+        #advanced-search-trigger:hover { transform: scale(1.1); background-color: var(--modal-primary-color-hover); }
+        #advanced-search-modal { position: fixed; z-index: 10000; width: 380px; max-height: 80vh; display: none; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--modal-bg, black); color: var(--modal-text-primary, #e7e9ea); border: 1px solid var(--modal-border, #333); border-radius: 16px; box-shadow: 0 8px 24px rgba(29, 155, 240, 0.2); transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
+        .adv-modal-header{padding:12px 16px;border-bottom:1px solid var(--modal-border, #333);cursor:move;display:flex;justify-content:space-between;align-items:center}.adv-modal-header h2{margin:0;font-size:18px;font-weight:700}.adv-modal-close{background:0 0;border:none;color:var(--modal-close-color, #e7e9ea);font-size:24px;cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s;}.adv-modal-close:hover{background-color: var(--modal-close-hover-bg, rgba(231,233,234,.1));}.adv-modal-body{flex:1;overflow-y:auto;padding:16px}.adv-form-group{margin-bottom:16px}.adv-form-group label{display:block;margin-bottom:6px;font-size:14px;font-weight:700;color:var(--modal-text-secondary, #8b98a5)}.adv-form-group input[type=text],.adv-form-group input[type=number],.adv-form-group input[type=date],.adv-form-group select{width:100%;background-color:var(--modal-input-bg, #202327);border:1px solid var(--modal-input-border, #38444d);border-radius:4px;padding:8px 12px;color:var(--modal-text-primary, #e7e9ea);font-size:15px;box-sizing:border-box}.adv-form-group input:focus,.adv-form-group select:focus{outline:0;border-color:var(--modal-primary-color)}.adv-form-group input::-moz-placeholder{color:var(--modal-text-secondary, #536471)}.adv-form-group input::placeholder{color:var(--modal-text-secondary, #536471)}.adv-form-group-date-container{display:flex;gap:10px}.adv-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.adv-checkbox-group{background-color:var(--modal-input-bg, #202327);border:1px solid var(--modal-input-border, #38444d);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}.adv-checkbox-group span{font-weight:700;font-size:14px;color:var(--modal-text-primary, #e7e9ea)}.adv-checkbox-item{display:flex;align-items:center}.adv-checkbox-item input{margin-right:8px; accent-color: var(--modal-primary-color);}.adv-checkbox-item label{color:var(--modal-text-secondary, #8b98a5);margin-bottom:0}.adv-modal-footer{padding:12px 16px;border-top:1px solid var(--modal-border, #333);display:flex;justify-content:flex-end;gap:12px}.adv-modal-button{padding:8px 16px;border-radius:9999px;border:1px solid var(--modal-text-secondary, #536471);background-color:transparent;color:var(--modal-text-primary, #e7e9ea);font-weight:700;cursor:pointer;transition:background-color .2s}.adv-modal-button:hover{background-color: var(--modal-button-hover-bg, rgba(231,233,234,.1));}.adv-modal-button.primary{background-color:var(--modal-primary-color);border-color:var(--modal-primary-color);color:var(--modal-primary-text-color)}.adv-modal-button.primary:hover{background-color:var(--modal-primary-color-hover)}.adv-modal-body::-webkit-scrollbar{width:8px}.adv-modal-body::-webkit-scrollbar-track{background:var(--modal-scrollbar-track, #202327)}.adv-modal-body::-webkit-scrollbar-thumb{background:var(--modal-scrollbar-thumb, #536471);border-radius:4px}body.adv-dragging{-webkit-user-select:none;moz-user-select:none;user-select:none}
         .adv-account-label-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .adv-account-label-group label { margin-bottom: 0; }
         .adv-exclude-toggle { display: flex; align-items: center; }
         .adv-exclude-toggle input { margin-right: 4px; }
-        .adv-exclude-toggle label { font-size: 13px; font-weight: normal; color: #8b98a5; cursor: pointer; }
+        .adv-exclude-toggle label { font-size: 13px; font-weight: normal; color: var(--modal-text-secondary, #8b98a5); cursor: pointer; }
+        hr.adv-separator { border: none; height: 1px; background-color: var(--hr-color, #333); margin: 20px 0; transition: background-color 0.2s; }
     `);
 
-    // --- 4. HTML構造の定義 ---
+    // --- HTML構造の定義 ---
     const modalHTML = `
         <div id="advanced-search-modal">
             <div class="adv-modal-header">
@@ -200,7 +136,7 @@
                     <div class="adv-form-group"><label for="adv-not-words" data-i18n="labelNotWords"></label><input type="text" id="adv-not-words" data-i18n-placeholder="placeholderNotWords"></div>
                     <div class="adv-form-group"><label for="adv-hashtag" data-i18n="labelHashtag"></label><input type="text" id="adv-hashtag" data-i18n-placeholder="placeholderHashtag"></div>
                     <div class="adv-form-group"><label for="adv-lang" data-i18n="labelLang"></label><select id="adv-lang"><option value="" data-i18n="optLangDefault"></option><option value="ja" data-i18n="optLangJa"></option><option value="en" data-i18n="optLangEn"></option></select></div>
-                    <hr style="border-color: #333; margin: 20px 0;" data-i18n="hrSeparator">
+                    <hr class="adv-separator">
                     <div class="adv-form-group">
                         <label data-i18n="labelFilters"></label>
                         <div class="adv-filter-grid">
@@ -211,7 +147,7 @@
                         </div>
                     </div>
                     <div class="adv-form-group"><label data-i18n="labelReplies"></label><select id="adv-replies"><option value="" data-i18n="optRepliesDefault"></option><option value="include" data-i18n="optRepliesInclude"></option><option value="only" data-i18n="optRepliesOnly"></option><option value="exclude" data-i18n="optRepliesExclude"></option></select></div>
-                    <hr style="border-color: #333; margin: 20px 0;" data-i18n="hrSeparator">
+                    <hr class="adv-separator">
                     <div class="adv-form-group">
                         <label data-i18n="labelEngagement"></label>
                         <div class="adv-filter-grid">
@@ -227,7 +163,7 @@
                             <input type="date" id="adv-until" data-i18n-title="tooltipUntil">
                         </div>
                     </div>
-                    <hr style="border-color: #333; margin: 20px 0;" data-i18n="hrSeparator">
+                    <hr class="adv-separator">
                     <div class="adv-form-group">
                         <div class="adv-account-label-group">
                             <label for="adv-from-user" data-i18n="labelFromUser"></label>
@@ -258,13 +194,6 @@
         </div>
     `;
 
-    /**
-     * 指定されたセレクタに一致する要素が表示されるまで待機し、Promiseを返す。
-     * @param {string} selector - CSSセレクタ
-     * @param {number} [timeout=10000] - タイムアウトまでのミリ秒
-     * @param {string | null} [checkProperty=null] - 存在を確認するプロパティ名 (例: 'value')
-     * @returns {Promise<Element|null>} 成功した場合は要素を、タイムアウトした場合はnullを返すPromise
-     */
     function waitForElement(selector, timeout = 10000, checkProperty = null) {
         return new Promise((resolve) => {
             const checkInterval = 100;
@@ -293,7 +222,7 @@
         });
     }
 
-    // --- 5. メインロジック ---
+    // --- メインロジック ---
     const initialize = async () => {
         i18n.init();
 
@@ -305,14 +234,17 @@
 
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = modalHTML;
-        i18n.apply(modalContainer);
         document.body.appendChild(modalContainer);
+        i18n.apply(modalContainer);
 
         const modal = document.getElementById('advanced-search-modal');
         const form = document.getElementById('advanced-search-form');
         const closeButton = modal.querySelector('.adv-modal-close');
         const clearButton = document.getElementById('adv-clear-button');
         const applyButton = document.getElementById('adv-apply-button');
+
+        // ★★★ 新機能の呼び出し ★★★
+        themeManager.observeChanges(modal);
 
         const searchInputSelectors = [
             'div[data-testid="primaryColumn"] input[data-testid="SearchBox_Search_Input"]',
@@ -333,7 +265,7 @@
             return null;
         };
 
-        const STATE_KEY = 'advSearchModalState_v2.2';
+        const STATE_KEY = 'advSearchModalState_v2.2'; // 元のキーを維持
         const loadState = () => {
             try {
                 const state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
@@ -414,6 +346,7 @@
             }
             return q.join(" ");
         };
+
         const parseQueryAndApplyToModal = (query) => {
             if (isUpdating) return;
             isUpdating = true;
@@ -462,6 +395,7 @@
                 while ((match = regex.exec(q)) !== null) {
                     callback(match[1].trim());
                     q = q.replace(match[0], ' ');
+                    regex.lastIndex = 0;
                 }
             };
 
@@ -483,16 +417,9 @@
                 });
             });
 
-            if (/\sinclude:replies\s/.test(q)) {
-                document.getElementById('adv-replies').value = 'include';
-                q = q.replace(/\sinclude:replies\s/, ' ');
-            } else if (/\sfilter:replies\s/.test(q)) {
-                document.getElementById('adv-replies').value = 'only';
-                q = q.replace(/\sfilter:replies\s/, ' ');
-            } else if (/\s-filter:replies\s/.test(q)) {
-                document.getElementById('adv-replies').value = 'exclude';
-                q = q.replace(/\s-filter:replies\s/, ' ');
-            }
+            if (/\sinclude:replies\s/.test(q)) { document.getElementById('adv-replies').value = 'include'; q = q.replace(/\sinclude:replies\s/, ' '); }
+            else if (/\sfilter:replies\s/.test(q)) { document.getElementById('adv-replies').value = 'only'; q = q.replace(/\sfilter:replies\s/, ' '); }
+            else if (/\s-filter:replies\s/.test(q)) { document.getElementById('adv-replies').value = 'exclude'; q = q.replace(/\s-filter:replies\s/, ' '); }
 
             const orGroups = q.match(/\(([^)]+)\)/g);
             if (orGroups) {
@@ -553,28 +480,20 @@
             document.addEventListener('mousemove', e => {
                 if (!isDragging) return;
                 modal.style.right = 'auto';
-                let newX = e.clientX - offset.x;
-                let newY = e.clientY - offset.y;
+                let newX = e.clientX - offset.x; let newY = e.clientY - offset.y;
                 newX = Math.max(0, Math.min(newX, window.innerWidth - modal.offsetWidth));
                 newY = Math.max(0, Math.min(newY, window.innerHeight - modal.offsetHeight));
-                modal.style.left = `${newX}px`;
-                modal.style.top = `${newY}px`;
+                modal.style.left = `${newX}px`; modal.style.top = `${newY}px`;
             });
             document.addEventListener('mouseup', () => {
-                if (isDragging) {
-                    isDragging = false;
-                    document.body.classList.remove('adv-dragging');
-                    saveState();
-                }
+                if (isDragging) { isDragging = false; document.body.classList.remove('adv-dragging'); saveState(); }
             });
         };
 
         trigger.addEventListener('click', () => {
             const isVisible = modal.style.display === 'flex';
             modal.style.display = isVisible ? 'none' : 'flex';
-            if (!isVisible) {
-                syncFromSearchBoxToModal();
-            }
+            if (!isVisible) { syncFromSearchBoxToModal(); }
             saveState();
         });
         closeButton.addEventListener('click', () => { modal.style.display = 'none'; saveState(); });
@@ -657,7 +576,7 @@
         })();
     };
 
-    // --- 6. スクリプトの実行 ---
+    // --- スクリプトの実行 ---
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initialize);
     } else {
