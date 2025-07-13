@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      3.1.0
+// @version      3.2.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state.
@@ -535,31 +535,51 @@
         };
 
         const setupObservers = () => {
-            const observer = new MutationObserver((mutations) => {
+            const observer = new MutationObserver((mutations) => {
+                // 変更の中に検索ボックスが含まれているかチェックするフラグ
+                let searchBoxChanged = false;
+
                 for (const mutation of mutations) {
-                    if (mutation.addedNodes.length) {
-                        syncFromSearchBoxToModal();
-                        break;
-                    }
-                }
-                const allSearchInputs = document.querySelectorAll('input[data-testid="SearchBox_Search_Input"]');
-                allSearchInputs.forEach(input => {
-                    if (!input.dataset.advSearchAttached) {
-                        input.dataset.advSearchAttached = 'true';
-                        input.addEventListener('input', () => {
-                            if (input === getActiveSearchInput()) {
-                                syncFromSearchBoxToModal();
+                    // 追加されたノードがある場合のみチェック
+                    if (mutation.addedNodes.length > 0) {
+                        for (const node of mutation.addedNodes) {
+                            // Elementノード以外（テキストノード等）は無視
+                            if (node.nodeType !== Node.ELEMENT_NODE) continue;
+
+                            // 追加されたノード自体、またはその子孫に検索ボックスが存在するかチェック
+                            if (node.matches('input[data-testid="SearchBox_Search_Input"]') || node.querySelector('input[data-testid="SearchBox_Search_Input"]')) {
+                                searchBoxChanged = true;
+                                break; // 検索ボックスを見つけたら内部ループを抜ける
                             }
-                        });
+                        }
                     }
-                });
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-            observeURLChanges(() => {
-                console.log('[X Adv Search] URL changed, re-syncing...');
-                syncFromSearchBoxToModal();
-            });
-        };
+                    if (searchBoxChanged) break; // 検索ボックスを見つけたら外部ループも抜ける
+                }
+
+                // 検索ボックスに関連する変更があった場合のみ同期処理を実行
+                if (searchBoxChanged) {
+                    // console.log('[X Adv Search] Search box detected in DOM change. Re-syncing.');
+                    syncFromSearchBoxToModal();
+                }
+
+                const allSearchInputs = document.querySelectorAll('input[data-testid="SearchBox_Search_Input"]');
+                allSearchInputs.forEach(input => {
+                    if (!input.dataset.advSearchAttached) {
+                        input.dataset.advSearchAttached = 'true';
+                        input.addEventListener('input', () => {
+                            if (input === getActiveSearchInput()) {
+                                syncFromSearchBoxToModal();
+                            }
+                        });
+                    }
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+            observeURLChanges(() => {
+                console.log('[X Adv Search] URL changed, re-syncing...');
+                syncFromSearchBoxToModal();
+            });
+        };
 
         loadState();
         setupObservers();
