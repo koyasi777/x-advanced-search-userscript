@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      2.3.0
+// @version      2.3.3
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state.
@@ -177,7 +177,6 @@
         #advanced-search-trigger:hover { transform: scale(1.1); }
         #advanced-search-modal { position: fixed; z-index: 10000; width: 380px; max-height: 80vh; background-color: black; border: 1px solid #333; border-radius: 16px; box-shadow: 0 8px 24px rgba(29, 155, 240, 0.2); display: none; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #E7E9EA; }
         .adv-modal-header{padding:12px 16px;border-bottom:1px solid #333;cursor:move;display:flex;justify-content:space-between;align-items:center}.adv-modal-header h2{margin:0;font-size:18px;font-weight:700}.adv-modal-close{background:0 0;border:none;color:#e7e9ea;font-size:24px;cursor:pointer}.adv-modal-body{flex:1;overflow-y:auto;padding:16px}.adv-form-group{margin-bottom:16px}.adv-form-group label{display:block;margin-bottom:6px;font-size:14px;font-weight:700;color:#8b98a5}.adv-form-group input[type=text],.adv-form-group input[type=number],.adv-form-group input[type=date],.adv-form-group select{width:100%;background-color:#202327;border:1px solid #38444d;border-radius:4px;padding:8px 12px;color:#e7e9ea;font-size:15px;box-sizing:border-box}.adv-form-group input:focus{outline:0;border-color:#1d9bf0}.adv-form-group input::-moz-placeholder{color:#536471}.adv-form-group input::placeholder{color:#536471}.adv-form-group-date-container{display:flex;gap:10px}.adv-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.adv-checkbox-group{background-color:#202327;border:1px solid #38444d;border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}.adv-checkbox-group span{font-weight:700;font-size:14px;color:#e7e9ea}.adv-checkbox-item{display:flex;align-items:center}.adv-checkbox-item input{margin-right:8px}.adv-checkbox-item label{color:#8b98a5;margin-bottom:0}.adv-modal-footer{padding:12px 16px;border-top:1px solid #333;display:flex;justify-content:flex-end;gap:12px}.adv-modal-button{padding:8px 16px;border-radius:9999px;border:1px solid #536471;background-color:transparent;color:#e7e9ea;font-weight:700;cursor:pointer;transition:background-color .2s}.adv-modal-button.primary{background-color:#1d9bf0;border-color:#1d9bf0;color:#fff}.adv-modal-button:hover{background-color:rgba(231,233,234,.1)}.adv-modal-button.primary:hover{background-color:#1a8cd8}.adv-modal-body::-webkit-scrollbar{width:8px}.adv-modal-body::-webkit-scrollbar-track{background:#202327}.adv-modal-body::-webkit-scrollbar-thumb{background:#536471;border-radius:4px}body.adv-dragging{-webkit-user-select:none;moz-user-select:none;user-select:none}
-        /* Added for user account fields */
         .adv-account-label-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .adv-account-label-group label { margin-bottom: 0; }
         .adv-exclude-toggle { display: flex; align-items: center; }
@@ -258,12 +257,45 @@
         </div>
     `;
 
+    /**
+     * 指定されたセレクタに一致する要素が表示されるまで待機し、Promiseを返す。
+     * @param {string} selector - CSSセレクタ
+     * @param {number} [timeout=10000] - タイムアウトまでのミリ秒
+     * @param {string | null} [checkProperty=null] - 存在を確認するプロパティ名 (例: 'value')
+     * @returns {Promise<Element|null>} 成功した場合は要素を、タイムアウトした場合はnullを返すPromise
+     */
+    function waitForElement(selector, timeout = 10000, checkProperty = null) {
+        return new Promise((resolve) => {
+            const checkInterval = 100;
+            let elapsedTime = 0;
+            const intervalId = setInterval(() => {
+                const element = document.querySelector(selector);
+                if (element) {
+                    if (checkProperty) {
+                        if (element[checkProperty]) {
+                            clearInterval(intervalId);
+                            resolve(element);
+                            return;
+                        }
+                    } else {
+                        clearInterval(intervalId);
+                        resolve(element);
+                        return;
+                    }
+                }
+                elapsedTime += checkInterval;
+                if (elapsedTime >= timeout) {
+                    clearInterval(intervalId);
+                    resolve(null);
+                }
+            }, checkInterval);
+        });
+    }
+
     // --- 5. メインロジック ---
-    const main = () => {
-        // 5.1. i18n初期化
+    const initialize = async () => {
         i18n.init();
 
-        // 5.2. UI要素の作成とDOMへの追加
         const trigger = document.createElement('button');
         trigger.id = 'advanced-search-trigger';
         trigger.innerHTML = '🔍';
@@ -275,16 +307,32 @@
         i18n.apply(modalContainer);
         document.body.appendChild(modalContainer);
 
-        // 5.3. DOM要素の参照を取得
         const modal = document.getElementById('advanced-search-modal');
         const form = document.getElementById('advanced-search-form');
         const closeButton = modal.querySelector('.adv-modal-close');
         const clearButton = document.getElementById('adv-clear-button');
         const applyButton = document.getElementById('adv-apply-button');
-        const searchInputSelector = 'input[data-testid="SearchBox_Search_Input"]';
 
-        // 5.4. 状態管理（永続化）ロジック
-        const STATE_KEY = 'advSearchModalState_v2.2'; // バージョンは必要に応じて更新
+        const searchInputSelectors = [
+            'div[data-testid="primaryColumn"] input[data-testid="SearchBox_Search_Input"]',
+            'div[data-testid="sidebarColumn"] input[data-testid="SearchBox_Search_Input"]'
+        ];
+
+        const getActiveSearchInput = () => {
+            for (const selector of searchInputSelectors) {
+                const input = document.querySelector(selector);
+                if (input && input.offsetParent !== null) {
+                    return input;
+                }
+            }
+            const fallbackInput = document.querySelector('input[data-testid="SearchBox_Search_Input"]');
+            if (fallbackInput && fallbackInput.offsetParent !== null) {
+                return fallbackInput;
+            }
+            return null;
+        };
+
+        const STATE_KEY = 'advSearchModalState_v2.2';
         const loadState = () => {
             try {
                 const state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
@@ -292,20 +340,13 @@
                 modal.style.top = state.top || '80px';
                 modal.style.right = state.left ? 'auto' : '20px';
                 if (state.visible) modal.style.display = 'flex';
-            } catch (e) {
-                console.error("Failed to load state for Advanced Search Modal:", e);
-            }
+            } catch (e) { console.error("Failed to load state:", e); }
         };
         const saveState = () => {
-            const state = {
-                left: modal.style.left,
-                top: modal.style.top,
-                visible: modal.style.display === 'flex'
-            };
+            const state = { left: modal.style.left, top: modal.style.top, visible: modal.style.display === 'flex' };
             localStorage.setItem(STATE_KEY, JSON.stringify(state));
         };
 
-        // 5.5. コア機能（クエリ生成・解析）
         const buildQueryStringFromModal = () => {
             const q = [];
             const fields = {
@@ -330,15 +371,11 @@
             if (fields.hash) q.push(...fields.hash.split(/\s+/).filter(Boolean).map(h => `#${h.replace(/^#/, "")}`));
             if (fields.lang) q.push(`lang:${fields.lang}`);
 
-            // アカウント関連フィールドのクエリ生成
             const createAccountQuery = (inputId, operator) => {
                 const value = document.getElementById(inputId).value.trim();
                 if (!value) return null;
-
                 const isExclude = document.getElementById(`${inputId}-exclude`).checked;
-                const isMention = operator === '@';
                 const terms = value.split(/\s+/).filter(Boolean);
-
                 if (isExclude) {
                     return terms.map(term => `-${operator}${term.replace(/^@/, '')}`).join(' ');
                 } else {
@@ -348,13 +385,10 @@
             };
             const fromQuery = createAccountQuery('adv-from-user', 'from:');
             if (fromQuery) q.push(fromQuery);
-
             const toQuery = createAccountQuery('adv-to-user', 'to:');
             if (toQuery) q.push(toQuery);
-
             const mentionQuery = createAccountQuery('adv-mentioning', '@');
             if (mentionQuery) q.push(mentionQuery);
-
 
             if (fields.min_replies) q.push(`min_replies:${fields.min_replies}`);
             if (fields.min_faves) q.push(`min_faves:${fields.min_faves}`);
@@ -379,20 +413,15 @@
             }
             return q.join(" ");
         };
-
         const parseQueryAndApplyToModal = (query) => {
             if (isUpdating) return;
             isUpdating = true;
             form.reset();
             let q = ` ${query} `;
 
-            // アカウント関連フィールドの解析
             const parseAccountField = (inputId, operator) => {
-                const isMention = operator === '@';
                 const exclOperator = `-${operator}`;
                 const values = [];
-
-                // 1. 除外クエリの解析 (-from:user, -@user)
                 const exclRegex = new RegExp(`\\s(${exclOperator.replace(/[-:]/g, '\\$&')}[^\\s()]+)`, 'g');
                 const exclMatches = [...q.matchAll(exclRegex)];
                 if (exclMatches.length > 0) {
@@ -402,11 +431,8 @@
                     });
                     document.getElementById(inputId).value = values.join(' ');
                     document.getElementById(`${inputId}-exclude`).checked = true;
-                    return; // 除外が見つかったらこのフィールドの解析は終了
+                    return;
                 }
-
-                // 2. 包含クエリの解析 ((from:userA OR from:userB), from:userC, @user)
-                // 2a. グループ化されたOR
                 const inclGroupRegex = new RegExp(`\\((${operator.replace(':', '\\:')}[^)]+)\\)`, 'g');
                 const groupMatches = [...q.matchAll(inclGroupRegex)];
                 groupMatches.forEach(match => {
@@ -415,27 +441,21 @@
                     terms.forEach(term => values.push(term.substring(operator.length)));
                     q = q.replace(match[0], ' ');
                 });
-
-                // 2b. 単独
                 const inclSingleRegex = new RegExp(`\\s(?!-)(${operator.replace(':', '\\:')}[^\\s()]+)`, 'g');
                 const singleMatches = [...q.matchAll(inclSingleRegex)];
                 singleMatches.forEach(match => {
                     values.push(match[1].substring(operator.length));
                     q = q.replace(match[0], ' ');
                 });
-
                 if (values.length > 0) {
                     document.getElementById(inputId).value = [...new Set(values)].join(' ');
                     document.getElementById(`${inputId}-exclude`).checked = false;
                 }
             };
-
             parseAccountField('adv-from-user', 'from:');
             parseAccountField('adv-to-user', 'to:');
             parseAccountField('adv-mentioning', '@');
 
-
-            // 汎用エクストラクタ
             const extract = (regex, callback) => {
                 let match;
                 while ((match = regex.exec(q)) !== null) {
@@ -453,9 +473,7 @@
             extract(/since:(\d{4}-\d{2}-\d{2})/g, val => document.getElementById('adv-since').value = val);
             extract(/until:(\d{4}-\d{2}-\d{2})/g, val => document.getElementById('adv-until').value = val);
 
-            const filterMap = {
-                'is:verified': 'verified', 'filter:links': 'links', 'filter:images': 'images', 'filter:videos': 'videos',
-            };
+            const filterMap = { 'is:verified': 'verified', 'filter:links': 'links', 'filter:images': 'images', 'filter:videos': 'videos' };
             Object.entries(filterMap).forEach(([op, id]) => {
                 const regex = new RegExp(`\\s(-?)${op.replace(':', '\\:')}\\s`, 'g');
                 q = q.replace(regex, (match, prefix) => {
@@ -484,18 +502,15 @@
 
             document.getElementById('adv-not-words').value = (q.match(/-\S+/g) || []).map(w => w.substring(1)).join(' ');
             q = q.replace(/-\S+/g, ' ');
-
             document.getElementById('adv-all-words').value = q.trim().split(/\s+/).filter(Boolean).join(' ');
             isUpdating = false;
         };
 
-
-        // 5.6. イベントハンドラと同期ロジック
         const syncFromModalToSearchBox = () => {
             if (isUpdating) return;
             isUpdating = true;
             const finalQuery = buildQueryStringFromModal();
-            const searchInput = document.querySelector(searchInputSelector);
+            const searchInput = getActiveSearchInput();
             if (searchInput) {
                 searchInput.value = finalQuery;
                 searchInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -505,16 +520,14 @@
 
         const syncFromSearchBoxToModal = () => {
             if (isUpdating || modal.style.display === 'none') return;
-            const searchInput = document.querySelector(searchInputSelector);
-            if (searchInput) {
-                parseQueryAndApplyToModal(searchInput.value);
-            }
+            const searchInput = getActiveSearchInput();
+            parseQueryAndApplyToModal(searchInput ? searchInput.value : '');
         };
 
         const executeSearch = () => {
             const finalQuery = buildQueryStringFromModal();
             if (!finalQuery.trim()) return;
-            const searchInput = document.querySelector(searchInputSelector);
+            const searchInput = getActiveSearchInput();
             if (searchInput) {
                 searchInput.value = finalQuery;
                 searchInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -555,7 +568,6 @@
             });
         };
 
-        // 5.7. イベントリスナーの設定
         trigger.addEventListener('click', () => {
             const isVisible = modal.style.display === 'flex';
             modal.style.display = isVisible ? 'none' : 'flex';
@@ -576,17 +588,12 @@
         });
         setupDrag();
 
-        // 5.8. 変更監視ロジックの強化
         const observeURLChanges = (callback) => {
             let lastUrl = location.href;
             const debouncedCallback = (() => {
                 let timeout;
-                return () => {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(callback, 100); // 100msのデバウンス
-                };
+                return () => { clearTimeout(timeout); timeout = setTimeout(callback, 250); };
             })();
-
             const checkURL = () => {
                 requestAnimationFrame(() => {
                     const currentUrl = location.href;
@@ -596,7 +603,6 @@
                     }
                 });
             };
-
             ['pushState', 'replaceState'].forEach(method => {
                 const original = history[method];
                 history[method] = function() {
@@ -605,45 +611,55 @@
                     return result;
                 };
             });
-
             window.addEventListener('popstate', checkURL);
-            new MutationObserver(checkURL).observe(document.querySelector('title'), {childList: true});
         };
 
         const setupObservers = () => {
-            const attachInputListener = (inputElement) => {
-                if (inputElement.dataset.advSearchAttached) return;
-                inputElement.dataset.advSearchAttached = 'true';
-                inputElement.addEventListener('input', () => {
-                    syncFromSearchBoxToModal();
-                });
-            };
-
-            const domObserver = new MutationObserver(() => {
-                const searchInput = document.querySelector(searchInputSelector);
-                if (searchInput) {
-                    attachInputListener(searchInput);
+            const observer = new MutationObserver((mutations) => {
+                for (const mutation of mutations) {
+                    if (mutation.addedNodes.length) {
+                        syncFromSearchBoxToModal();
+                        break;
+                    }
                 }
+                const allSearchInputs = document.querySelectorAll('input[data-testid="SearchBox_Search_Input"]');
+                allSearchInputs.forEach(input => {
+                    if (!input.dataset.advSearchAttached) {
+                        input.dataset.advSearchAttached = 'true';
+                        input.addEventListener('input', () => {
+                            if (input === getActiveSearchInput()) {
+                                syncFromSearchBoxToModal();
+                            }
+                        });
+                    }
+                });
             });
-            domObserver.observe(document.body, { childList: true, subtree: true });
-
+            observer.observe(document.body, { childList: true, subtree: true });
             observeURLChanges(() => {
-                // URL変更時に遅延させて同期することで、SPA遷移後の要素描画を待つ
-                setTimeout(syncFromSearchBoxToModal, 500);
+                console.log('[X Adv Search] URL changed, re-syncing...');
+                syncFromSearchBoxToModal();
             });
         };
 
-        // 5.9. 初期化
         loadState();
         setupObservers();
 
-        setTimeout(syncFromSearchBoxToModal, 1500); // 初期読み込み時の同期
+        (async () => {
+            console.log('[X Adv Search] Initial load, waiting for an active search input...');
+            const input = await waitForElement(searchInputSelectors.join(','), 7000);
+            if (input) {
+                console.log('[X Adv Search] Active search input found on load. Syncing.');
+                syncFromSearchBoxToModal();
+            } else {
+                console.log('[X Adv Search] No active search input found on initial load.');
+            }
+        })();
     };
 
     // --- 6. スクリプトの実行 ---
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', main);
+        document.addEventListener('DOMContentLoaded', initialize);
     } else {
-        main();
+        initialize();
     }
 })();
