@@ -25,6 +25,7 @@
 // @namespace    https://github.com/koyasi777/x-advanced-search-userscript
 // @author       koyasi777
 // @match        https://x.com/*
+// @match        https://twitter.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=x.com
 // @grant        GM_addStyle
 // @license      MIT
