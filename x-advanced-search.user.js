@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      2.1.0
+// @version      2.3.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state.
@@ -57,7 +57,7 @@
                 placeholderMinReplies: "Min replies", placeholderMinLikes: "Min likes", placeholderMinRetweets: "Min retweets",
                 labelDateRange: "Date range",
                 tooltipSince: "From this date", tooltipUntil: "Until this date",
-                labelFromUser: "From these accounts (from:)", placeholderFromUser: "e.g., @X",
+                labelFromUser: "From these accounts (from:)", placeholderFromUser: "e.g., @X user2",
                 labelToUser: "To these accounts (to:)", placeholderToUser: "e.g., @google",
                 labelMentioning: "Mentioning these accounts (@)", placeholderMentioning: "e.g., @OpenAI",
                 buttonClear: "Clear", buttonApply: "Search",
@@ -82,7 +82,7 @@
                 placeholderMinReplies: "最小返信数", placeholderMinLikes: "最小いいね数", placeholderMinRetweets: "最小リポスト数",
                 labelDateRange: "期間指定",
                 tooltipSince: "この日以降", tooltipUntil: "この日以前",
-                labelFromUser: "このアカウントから (from:)", placeholderFromUser: "例: @X",
+                labelFromUser: "このアカウントから (from:)", placeholderFromUser: "例: @X user2",
                 labelToUser: "このアカウントへ (to:)", placeholderToUser: "例: @google",
                 labelMentioning: "このアカウントへのメンション (@)", placeholderMentioning: "例: @OpenAI",
                 buttonClear: "クリア", buttonApply: "検索実行",
@@ -106,7 +106,7 @@
                 placeholderMinReplies: "最少回复", placeholderMinLikes: "最少喜欢", placeholderMinRetweets: "最少转推",
                 labelDateRange: "日期范围",
                 tooltipSince: "从此日期", tooltipUntil: "至此日期",
-                labelFromUser: "来自这些账户 (from:)", placeholderFromUser: "例如：@X",
+                labelFromUser: "来自这些账户 (from:)", placeholderFromUser: "例如：@X user2",
                 labelToUser: "发往这些账户 (to:)", placeholderToUser: "例如：@google",
                 labelMentioning: "提及这些账户 (@)", placeholderMentioning: "例如：@OpenAI",
                 buttonClear: "清除", buttonApply: "搜索",
@@ -130,7 +130,7 @@
                 placeholderMinReplies: "최소 답글 수", placeholderMinLikes: "최소 좋아요 수", placeholderMinRetweets: "최소 리트윗 수",
                 labelDateRange: "날짜 범위",
                 tooltipSince: "이 날짜부터", tooltipUntil: "이 날짜까지",
-                labelFromUser: "이 계정에서 보낸 트윗 (from:)", placeholderFromUser: "예: @X",
+                labelFromUser: "이 계정에서 보낸 트윗 (from:)", placeholderFromUser: "예: @X user2",
                 labelToUser: "이 계정으로 보낸 트윗 (to:)", placeholderToUser: "예: @google",
                 labelMentioning: "이 계정을 맨션 (@)", placeholderMentioning: "예: @OpenAI",
                 buttonClear: "지우기", buttonApply: "검색",
@@ -177,6 +177,12 @@
         #advanced-search-trigger:hover { transform: scale(1.1); }
         #advanced-search-modal { position: fixed; z-index: 10000; width: 380px; max-height: 80vh; background-color: black; border: 1px solid #333; border-radius: 16px; box-shadow: 0 8px 24px rgba(29, 155, 240, 0.2); display: none; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #E7E9EA; }
         .adv-modal-header{padding:12px 16px;border-bottom:1px solid #333;cursor:move;display:flex;justify-content:space-between;align-items:center}.adv-modal-header h2{margin:0;font-size:18px;font-weight:700}.adv-modal-close{background:0 0;border:none;color:#e7e9ea;font-size:24px;cursor:pointer}.adv-modal-body{flex:1;overflow-y:auto;padding:16px}.adv-form-group{margin-bottom:16px}.adv-form-group label{display:block;margin-bottom:6px;font-size:14px;font-weight:700;color:#8b98a5}.adv-form-group input[type=text],.adv-form-group input[type=number],.adv-form-group input[type=date],.adv-form-group select{width:100%;background-color:#202327;border:1px solid #38444d;border-radius:4px;padding:8px 12px;color:#e7e9ea;font-size:15px;box-sizing:border-box}.adv-form-group input:focus{outline:0;border-color:#1d9bf0}.adv-form-group input::-moz-placeholder{color:#536471}.adv-form-group input::placeholder{color:#536471}.adv-form-group-date-container{display:flex;gap:10px}.adv-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.adv-checkbox-group{background-color:#202327;border:1px solid #38444d;border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}.adv-checkbox-group span{font-weight:700;font-size:14px;color:#e7e9ea}.adv-checkbox-item{display:flex;align-items:center}.adv-checkbox-item input{margin-right:8px}.adv-checkbox-item label{color:#8b98a5;margin-bottom:0}.adv-modal-footer{padding:12px 16px;border-top:1px solid #333;display:flex;justify-content:flex-end;gap:12px}.adv-modal-button{padding:8px 16px;border-radius:9999px;border:1px solid #536471;background-color:transparent;color:#e7e9ea;font-weight:700;cursor:pointer;transition:background-color .2s}.adv-modal-button.primary{background-color:#1d9bf0;border-color:#1d9bf0;color:#fff}.adv-modal-button:hover{background-color:rgba(231,233,234,.1)}.adv-modal-button.primary:hover{background-color:#1a8cd8}.adv-modal-body::-webkit-scrollbar{width:8px}.adv-modal-body::-webkit-scrollbar-track{background:#202327}.adv-modal-body::-webkit-scrollbar-thumb{background:#536471;border-radius:4px}body.adv-dragging{-webkit-user-select:none;moz-user-select:none;user-select:none}
+        /* Added for user account fields */
+        .adv-account-label-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .adv-account-label-group label { margin-bottom: 0; }
+        .adv-exclude-toggle { display: flex; align-items: center; }
+        .adv-exclude-toggle input { margin-right: 4px; }
+        .adv-exclude-toggle label { font-size: 13px; font-weight: normal; color: #8b98a5; cursor: pointer; }
     `);
 
     // --- 4. HTML構造の定義 ---
@@ -222,9 +228,27 @@
                         </div>
                     </div>
                     <hr style="border-color: #333; margin: 20px 0;" data-i18n="hrSeparator">
-                    <div class="adv-form-group"><label for="adv-from-user" data-i18n="labelFromUser"></label><input type="text" id="adv-from-user" data-i18n-placeholder="placeholderFromUser"></div>
-                    <div class="adv-form-group"><label for="adv-to-user" data-i18n="labelToUser"></label><input type="text" id="adv-to-user" data-i18n-placeholder="placeholderToUser"></div>
-                    <div class="adv-form-group"><label for="adv-mentioning" data-i18n="labelMentioning"></label><input type="text" id="adv-mentioning" data-i18n-placeholder="placeholderMentioning"></div>
+                    <div class="adv-form-group">
+                        <div class="adv-account-label-group">
+                            <label for="adv-from-user" data-i18n="labelFromUser"></label>
+                            <div class="adv-exclude-toggle"><input type="checkbox" id="adv-from-user-exclude"><label for="adv-from-user-exclude" data-i18n="checkExclude"></label></div>
+                        </div>
+                        <input type="text" id="adv-from-user" data-i18n-placeholder="placeholderFromUser">
+                    </div>
+                    <div class="adv-form-group">
+                        <div class="adv-account-label-group">
+                            <label for="adv-to-user" data-i18n="labelToUser"></label>
+                            <div class="adv-exclude-toggle"><input type="checkbox" id="adv-to-user-exclude"><label for="adv-to-user-exclude" data-i18n="checkExclude"></label></div>
+                        </div>
+                        <input type="text" id="adv-to-user" data-i18n-placeholder="placeholderToUser">
+                    </div>
+                    <div class="adv-form-group">
+                        <div class="adv-account-label-group">
+                            <label for="adv-mentioning" data-i18n="labelMentioning"></label>
+                            <div class="adv-exclude-toggle"><input type="checkbox" id="adv-mentioning-exclude"><label for="adv-mentioning-exclude" data-i18n="checkExclude"></label></div>
+                        </div>
+                        <input type="text" id="adv-mentioning" data-i18n-placeholder="placeholderMentioning">
+                    </div>
                 </form>
             </div>
             <div class="adv-modal-footer">
@@ -260,7 +284,7 @@
         const searchInputSelector = 'input[data-testid="SearchBox_Search_Input"]';
 
         // 5.4. 状態管理（永続化）ロジック
-        const STATE_KEY = 'advSearchModalState_v2.1'; // バージョンアップ
+        const STATE_KEY = 'advSearchModalState_v2.2'; // バージョンは必要に応じて更新
         const loadState = () => {
             try {
                 const state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
@@ -283,55 +307,77 @@
 
         // 5.5. コア機能（クエリ生成・解析）
         const buildQueryStringFromModal = () => {
-             const q = [];
-             const fields = {
-                 all: document.getElementById('adv-all-words').value.trim(),
-                 exact: document.getElementById('adv-exact-phrase').value.trim(),
-                 any: document.getElementById('adv-any-words').value.trim(),
-                 not: document.getElementById('adv-not-words').value.trim(),
-                 hash: document.getElementById('adv-hashtag').value.trim(),
-                 lang: document.getElementById('adv-lang').value,
-                 from: document.getElementById('adv-from-user').value.trim(),
-                 to: document.getElementById('adv-to-user').value.trim(),
-                 mention: document.getElementById('adv-mentioning').value.trim(),
-                 replies: document.getElementById('adv-replies').value,
-                 min_replies: document.getElementById('adv-min-replies').value,
-                 min_faves: document.getElementById('adv-min-faves').value,
-                 min_retweets: document.getElementById('adv-min-retweets').value,
-                 since: document.getElementById('adv-since').value,
-                 until: document.getElementById('adv-until').value,
-             };
-             if(fields.all) q.push(fields.all);
-             if(fields.exact) q.push(`"${fields.exact.replace(/"/g, '')}"`);
-             if(fields.any) q.push(`(${fields.any.split(/\s+/).filter(Boolean).join(" OR ")})`);
-             if(fields.not) q.push(...fields.not.split(/\s+/).filter(Boolean).map(w=>`-${w}`));
-             if(fields.hash) q.push(...fields.hash.split(/\s+/).filter(Boolean).map(h=>`#${h.replace(/^#/,"")}`));
-             if(fields.lang) q.push(`lang:${fields.lang}`);
-             if(fields.from) q.push(`from:${fields.from.replace(/^@/,"")}`);
-             if(fields.to) q.push(`to:${fields.to.replace(/^@/,"")}`);
-             if(fields.mention) q.push(`@${fields.mention.replace(/^@/,"")}`);
-             if(fields.min_replies) q.push(`min_replies:${fields.min_replies}`);
-             if(fields.min_faves) q.push(`min_faves:${fields.min_faves}`);
-             if(fields.min_retweets) q.push(`min_retweets:${fields.min_retweets}`);
-             if(fields.since) q.push(`since:${fields.since}`);
-             if(fields.until) q.push(`until:${fields.until}`);
+            const q = [];
+            const fields = {
+                all: document.getElementById('adv-all-words').value.trim(),
+                exact: document.getElementById('adv-exact-phrase').value.trim(),
+                any: document.getElementById('adv-any-words').value.trim(),
+                not: document.getElementById('adv-not-words').value.trim(),
+                hash: document.getElementById('adv-hashtag').value.trim(),
+                lang: document.getElementById('adv-lang').value,
+                replies: document.getElementById('adv-replies').value,
+                min_replies: document.getElementById('adv-min-replies').value,
+                min_faves: document.getElementById('adv-min-faves').value,
+                min_retweets: document.getElementById('adv-min-retweets').value,
+                since: document.getElementById('adv-since').value,
+                until: document.getElementById('adv-until').value,
+            };
 
-             const addFilter = (type, mapping) => {
-                 const include = document.getElementById(`adv-filter-${type}-include`).checked;
-                 const exclude = document.getElementById(`adv-filter-${type}-exclude`).checked;
-                 if (include) q.push(mapping);
-                 if (exclude) q.push(`-${mapping}`);
-             };
-             addFilter('verified', 'is:verified');
-             addFilter('links', 'filter:links');
-             addFilter('images', 'filter:images');
-             addFilter('videos', 'filter:videos');
+            if (fields.all) q.push(fields.all);
+            if (fields.exact) q.push(`"${fields.exact.replace(/"/g, '')}"`);
+            if (fields.any) q.push(`(${fields.any.split(/\s+/).filter(Boolean).join(" OR ")})`);
+            if (fields.not) q.push(...fields.not.split(/\s+/).filter(Boolean).map(w => `-${w}`));
+            if (fields.hash) q.push(...fields.hash.split(/\s+/).filter(Boolean).map(h => `#${h.replace(/^#/, "")}`));
+            if (fields.lang) q.push(`lang:${fields.lang}`);
 
-             if(fields.replies) {
-                 const replyMap = { include: 'include:replies', only: 'filter:replies', exclude: '-filter:replies' };
-                 if(replyMap[fields.replies]) q.push(replyMap[fields.replies]);
-             }
-             return q.join(" ");
+            // アカウント関連フィールドのクエリ生成
+            const createAccountQuery = (inputId, operator) => {
+                const value = document.getElementById(inputId).value.trim();
+                if (!value) return null;
+
+                const isExclude = document.getElementById(`${inputId}-exclude`).checked;
+                const isMention = operator === '@';
+                const terms = value.split(/\s+/).filter(Boolean);
+
+                if (isExclude) {
+                    return terms.map(term => `-${operator}${term.replace(/^@/, '')}`).join(' ');
+                } else {
+                    const processedTerms = terms.map(term => `${operator}${term.replace(/^@/, '')}`);
+                    return processedTerms.length > 1 ? `(${processedTerms.join(' OR ')})` : processedTerms[0];
+                }
+            };
+            const fromQuery = createAccountQuery('adv-from-user', 'from:');
+            if (fromQuery) q.push(fromQuery);
+
+            const toQuery = createAccountQuery('adv-to-user', 'to:');
+            if (toQuery) q.push(toQuery);
+
+            const mentionQuery = createAccountQuery('adv-mentioning', '@');
+            if (mentionQuery) q.push(mentionQuery);
+
+
+            if (fields.min_replies) q.push(`min_replies:${fields.min_replies}`);
+            if (fields.min_faves) q.push(`min_faves:${fields.min_faves}`);
+            if (fields.min_retweets) q.push(`min_retweets:${fields.min_retweets}`);
+            if (fields.since) q.push(`since:${fields.since}`);
+            if (fields.until) q.push(`until:${fields.until}`);
+
+            const addFilter = (type, mapping) => {
+                const include = document.getElementById(`adv-filter-${type}-include`).checked;
+                const exclude = document.getElementById(`adv-filter-${type}-exclude`).checked;
+                if (include) q.push(mapping);
+                if (exclude) q.push(`-${mapping}`);
+            };
+            addFilter('verified', 'is:verified');
+            addFilter('links', 'filter:links');
+            addFilter('images', 'filter:images');
+            addFilter('videos', 'filter:videos');
+
+            if (fields.replies) {
+                const replyMap = { include: 'include:replies', only: 'filter:replies', exclude: '-filter:replies' };
+                if (replyMap[fields.replies]) q.push(replyMap[fields.replies]);
+            }
+            return q.join(" ");
         };
 
         const parseQueryAndApplyToModal = (query) => {
@@ -340,6 +386,56 @@
             form.reset();
             let q = ` ${query} `;
 
+            // アカウント関連フィールドの解析
+            const parseAccountField = (inputId, operator) => {
+                const isMention = operator === '@';
+                const exclOperator = `-${operator}`;
+                const values = [];
+
+                // 1. 除外クエリの解析 (-from:user, -@user)
+                const exclRegex = new RegExp(`\\s(${exclOperator.replace(/[-:]/g, '\\$&')}[^\\s()]+)`, 'g');
+                const exclMatches = [...q.matchAll(exclRegex)];
+                if (exclMatches.length > 0) {
+                    exclMatches.forEach(match => {
+                        values.push(match[1].substring(exclOperator.length));
+                        q = q.replace(match[0], ' ');
+                    });
+                    document.getElementById(inputId).value = values.join(' ');
+                    document.getElementById(`${inputId}-exclude`).checked = true;
+                    return; // 除外が見つかったらこのフィールドの解析は終了
+                }
+
+                // 2. 包含クエリの解析 ((from:userA OR from:userB), from:userC, @user)
+                // 2a. グループ化されたOR
+                const inclGroupRegex = new RegExp(`\\((${operator.replace(':', '\\:')}[^)]+)\\)`, 'g');
+                const groupMatches = [...q.matchAll(inclGroupRegex)];
+                groupMatches.forEach(match => {
+                    const content = match[1];
+                    const terms = content.split(/\s+OR\s+/);
+                    terms.forEach(term => values.push(term.substring(operator.length)));
+                    q = q.replace(match[0], ' ');
+                });
+
+                // 2b. 単独
+                const inclSingleRegex = new RegExp(`\\s(?!-)(${operator.replace(':', '\\:')}[^\\s()]+)`, 'g');
+                const singleMatches = [...q.matchAll(inclSingleRegex)];
+                singleMatches.forEach(match => {
+                    values.push(match[1].substring(operator.length));
+                    q = q.replace(match[0], ' ');
+                });
+
+                if (values.length > 0) {
+                    document.getElementById(inputId).value = [...new Set(values)].join(' ');
+                    document.getElementById(`${inputId}-exclude`).checked = false;
+                }
+            };
+
+            parseAccountField('adv-from-user', 'from:');
+            parseAccountField('adv-to-user', 'to:');
+            parseAccountField('adv-mentioning', '@');
+
+
+            // 汎用エクストラクタ
             const extract = (regex, callback) => {
                 let match;
                 while ((match = regex.exec(q)) !== null) {
@@ -349,11 +445,8 @@
             };
 
             extract(/"([^"]+)"/g, val => document.getElementById('adv-exact-phrase').value = val);
-            extract(/from:([^\s]+)/g, val => document.getElementById('adv-from-user').value = val);
-            extract(/to:([^\s]+)/g, val => document.getElementById('adv-to-user').value = val);
             extract(/lang:([^\s]+)/g, val => document.getElementById('adv-lang').value = val);
             extract(/#([^\s]+)/g, val => document.getElementById('adv-hashtag').value = (document.getElementById('adv-hashtag').value + ' ' + val).trim());
-            extract(/@([^\s]+)/g, val => document.getElementById('adv-mentioning').value = val);
             extract(/min_replies:(\d+)/g, val => document.getElementById('adv-min-replies').value = val);
             extract(/min_faves:(\d+)/g, val => document.getElementById('adv-min-faves').value = val);
             extract(/min_retweets:(\d+)/g, val => document.getElementById('adv-min-retweets').value = val);
@@ -364,26 +457,26 @@
                 'is:verified': 'verified', 'filter:links': 'links', 'filter:images': 'images', 'filter:videos': 'videos',
             };
             Object.entries(filterMap).forEach(([op, id]) => {
-                 const regex = new RegExp(`\\s(-?)${op.replace(':', '\\:')}\\s`, 'g');
-                 q = q.replace(regex, (match, prefix) => {
-                     document.getElementById(`adv-filter-${id}-${prefix ? 'exclude' : 'include'}`).checked = true;
-                     return ' ';
-                 });
+                const regex = new RegExp(`\\s(-?)${op.replace(':', '\\:')}\\s`, 'g');
+                q = q.replace(regex, (match, prefix) => {
+                    document.getElementById(`adv-filter-${id}-${prefix ? 'exclude' : 'include'}`).checked = true;
+                    return ' ';
+                });
             });
 
-             if (/\sinclude:replies\s/.test(q)) {
-                 document.getElementById('adv-replies').value = 'include';
-                 q = q.replace(/\sinclude:replies\s/, ' ');
-             } else if (/\sfilter:replies\s/.test(q)) {
-                 document.getElementById('adv-replies').value = 'only';
-                 q = q.replace(/\sfilter:replies\s/, ' ');
-             } else if (/\s-filter:replies\s/.test(q)) {
-                 document.getElementById('adv-replies').value = 'exclude';
-                 q = q.replace(/\s-filter:replies\s/, ' ');
-             }
+            if (/\sinclude:replies\s/.test(q)) {
+                document.getElementById('adv-replies').value = 'include';
+                q = q.replace(/\sinclude:replies\s/, ' ');
+            } else if (/\sfilter:replies\s/.test(q)) {
+                document.getElementById('adv-replies').value = 'only';
+                q = q.replace(/\sfilter:replies\s/, ' ');
+            } else if (/\s-filter:replies\s/.test(q)) {
+                document.getElementById('adv-replies').value = 'exclude';
+                q = q.replace(/\s-filter:replies\s/, ' ');
+            }
 
             const orGroups = q.match(/\(([^)]+)\)/g);
-            if(orGroups){
+            if (orGroups) {
                 const anyWords = orGroups.map(g => g.replace(/[()]/g, '').replace(/\s+OR\s+/g, ' ')).join(' ');
                 document.getElementById('adv-any-words').value = anyWords.trim();
                 q = q.replace(/\(([^)]+)\)/g, ' ');
@@ -395,6 +488,7 @@
             document.getElementById('adv-all-words').value = q.trim().split(/\s+/).filter(Boolean).join(' ');
             isUpdating = false;
         };
+
 
         // 5.6. イベントハンドラと同期ロジック
         const syncFromModalToSearchBox = () => {
@@ -475,7 +569,7 @@
         applyButton.addEventListener('click', executeSearch);
         form.addEventListener('input', syncFromModalToSearchBox);
         form.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && e.target.matches('input[type="text"], input[type="number"]')) {
+            if (e.key === 'Enter' && (e.target.matches('input[type="text"], input[type="number"]'))) {
                 e.preventDefault();
                 executeSearch();
             }
@@ -494,7 +588,7 @@
             })();
 
             const checkURL = () => {
-                 requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
                     const currentUrl = location.href;
                     if (currentUrl !== lastUrl) {
                         lastUrl = currentUrl;
@@ -529,13 +623,13 @@
                 const searchInput = document.querySelector(searchInputSelector);
                 if (searchInput) {
                     attachInputListener(searchInput);
-                    syncFromSearchBoxToModal();
                 }
             });
             domObserver.observe(document.body, { childList: true, subtree: true });
 
             observeURLChanges(() => {
-                syncFromSearchBoxToModal();
+                // URL変更時に遅延させて同期することで、SPA遷移後の要素描画を待つ
+                setTimeout(syncFromSearchBoxToModal, 500);
             });
         };
 
@@ -543,7 +637,7 @@
         loadState();
         setupObservers();
 
-        setTimeout(syncFromSearchBoxToModal, 1000); // 初期読み込み時の同期
+        setTimeout(syncFromSearchBoxToModal, 1500); // 初期読み込み時の同期
     };
 
     // --- 6. スクリプトの実行 ---
