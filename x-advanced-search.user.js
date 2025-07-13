@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      3.2.0
+// @version      3.3.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state.
@@ -61,7 +61,7 @@
         }
     };
 
-    // --- ★★★ 新機能: テーマ管理モジュール ★★★ ---
+    // --- テーマ管理モジュール ---
     const themeManager = {
         colors: {
             light: {
@@ -101,10 +101,23 @@
         }
     };
 
+    // --- ユーティリティ関数 ---
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
     // --- グローバル変数と状態管理 ---
     let isUpdating = false;
 
-    // --- スタイルの定義 (CSS変数を使用) ---
+    // --- スタイルの定義 ---
     GM_addStyle(`
         :root {
             --modal-primary-color: #1d9bf0; --modal-primary-color-hover: #1a8cd8; --modal-primary-text-color: #ffffff;
@@ -114,7 +127,6 @@
         #advanced-search-modal { position: fixed; z-index: 10000; width: 380px; max-height: 80vh; display: none; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--modal-bg, black); color: var(--modal-text-primary, #e7e9ea); border: 1px solid var(--modal-border, #333); border-radius: 16px; box-shadow: 0 8px 24px rgba(29, 155, 240, 0.2); transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
         .adv-modal-header{padding:12px 16px;border-bottom:1px solid var(--modal-border, #333);cursor:move;display:flex;justify-content:space-between;align-items:center}.adv-modal-header h2{margin:0;font-size:18px;font-weight:700}.adv-modal-close{background:0 0;border:none;color:var(--modal-close-color, #e7e9ea);font-size:24px;cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s;}.adv-modal-close:hover{background-color: var(--modal-close-hover-bg, rgba(231,233,234,.1));}.adv-modal-body{flex:1;overflow-y:auto;padding:16px}.adv-form-group{margin-bottom:16px}.adv-form-group label{display:block;margin-bottom:6px;font-size:14px;font-weight:700;color:var(--modal-text-secondary, #8b98a5)}.adv-form-group input[type=text],.adv-form-group input[type=number],.adv-form-group input[type=date],.adv-form-group select{width:100%;background-color:var(--modal-input-bg, #202327);border:1px solid var(--modal-input-border, #38444d);border-radius:4px;padding:8px 12px;color:var(--modal-text-primary, #e7e9ea);font-size:15px;box-sizing:border-box}.adv-form-group input:focus,.adv-form-group select:focus{outline:0;border-color:var(--modal-primary-color)}.adv-form-group input::-moz-placeholder{color:var(--modal-text-secondary, #536471)}.adv-form-group input::placeholder{color:var(--modal-text-secondary, #536471)}.adv-form-group-date-container{display:flex;gap:10px}.adv-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.adv-checkbox-group{background-color:var(--modal-input-bg, #202327);border:1px solid var(--modal-input-border, #38444d);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}.adv-checkbox-group span{font-weight:700;font-size:14px;color:var(--modal-text-primary, #e7e9ea)}.adv-checkbox-item{display:flex;align-items:center}.adv-checkbox-item input{margin-right:8px; accent-color: var(--modal-primary-color);}.adv-checkbox-item label{color:var(--modal-text-secondary, #8b98a5);margin-bottom:0}.adv-modal-footer{padding:12px 16px;border-top:1px solid var(--modal-border, #333);display:flex;justify-content:flex-end;gap:12px}.adv-modal-button{padding:8px 16px;border-radius:9999px;border:1px solid var(--modal-text-secondary, #536471);background-color:transparent;color:var(--modal-text-primary, #e7e9ea);font-weight:700;cursor:pointer;transition:background-color .2s}.adv-modal-button:hover{background-color: var(--modal-button-hover-bg, rgba(231,233,234,.1));}.adv-modal-button.primary{background-color:var(--modal-primary-color);border-color:var(--modal-primary-color);color:var(--modal-primary-text-color)}.adv-modal-button.primary:hover{background-color:var(--modal-primary-color-hover)}.adv-modal-body::-webkit-scrollbar{width:8px}.adv-modal-body::-webkit-scrollbar-track{background:var(--modal-scrollbar-track, #202327)}.adv-modal-body::-webkit-scrollbar-thumb{background:var(--modal-scrollbar-thumb, #536471);border-radius:4px}body.adv-dragging{-webkit-user-select:none;moz-user-select:none;user-select:none}
         .adv-account-label-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .adv-account-label-group label { margin-bottom: 0; }
         .adv-exclude-toggle { display: flex; align-items: center; }
         .adv-exclude-toggle input { margin-right: 4px; }
         .adv-exclude-toggle label { font-size: 13px; font-weight: normal; color: var(--modal-text-secondary, #8b98a5); cursor: pointer; }
@@ -243,7 +255,6 @@
         const clearButton = document.getElementById('adv-clear-button');
         const applyButton = document.getElementById('adv-apply-button');
 
-        // ★★★ 新機能の呼び出し ★★★
         themeManager.observeChanges(modal);
 
         const searchInputSelectors = [
@@ -265,19 +276,95 @@
             return null;
         };
 
-        const STATE_KEY = 'advSearchModalState_v2.2'; // 元のキーを維持
+        const STATE_KEY = 'advSearchModalState_v3.1'; // ★★★ 状態の構造が変わったためキーを更新
+
+        // ★★★ 修正: 状態保存関数 (相対位置を保存) ★★★
+        const saveRelativeState = () => {
+            if (modal.style.display === 'none') {
+                try {
+                    const currentState = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
+                    currentState.visible = false;
+                    localStorage.setItem(STATE_KEY, JSON.stringify(currentState));
+                } catch(e) { /* ローカルストレージが空の場合など、エラーは無視 */ }
+                return;
+            }
+
+            const rect = modal.getBoundingClientRect();
+            const winWidth = window.innerWidth;
+            const winHeight = window.innerHeight;
+
+            const fromRight = winWidth - rect.right;
+            const fromBottom = winHeight - rect.bottom;
+
+            const h_anchor = rect.left < fromRight ? 'left' : 'right';
+            const h_value = h_anchor === 'left' ? rect.left : fromRight;
+            const v_anchor = rect.top < fromBottom ? 'top' : 'bottom';
+            const v_value = v_anchor === 'top' ? rect.top : fromBottom;
+
+            const state = { h_anchor, h_value, v_anchor, v_value, visible: true };
+            localStorage.setItem(STATE_KEY, JSON.stringify(state));
+        };
+
+        // ★★★ 追加: 保存された相対位置を適用する関数 ★★★
+        const applyStoredPosition = () => {
+            try {
+                const state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
+                const h_anchor = state.h_anchor || 'right';
+                const h_value = state.h_value ?? 20;
+                const v_anchor = state.v_anchor || 'top';
+                const v_value = state.v_value ?? 80;
+
+                modal.style.left = modal.style.right = modal.style.top = modal.style.bottom = 'auto';
+
+                if (h_anchor === 'right') modal.style.right = `${h_value}px`;
+                else modal.style.left = `${h_value}px`;
+
+                if (v_anchor === 'bottom') modal.style.bottom = `${v_value}px`;
+                else modal.style.top = `${v_value}px`;
+
+            } catch (e) { console.error("Failed to apply stored position:", e); }
+        };
+
+        // ★★★ 修正: ビューポート内への「一時的な」補正を行う関数（状態は保存しない） ★★★
+        const keepModalInViewport = () => {
+            if (modal.style.display === 'none') return;
+
+            const rect = modal.getBoundingClientRect();
+            let newX = rect.left;
+            let newY = rect.top;
+            const winWidth = window.innerWidth;
+            const winHeight = window.innerHeight;
+            const margin = 10;
+
+            if (newX < margin) newX = margin;
+            if (newY < margin) newY = margin;
+            if (newX + rect.width > winWidth - margin) newX = winWidth - rect.width - margin;
+            if (newY + rect.height > winHeight - margin) newY = winHeight - rect.height - margin;
+
+            if (newX < margin) newX = margin;
+            if (newY < margin) newY = margin;
+
+            if (Math.round(newX) !== Math.round(rect.left) || Math.round(newY) !== Math.round(rect.top)) {
+                modal.style.left = `${newX}px`;
+                modal.style.top = `${newY}px`;
+                modal.style.right = 'auto';
+                modal.style.bottom = 'auto';
+            }
+        };
+
+        // ★★★ 修正: 状態読み込み関数 ★★★
         const loadState = () => {
             try {
                 const state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
-                modal.style.left = state.left || 'auto';
-                modal.style.top = state.top || '80px';
-                modal.style.right = state.left ? 'auto' : '20px';
-                if (state.visible) modal.style.display = 'flex';
-            } catch (e) { console.error("Failed to load state:", e); }
-        };
-        const saveState = () => {
-            const state = { left: modal.style.left, top: modal.style.top, visible: modal.style.display === 'flex' };
-            localStorage.setItem(STATE_KEY, JSON.stringify(state));
+                if (state.visible) {
+                    modal.style.display = 'flex';
+                    applyStoredPosition();
+                    requestAnimationFrame(keepModalInViewport);
+                }
+            } catch (e) {
+                console.error("Failed to load state, resetting:", e);
+                localStorage.removeItem(STATE_KEY);
+            }
         };
 
         const buildQueryStringFromModal = () => {
@@ -346,7 +433,6 @@
             }
             return q.join(" ");
         };
-
         const parseQueryAndApplyToModal = (query) => {
             if (isUpdating) return;
             isUpdating = true;
@@ -433,7 +519,6 @@
             document.getElementById('adv-all-words').value = q.trim().split(/\s+/).filter(Boolean).join(' ');
             isUpdating = false;
         };
-
         const syncFromModalToSearchBox = () => {
             if (isUpdating) return;
             isUpdating = true;
@@ -445,13 +530,11 @@
             }
             isUpdating = false;
         };
-
         const syncFromSearchBoxToModal = () => {
             if (isUpdating || modal.style.display === 'none') return;
             const searchInput = getActiveSearchInput();
             parseQueryAndApplyToModal(searchInput ? searchInput.value : '');
         };
-
         const executeSearch = () => {
             const finalQuery = buildQueryStringFromModal();
             if (!finalQuery.trim()) return;
@@ -468,35 +551,59 @@
             window.location.href = `https://x.com/search?q=${encodeURIComponent(finalQuery)}&src=typed_query`;
         };
 
+        // ★★★ 修正: ドラッグ処理 (mouseupで相対位置を保存) ★★★
         const setupDrag = () => {
             const header = modal.querySelector('.adv-modal-header');
             let isDragging = false, offset = { x: 0, y: 0 };
             header.addEventListener('mousedown', e => {
                 if (e.target.matches('button, a')) return;
                 isDragging = true;
-                offset = { x: e.clientX - modal.offsetLeft, y: e.clientY - modal.offsetTop };
+
+                modal.style.right = modal.style.bottom = 'auto';
+                const rect = modal.getBoundingClientRect();
+                modal.style.left = `${rect.left}px`;
+                modal.style.top = `${rect.top}px`;
+
+                offset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
                 document.body.classList.add('adv-dragging');
             });
             document.addEventListener('mousemove', e => {
                 if (!isDragging) return;
-                modal.style.right = 'auto';
-                let newX = e.clientX - offset.x; let newY = e.clientY - offset.y;
+                let newX = e.clientX - offset.x;
+                let newY = e.clientY - offset.y;
                 newX = Math.max(0, Math.min(newX, window.innerWidth - modal.offsetWidth));
                 newY = Math.max(0, Math.min(newY, window.innerHeight - modal.offsetHeight));
-                modal.style.left = `${newX}px`; modal.style.top = `${newY}px`;
+                modal.style.left = `${newX}px`;
+                modal.style.top = `${newY}px`;
             });
             document.addEventListener('mouseup', () => {
-                if (isDragging) { isDragging = false; document.body.classList.remove('adv-dragging'); saveState(); }
+                if (isDragging) {
+                    isDragging = false;
+                    document.body.classList.remove('adv-dragging');
+                    saveRelativeState();
+                }
             });
         };
 
         trigger.addEventListener('click', () => {
             const isVisible = modal.style.display === 'flex';
             modal.style.display = isVisible ? 'none' : 'flex';
-            if (!isVisible) { syncFromSearchBoxToModal(); }
-            saveState();
+
+            if (isVisible) {
+                saveRelativeState();
+            } else {
+                syncFromSearchBoxToModal();
+                applyStoredPosition();
+                requestAnimationFrame(keepModalInViewport);
+                saveRelativeState();
+            }
         });
-        closeButton.addEventListener('click', () => { modal.style.display = 'none'; saveState(); });
+
+        closeButton.addEventListener('click', () => {
+             modal.style.display = 'none';
+             saveRelativeState();
+        });
+
         clearButton.addEventListener('click', () => { form.reset(); syncFromModalToSearchBox(); });
         applyButton.addEventListener('click', executeSearch);
         form.addEventListener('input', syncFromModalToSearchBox);
@@ -506,7 +613,6 @@
                 executeSearch();
             }
         });
-        setupDrag();
 
         const observeURLChanges = (callback) => {
             let lastUrl = location.href;
@@ -533,55 +639,56 @@
             });
             window.addEventListener('popstate', checkURL);
         };
-
         const setupObservers = () => {
-            const observer = new MutationObserver((mutations) => {
-                // 変更の中に検索ボックスが含まれているかチェックするフラグ
+            const observer = new MutationObserver((mutations) => {
                 let searchBoxChanged = false;
-
                 for (const mutation of mutations) {
-                    // 追加されたノードがある場合のみチェック
                     if (mutation.addedNodes.length > 0) {
                         for (const node of mutation.addedNodes) {
-                            // Elementノード以外（テキストノード等）は無視
                             if (node.nodeType !== Node.ELEMENT_NODE) continue;
-
-                            // 追加されたノード自体、またはその子孫に検索ボックスが存在するかチェック
                             if (node.matches('input[data-testid="SearchBox_Search_Input"]') || node.querySelector('input[data-testid="SearchBox_Search_Input"]')) {
                                 searchBoxChanged = true;
-                                break; // 検索ボックスを見つけたら内部ループを抜ける
+                                break;
                             }
                         }
                     }
-                    if (searchBoxChanged) break; // 検索ボックスを見つけたら外部ループも抜ける
+                    if (searchBoxChanged) break;
                 }
 
-                // 検索ボックスに関連する変更があった場合のみ同期処理を実行
                 if (searchBoxChanged) {
-                    // console.log('[X Adv Search] Search box detected in DOM change. Re-syncing.');
                     syncFromSearchBoxToModal();
                 }
 
-                const allSearchInputs = document.querySelectorAll('input[data-testid="SearchBox_Search_Input"]');
-                allSearchInputs.forEach(input => {
-                    if (!input.dataset.advSearchAttached) {
-                        input.dataset.advSearchAttached = 'true';
-                        input.addEventListener('input', () => {
-                            if (input === getActiveSearchInput()) {
-                                syncFromSearchBoxToModal();
-                            }
-                        });
-                    }
-                });
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-            observeURLChanges(() => {
-                console.log('[X Adv Search] URL changed, re-syncing...');
-                syncFromSearchBoxToModal();
-            });
-        };
+                const allSearchInputs = document.querySelectorAll('input[data-testid="SearchBox_Search_Input"]');
+                allSearchInputs.forEach(input => {
+                    if (!input.dataset.advSearchAttached) {
+                        input.dataset.advSearchAttached = 'true';
+                        input.addEventListener('input', () => {
+                            if (input === getActiveSearchInput()) {
+                                syncFromSearchBoxToModal();
+                            }
+                        });
+                    }
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+            observeURLChanges(() => {
+                console.log('[X Adv Search] URL changed, re-syncing...');
+                syncFromSearchBoxToModal();
+            });
+        };
 
+        // ★★★ 修正: ウィンドウリサイズ時のイベントリスナー ★★★
+        window.addEventListener('resize', debounce(() => {
+            if (modal.style.display === 'flex') {
+                applyStoredPosition();
+                requestAnimationFrame(keepModalInViewport);
+            }
+        }, 100));
+
+        // --- 初期化処理の実行 ---
         loadState();
+        setupDrag();
         setupObservers();
 
         (async () => {
