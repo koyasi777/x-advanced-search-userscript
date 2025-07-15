@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      3.3.0
+// @version      3.3.1
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state.
@@ -514,8 +514,8 @@
                 q = q.replace(/\(([^)]+)\)/g, ' ');
             }
 
-            document.getElementById('adv-not-words').value = (q.match(/-\S+/g) || []).map(w => w.substring(1)).join(' ');
-            q = q.replace(/-\S+/g, ' ');
+            document.getElementById('adv-not-words').value = (q.match(/\s-\S+/g) || []).map(w => w.trim().substring(1)).join(' ');
+            q = q.replace(/\s-\S+/g, ' ');
             document.getElementById('adv-all-words').value = q.trim().split(/\s+/).filter(Boolean).join(' ');
             isUpdating = false;
         };
