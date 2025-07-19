@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      3.3.1
+// @version      3.3.2
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state.
@@ -559,10 +559,12 @@
                 if (e.target.matches('button, a')) return;
                 isDragging = true;
 
-                modal.style.right = modal.style.bottom = 'auto';
                 const rect = modal.getBoundingClientRect();
-                modal.style.left = `${rect.left}px`;
-                modal.style.top = `${rect.top}px`;
+                const computedLeft = rect.left;
+                const computedTop = rect.top;
+                modal.style.right = modal.style.bottom = 'auto';
+                modal.style.left = `${computedLeft}px`;
+                modal.style.top = `${computedTop}px`;
 
                 offset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
                 document.body.classList.add('adv-dragging');
