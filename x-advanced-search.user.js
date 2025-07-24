@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      3.3.2
+// @version      3.3.3
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state.
@@ -536,18 +536,33 @@
             parseQueryAndApplyToModal(searchInput ? searchInput.value : '');
         };
         const executeSearch = () => {
-            const finalQuery = buildQueryStringFromModal();
-            if (!finalQuery.trim()) return;
+            const finalQuery = buildQueryStringFromModal().trim();
+            if (!finalQuery) return;
+
             const searchInput = getActiveSearchInput();
+            const oldURL = location.href;
+
             if (searchInput) {
                 searchInput.value = finalQuery;
                 searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+
                 const parentForm = searchInput.closest('form');
                 if (parentForm && typeof parentForm.requestSubmit === 'function') {
                     parentForm.requestSubmit();
+
+                    // fallback: 遷移が発生しなかったら手動でURL遷移
+                    setTimeout(() => {
+                        if (location.href === oldURL) {
+                            console.warn("[X Adv Search] requestSubmit() had no effect. Falling back to manual redirect.");
+                            window.location.href = `https://x.com/search?q=${encodeURIComponent(finalQuery)}&src=typed_query`;
+                        }
+                    }, 300);
+
                     return;
                 }
             }
+
+            // fallback: 検索窓がなかった場合
             window.location.href = `https://x.com/search?q=${encodeURIComponent(finalQuery)}&src=typed_query`;
         };
 
