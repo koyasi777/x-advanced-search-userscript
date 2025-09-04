@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      3.4.0
+// @version      3.4.5
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -422,74 +422,87 @@
             }
         };
 
+        // クリックでは位置を変えず、ドラッグ閾値を超えたら再アンカーして移動開始
         const setupTriggerDrag = () => {
+            const DRAG_THRESHOLD = 4; // px：これ未満はクリック扱い
+            let isPointerDown = false;
             let isDragging = false;
-            let moved = false;
-            let offset = { x: 0, y: 0 };
+            let start = { x: 0, y: 0, left: 0, top: 0 };
             let suppressClick = false;
 
-            const onMouseDown = (e) => {
-                if (e.button !== 0) return; // left click only
-                isDragging = true;
-                moved = false;
+            const onPointerDown = (e) => {
+                if (e.button !== 0) return; // 左クリックのみ
+                isPointerDown = true;
+                isDragging = false;
+                suppressClick = false;
+
                 const rect = trigger.getBoundingClientRect();
-                // 現在の絶対位置を固定（右/下指定を解除してleft/topで動かす）
-                trigger.style.right = 'auto';
-                trigger.style.bottom = 'auto';
-                trigger.style.left = `${rect.left}px`;
-                trigger.style.top  = `${rect.top}px`;
-                offset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-                document.body.classList.add('adv-dragging');
-                e.preventDefault();
+                start = { x: e.clientX, y: e.clientY, left: rect.left, top: rect.top };
+
+                try { trigger.setPointerCapture(e.pointerId); } catch (_) {}
             };
 
-            const onMouseMove = (e) => {
-                if (!isDragging) return;
+            const onPointerMove = (e) => {
+                if (!isPointerDown) return;
+
+                const dx = e.clientX - start.x;
+                const dy = e.clientY - start.y;
+
+                // まだドラッグ開始していない && 閾値未満 → 何もしない（クリックのまま）
+                if (!isDragging) {
+                    if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+
+                    // ここで初めて再アンカー（right/bottom → left/top）
+                    isDragging = true;
+                    trigger.style.right = 'auto';
+                    trigger.style.bottom = 'auto';
+                    trigger.style.left = `${start.left}px`;
+                    trigger.style.top  = `${start.top}px`;
+                    document.body.classList.add('adv-dragging');
+                }
+
+                // ドラッグ中の位置更新（ビューポート内にクランプ）
                 const winW = window.innerWidth;
                 const winH = window.innerHeight;
                 const width  = trigger.offsetWidth;
                 const height = trigger.offsetHeight;
 
-                let newX = e.clientX - offset.x;
-                let newY = e.clientY - offset.y;
+                let newX = start.left + dx;
+                let newY = start.top  + dy;
 
-                // 限界チェック
                 newX = Math.max(0, Math.min(newX, winW - width));
                 newY = Math.max(0, Math.min(newY, winH - height));
-
-                const prevLeft = parseFloat(trigger.style.left || '0');
-                const prevTop  = parseFloat(trigger.style.top  || '0');
-
-                if (Math.abs(newX - prevLeft) > 2 || Math.abs(newY - prevTop) > 2) {
-                    moved = true;
-                }
 
                 trigger.style.left = `${newX}px`;
                 trigger.style.top  = `${newY}px`;
             };
 
-            const onMouseUp = () => {
-                if (!isDragging) return;
-                isDragging = false;
-                document.body.classList.remove('adv-dragging');
-                if (moved) {
-                    suppressClick = true; // ドラッグ後の余計なclickを抑止
+            const onPointerUp = (e) => {
+                if (!isPointerDown) return;
+                isPointerDown = false;
+                try { trigger.releasePointerCapture(e.pointerId); } catch (_) {}
+
+                if (isDragging) {
+                    isDragging = false;
+                    document.body.classList.remove('adv-dragging');
+                    suppressClick = true; // ドラッグ直後のクリック発火を抑止
                     setTimeout(() => { suppressClick = false; }, 150);
-                    saveTriggerRelativeState();
+                    saveTriggerRelativeState(); // ここでのみ保存（クリックでは保存しない）
                 }
             };
 
-            trigger.addEventListener('mousedown', onMouseDown);
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-
-            // クリック抑止
+            // ドラッグ後の“誤クリック”抑止
             trigger.addEventListener('click', (e) => {
                 if (suppressClick) {
-                    e.stopPropagation();
                     e.preventDefault();
+                    e.stopPropagation();
                 }
             }, true);
+
+            trigger.addEventListener('pointerdown', onPointerDown);
+            window.addEventListener('pointermove', onPointerMove);
+            window.addEventListener('pointerup', onPointerUp);
+            window.addEventListener('pointercancel', onPointerUp);
         };
 
         // 初期位置の適用（トリガー）
