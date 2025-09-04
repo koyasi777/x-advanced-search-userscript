@@ -10,18 +10,18 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      3.3.3
-// @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state.
-// @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。
-// @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state.
-// @description:zh-CN 为X.com（Twitter）添加高级搜索浮动模态框，支持与搜索框双向同步并记住位置与显示状态。
-// @description:zh-TW 為 X.com（Twitter）增加高級搜尋模態框，支援與搜尋框雙向同步並記住位置與顯示狀態。
-// @description:ko   X.com(Twitter)에 고급 검색 모달을 추가합니다. 검색창과 양방향 동기화하며 위치와 표시 상태를 기억합니다。
-// @description:fr   Ajoute une fenêtre modale de recherche avancée à X.com (Twitter), synchronisée avec la barre de recherche et mémoire de l’état d’affichage.
-// @description:es   Agrega un modal flotante de búsqueda avanzada en X.com (Twitter), sincronizado con la caja de búsqueda y con estado persistente.
-// @description:de   Fügt X.com (Twitter) ein modales Fenster für erweiterte Suche hinzu, synchronisiert mit der Suchleiste und speichert Position/Zustand.
-// @description:pt-BR Adiciona um modal de busca avançada flutuante no X.com (Twitter), sincronizado com a caixa de busca e com estado salvo.
-// @description:ru   Добавляет модальное окно расширенного поиска на X.com (Twitter). Синхронизируется с поисковой строкой и запоминает состояние.
+// @version      3.4.0
+// @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
+// @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
+// @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
+// @description:zh-CN 为X.com（Twitter）添加高级搜索浮动模态框，支持与搜索框双向同步并记住位置与显示状态。右上角的搜索图标可拖动，并会记住位置。
+// @description:zh-TW 為 X.com（Twitter）增加高級搜尋模態框，支援與搜尋框雙向同步並記住位置與顯示狀態。右上角搜尋圖示可拖曳，位置會被保存。
+// @description:ko   X.com(Twitter)에 고급 검색 모달을 추가합니다. 검색창과 양방향 동기화하며 위치와 표시 상태를 기억합니다. 우상단 검색 아이콘은 드래그 이동 및 위치 저장이 가능합니다。
+// @description:fr   Ajoute une fenêtre modale de recherche avancée à X.com (Twitter), synchronisée avec la barre de recherche et mémoire de l’état d’affichage. L’icône de recherche en haut à droite est déplaçable et sa position persiste.
+// @description:es   Agrega un modal flotante de búsqueda avanzada en X.com (Twitter), sincronizado con la caja de búsqueda y con estado persistente. El ícono de búsqueda arriba a la derecha es arrastrable con posición persistente.
+// @description:de   Fügt X.com (Twitter) ein modales Fenster für erweiterte Suche hinzu, synchronisiert mit der Suchleiste und speichert Position/Zustand. Das Suchsymbol oben rechts ist per Drag & Drop verschiebbar und bleibt gespeichert.
+// @description:pt-BR Adiciona um modal de busca avançada flutuante no X.com (Twitter), sincronizado com a caixa de busca e com estado salvo. O ícone de busca no canto superior direito é arrastável com posição persistente.
+// @description:ru   Добавляет модальное окно расширенного поиска на X.com (Twitter). Синхронизируется с поисковой строкой и запоминает состояние. Кнопку поиска в правом верхнем углу можно перетаскивать; её положение сохраняется.
 // @namespace    https://github.com/koyasi777/x-advanced-search-userscript
 // @author       koyasi777
 // @match        https://x.com/*
@@ -238,12 +238,14 @@
     const initialize = async () => {
         i18n.init();
 
+        // --- トリガーボタン作成 ---
         const trigger = document.createElement('button');
         trigger.id = 'advanced-search-trigger';
         trigger.innerHTML = '🔍';
         trigger.title = i18n.t('tooltipTrigger');
         document.body.appendChild(trigger);
 
+        // --- モーダル作成 ---
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = modalHTML;
         document.body.appendChild(modalContainer);
@@ -276,43 +278,43 @@
             return null;
         };
 
-        const STATE_KEY = 'advSearchModalState_v3.1'; // ★★★ 状態の構造が変わったためキーを更新
+        // --- 状態キー（モーダル／トリガー別管理） ---
+        const MODAL_STATE_KEY   = 'advSearchModalState_v3.2';
+        const TRIGGER_STATE_KEY = 'advSearchTriggerState_v1.0';
 
-        // ★★★ 修正: 状態保存関数 (相対位置を保存) ★★★
-        const saveRelativeState = () => {
+        // ========== 1) モーダル位置と表示状態の保存/復元 ==========
+        const saveModalRelativeState = () => {
             if (modal.style.display === 'none') {
                 try {
-                    const currentState = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
+                    const currentState = JSON.parse(localStorage.getItem(MODAL_STATE_KEY) || '{}');
                     currentState.visible = false;
-                    localStorage.setItem(STATE_KEY, JSON.stringify(currentState));
-                } catch(e) { /* ローカルストレージが空の場合など、エラーは無視 */ }
+                    localStorage.setItem(MODAL_STATE_KEY, JSON.stringify(currentState));
+                } catch(e) { /* ignore */ }
                 return;
             }
-
             const rect = modal.getBoundingClientRect();
             const winWidth = window.innerWidth;
             const winHeight = window.innerHeight;
 
-            const fromRight = winWidth - rect.right;
+            const fromRight  = winWidth - rect.right;
             const fromBottom = winHeight - rect.bottom;
 
             const h_anchor = rect.left < fromRight ? 'left' : 'right';
-            const h_value = h_anchor === 'left' ? rect.left : fromRight;
-            const v_anchor = rect.top < fromBottom ? 'top' : 'bottom';
-            const v_value = v_anchor === 'top' ? rect.top : fromBottom;
+            const h_value  = h_anchor === 'left' ? rect.left : fromRight;
+            const v_anchor = rect.top  < fromBottom ? 'top'  : 'bottom';
+            const v_value  = v_anchor === 'top' ? rect.top : fromBottom;
 
             const state = { h_anchor, h_value, v_anchor, v_value, visible: true };
-            localStorage.setItem(STATE_KEY, JSON.stringify(state));
+            localStorage.setItem(MODAL_STATE_KEY, JSON.stringify(state));
         };
 
-        // ★★★ 追加: 保存された相対位置を適用する関数 ★★★
-        const applyStoredPosition = () => {
+        const applyModalStoredPosition = () => {
             try {
-                const state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
+                const state = JSON.parse(localStorage.getItem(MODAL_STATE_KEY) || '{}');
                 const h_anchor = state.h_anchor || 'right';
-                const h_value = state.h_value ?? 20;
+                const h_value  = state.h_value ?? 20;
                 const v_anchor = state.v_anchor || 'top';
-                const v_value = state.v_value ?? 80;
+                const v_value  = state.v_value ?? 80;
 
                 modal.style.left = modal.style.right = modal.style.top = modal.style.bottom = 'auto';
 
@@ -322,13 +324,11 @@
                 if (v_anchor === 'bottom') modal.style.bottom = `${v_value}px`;
                 else modal.style.top = `${v_value}px`;
 
-            } catch (e) { console.error("Failed to apply stored position:", e); }
+            } catch (e) { console.error("Failed to apply stored modal position:", e); }
         };
 
-        // ★★★ 修正: ビューポート内への「一時的な」補正を行う関数（状態は保存しない） ★★★
         const keepModalInViewport = () => {
             if (modal.style.display === 'none') return;
-
             const rect = modal.getBoundingClientRect();
             let newX = rect.left;
             let newY = rect.top;
@@ -338,32 +338,185 @@
 
             if (newX < margin) newX = margin;
             if (newY < margin) newY = margin;
-            if (newX + rect.width > winWidth - margin) newX = winWidth - rect.width - margin;
+            if (newX + rect.width  > winWidth  - margin) newX = winWidth  - rect.width  - margin;
             if (newY + rect.height > winHeight - margin) newY = winHeight - rect.height - margin;
-
-            if (newX < margin) newX = margin;
-            if (newY < margin) newY = margin;
 
             if (Math.round(newX) !== Math.round(rect.left) || Math.round(newY) !== Math.round(rect.top)) {
                 modal.style.left = `${newX}px`;
-                modal.style.top = `${newY}px`;
+                modal.style.top  = `${newY}px`;
                 modal.style.right = 'auto';
                 modal.style.bottom = 'auto';
             }
         };
 
-        // ★★★ 修正: 状態読み込み関数 ★★★
-        const loadState = () => {
+        const loadModalState = () => {
             try {
-                const state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
+                const state = JSON.parse(localStorage.getItem(MODAL_STATE_KEY) || '{}');
                 if (state.visible) {
                     modal.style.display = 'flex';
-                    applyStoredPosition();
+                    applyModalStoredPosition();
                     requestAnimationFrame(keepModalInViewport);
                 }
             } catch (e) {
-                console.error("Failed to load state, resetting:", e);
-                localStorage.removeItem(STATE_KEY);
+                console.error("Failed to load modal state, resetting:", e);
+                localStorage.removeItem(MODAL_STATE_KEY);
+            }
+        };
+
+        // ========== 2) トリガーボタン位置の保存/復元（ドラッグ可） ==========
+        const saveTriggerRelativeState = () => {
+            const rect = trigger.getBoundingClientRect();
+            const winWidth = window.innerWidth;
+            const winHeight = window.innerHeight;
+
+            const fromRight  = winWidth - rect.right;
+            const fromBottom = winHeight - rect.bottom;
+
+            const h_anchor = rect.left < fromRight ? 'left' : 'right';
+            const h_value  = h_anchor === 'left' ? rect.left : fromRight;
+            const v_anchor = rect.top  < fromBottom ? 'top'  : 'bottom';
+            const v_value  = v_anchor === 'top' ? rect.top : fromBottom;
+
+            const state = { h_anchor, h_value, v_anchor, v_value };
+            localStorage.setItem(TRIGGER_STATE_KEY, JSON.stringify(state));
+        };
+
+        const applyTriggerStoredPosition = () => {
+            try {
+                const state = JSON.parse(localStorage.getItem(TRIGGER_STATE_KEY) || '{}');
+                const h_anchor = state.h_anchor || 'right';
+                const h_value  = state.h_value ?? 20;
+                const v_anchor = state.v_anchor || 'top';
+                const v_value  = state.v_value ?? 18;
+
+                trigger.style.left = trigger.style.right = trigger.style.top = trigger.style.bottom = 'auto';
+
+                if (h_anchor === 'right') trigger.style.right = `${h_value}px`;
+                else trigger.style.left = `${h_value}px`;
+
+                if (v_anchor === 'bottom') trigger.style.bottom = `${v_value}px`;
+                else trigger.style.top = `${v_value}px`;
+            } catch (e) { console.error("Failed to apply trigger position:", e); }
+        };
+
+        const keepTriggerInViewport = () => {
+            const rect = trigger.getBoundingClientRect();
+            let newX = rect.left;
+            let newY = rect.top;
+            const winWidth = window.innerWidth;
+            const winHeight = window.innerHeight;
+            const margin = 6;
+
+            if (newX < margin) newX = margin;
+            if (newY < margin) newY = margin;
+            if (newX + rect.width  > winWidth  - margin) newX = winWidth  - rect.width  - margin;
+            if (newY + rect.height > winHeight - margin) newY = winHeight - rect.height - margin;
+
+            if (Math.round(newX) !== Math.round(rect.left) || Math.round(newY) !== Math.round(rect.top)) {
+                trigger.style.left = `${newX}px`;
+                trigger.style.top  = `${newY}px`;
+                trigger.style.right = 'auto';
+                trigger.style.bottom = 'auto';
+                // 位置を補正したら相対値として保存しておく
+                saveTriggerRelativeState();
+            }
+        };
+
+        const setupTriggerDrag = () => {
+            let isDragging = false;
+            let moved = false;
+            let offset = { x: 0, y: 0 };
+            let suppressClick = false;
+
+            const onMouseDown = (e) => {
+                if (e.button !== 0) return; // left click only
+                isDragging = true;
+                moved = false;
+                const rect = trigger.getBoundingClientRect();
+                // 現在の絶対位置を固定（右/下指定を解除してleft/topで動かす）
+                trigger.style.right = 'auto';
+                trigger.style.bottom = 'auto';
+                trigger.style.left = `${rect.left}px`;
+                trigger.style.top  = `${rect.top}px`;
+                offset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+                document.body.classList.add('adv-dragging');
+                e.preventDefault();
+            };
+
+            const onMouseMove = (e) => {
+                if (!isDragging) return;
+                const winW = window.innerWidth;
+                const winH = window.innerHeight;
+                const width  = trigger.offsetWidth;
+                const height = trigger.offsetHeight;
+
+                let newX = e.clientX - offset.x;
+                let newY = e.clientY - offset.y;
+
+                // 限界チェック
+                newX = Math.max(0, Math.min(newX, winW - width));
+                newY = Math.max(0, Math.min(newY, winH - height));
+
+                const prevLeft = parseFloat(trigger.style.left || '0');
+                const prevTop  = parseFloat(trigger.style.top  || '0');
+
+                if (Math.abs(newX - prevLeft) > 2 || Math.abs(newY - prevTop) > 2) {
+                    moved = true;
+                }
+
+                trigger.style.left = `${newX}px`;
+                trigger.style.top  = `${newY}px`;
+            };
+
+            const onMouseUp = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                document.body.classList.remove('adv-dragging');
+                if (moved) {
+                    suppressClick = true; // ドラッグ後の余計なclickを抑止
+                    setTimeout(() => { suppressClick = false; }, 150);
+                    saveTriggerRelativeState();
+                }
+            };
+
+            trigger.addEventListener('mousedown', onMouseDown);
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+
+            // クリック抑止
+            trigger.addEventListener('click', (e) => {
+                if (suppressClick) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                }
+            }, true);
+        };
+
+        // 初期位置の適用（トリガー）
+        applyTriggerStoredPosition();
+        requestAnimationFrame(keepTriggerInViewport);
+        setupTriggerDrag();
+
+        // ========== 検索ボックス同期 ==========
+
+        const syncSelectorsJoined = searchInputSelectors.join(',');
+
+        const STATE_SYNC = {
+            parseFromSearchToModal: () => {
+                if (isUpdating || modal.style.display === 'none') return;
+                const searchInput = getActiveSearchInput();
+                parseQueryAndApplyToModal(searchInput ? searchInput.value : '');
+            },
+            applyFromModalToSearch: () => {
+                if (isUpdating) return;
+                isUpdating = true;
+                const finalQuery = buildQueryStringFromModal();
+                const searchInput = getActiveSearchInput();
+                if (searchInput) {
+                    searchInput.value = finalQuery;
+                    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                isUpdating = false;
             }
         };
 
@@ -433,6 +586,7 @@
             }
             return q.join(" ");
         };
+
         const parseQueryAndApplyToModal = (query) => {
             if (isUpdating) return;
             isUpdating = true;
@@ -519,6 +673,7 @@
             document.getElementById('adv-all-words').value = q.trim().split(/\s+/).filter(Boolean).join(' ');
             isUpdating = false;
         };
+
         const syncFromModalToSearchBox = () => {
             if (isUpdating) return;
             isUpdating = true;
@@ -530,11 +685,9 @@
             }
             isUpdating = false;
         };
-        const syncFromSearchBoxToModal = () => {
-            if (isUpdating || modal.style.display === 'none') return;
-            const searchInput = getActiveSearchInput();
-            parseQueryAndApplyToModal(searchInput ? searchInput.value : '');
-        };
+
+        const syncFromSearchBoxToModal = STATE_SYNC.parseFromSearchToModal;
+
         const executeSearch = () => {
             const finalQuery = buildQueryStringFromModal().trim();
             if (!finalQuery) return;
@@ -566,8 +719,8 @@
             window.location.href = `https://x.com/search?q=${encodeURIComponent(finalQuery)}&src=typed_query`;
         };
 
-        // ★★★ 修正: ドラッグ処理 (mouseupで相対位置を保存) ★★★
-        const setupDrag = () => {
+        // ========== モーダルのドラッグ処理 ==========
+        const setupModalDrag = () => {
             const header = modal.querySelector('.adv-modal-header');
             let isDragging = false, offset = { x: 0, y: 0 };
             header.addEventListener('mousedown', e => {
@@ -576,10 +729,10 @@
 
                 const rect = modal.getBoundingClientRect();
                 const computedLeft = rect.left;
-                const computedTop = rect.top;
+                const computedTop  = rect.top;
                 modal.style.right = modal.style.bottom = 'auto';
-                modal.style.left = `${computedLeft}px`;
-                modal.style.top = `${computedTop}px`;
+                modal.style.left  = `${computedLeft}px`;
+                modal.style.top   = `${computedTop}px`;
 
                 offset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
                 document.body.classList.add('adv-dragging');
@@ -588,37 +741,38 @@
                 if (!isDragging) return;
                 let newX = e.clientX - offset.x;
                 let newY = e.clientY - offset.y;
-                newX = Math.max(0, Math.min(newX, window.innerWidth - modal.offsetWidth));
+                newX = Math.max(0, Math.min(newX, window.innerWidth  - modal.offsetWidth));
                 newY = Math.max(0, Math.min(newY, window.innerHeight - modal.offsetHeight));
                 modal.style.left = `${newX}px`;
-                modal.style.top = `${newY}px`;
+                modal.style.top  = `${newY}px`;
             });
             document.addEventListener('mouseup', () => {
                 if (isDragging) {
                     isDragging = false;
                     document.body.classList.remove('adv-dragging');
-                    saveRelativeState();
+                    saveModalRelativeState();
                 }
             });
         };
 
+        // ========== トリガークリック（モーダル開閉） ==========
         trigger.addEventListener('click', () => {
             const isVisible = modal.style.display === 'flex';
             modal.style.display = isVisible ? 'none' : 'flex';
 
             if (isVisible) {
-                saveRelativeState();
+                saveModalRelativeState();
             } else {
                 syncFromSearchBoxToModal();
-                applyStoredPosition();
+                applyModalStoredPosition();
                 requestAnimationFrame(keepModalInViewport);
-                saveRelativeState();
+                saveModalRelativeState();
             }
         });
 
         closeButton.addEventListener('click', () => {
-             modal.style.display = 'none';
-             saveRelativeState();
+            modal.style.display = 'none';
+            saveModalRelativeState();
         });
 
         clearButton.addEventListener('click', () => { form.reset(); syncFromModalToSearchBox(); });
@@ -656,6 +810,7 @@
             });
             window.addEventListener('popstate', checkURL);
         };
+
         const setupObservers = () => {
             const observer = new MutationObserver((mutations) => {
                 let searchBoxChanged = false;
@@ -695,22 +850,26 @@
             });
         };
 
-        // ★★★ 修正: ウィンドウリサイズ時のイベントリスナー ★★★
+        // --- ウィンドウリサイズ ---
         window.addEventListener('resize', debounce(() => {
+            // モーダル位置補正
             if (modal.style.display === 'flex') {
-                applyStoredPosition();
+                applyModalStoredPosition();
                 requestAnimationFrame(keepModalInViewport);
             }
+            // トリガー位置補正
+            applyTriggerStoredPosition();
+            requestAnimationFrame(keepTriggerInViewport);
         }, 100));
 
         // --- 初期化処理の実行 ---
-        loadState();
-        setupDrag();
+        loadModalState();
+        setupModalDrag();
         setupObservers();
 
         (async () => {
             console.log('[X Adv Search] Initial load, waiting for an active search input...');
-            const input = await waitForElement(searchInputSelectors.join(','), 7000);
+            const input = await waitForElement(syncSelectorsJoined, 7000);
             if (input) {
                 console.log('[X Adv Search] Active search input found on load. Syncing.');
                 syncFromSearchBoxToModal();
