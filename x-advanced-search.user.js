@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      3.4.5
+// @version      3.5.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -36,7 +36,7 @@
 (function() {
     'use strict';
 
-    // --- 1. 国際化 (i18n) モジュール ---
+    // --- 1. i18n ---
     const i18n = {
         translations: {
             'en': { modalTitle: "Advanced Search", tooltipClose: "Close", labelAllWords: "All of these words", placeholderAllWords: "e.g., AI news", labelExactPhrase: "This exact phrase", placeholderExactPhrase: 'e.g., "ChatGPT 4o"', labelAnyWords: "Any of these words (OR)", placeholderAnyWords: "e.g., iPhone Android", labelNotWords: "None of these words (-)", placeholderNotWords: "e.g., -sale -ads", labelHashtag: "Hashtags (#)", placeholderHashtag: "e.g., #TechEvent", labelLang: "Language (lang:)", optLangDefault: "Any language", optLangJa: "Japanese (ja)", optLangEn: "English (en)", hrSeparator: " ", labelFilters: "Filters", labelVerified: "Verified accounts", labelLinks: "Links", labelImages: "Images", labelVideos: "Videos", checkInclude: "Include", checkExclude: "Exclude", labelReplies: "Replies", optRepliesDefault: "Default (Show all)", optRepliesInclude: "Include replies", optRepliesOnly: "Replies only", optRepliesExclude: "Exclude replies", labelEngagement: "Engagement", placeholderMinReplies: "Min replies", placeholderMinLikes: "Min likes", placeholderMinRetweets: "Min retweets", labelDateRange: "Date range", tooltipSince: "From this date", tooltipUntil: "Until this date", labelFromUser: "From these accounts (from:)", placeholderFromUser: "e.g., @X", labelToUser: "To these accounts (to:)", placeholderToUser: "e.g., @google", labelMentioning: "Mentioning these accounts (@)", placeholderMentioning: "e.g., @OpenAI", buttonClear: "Clear", buttonApply: "Search", tooltipTrigger: "Open Advanced Search" },
@@ -61,7 +61,7 @@
         }
     };
 
-    // --- テーマ管理モジュール ---
+    // --- 2. テーマ ---
     const themeManager = {
         colors: {
             light: {
@@ -101,7 +101,7 @@
         }
     };
 
-    // --- ユーティリティ関数 ---
+    // --- 3. ユーティリティ ---
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -114,26 +114,53 @@
         };
     }
 
-    // --- グローバル変数と状態管理 ---
+    // --- 4. グローバル状態 ---
     let isUpdating = false;
+    let manualOverrideOpen = false; // 非メディアURLで手動開きを維持する用
 
-    // --- スタイルの定義 ---
+    // メディアURL判定: /status/123...(photo|video|media)/?
+    const isMediaViewPath = (pathname) => /\/status\/\d+\/(?:photo|video|media)(?:\/\d+)?\/?$/.test(pathname);
+
+    // --- 5. スタイル ---
     GM_addStyle(`
-        :root {
-            --modal-primary-color: #1d9bf0; --modal-primary-color-hover: #1a8cd8; --modal-primary-text-color: #ffffff;
-        }
-        #advanced-search-trigger { position: fixed; top: 18px; right: 20px; z-index: 9999; background-color: var(--modal-primary-color); color: var(--modal-primary-text-color); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease-in-out, background-color 0.2s; }
-        #advanced-search-trigger:hover { transform: scale(1.1); background-color: var(--modal-primary-color-hover); }
-        #advanced-search-modal { position: fixed; z-index: 10000; width: 380px; max-height: 80vh; display: none; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--modal-bg, black); color: var(--modal-text-primary, #e7e9ea); border: 1px solid var(--modal-border, #333); border-radius: 16px; box-shadow: 0 8px 24px rgba(29, 155, 240, 0.2); transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
-        .adv-modal-header{padding:12px 16px;border-bottom:1px solid var(--modal-border, #333);cursor:move;display:flex;justify-content:space-between;align-items:center}.adv-modal-header h2{margin:0;font-size:18px;font-weight:700}.adv-modal-close{background:0 0;border:none;color:var(--modal-close-color, #e7e9ea);font-size:24px;cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s;}.adv-modal-close:hover{background-color: var(--modal-close-hover-bg, rgba(231,233,234,.1));}.adv-modal-body{flex:1;overflow-y:auto;padding:16px}.adv-form-group{margin-bottom:16px}.adv-form-group label{display:block;margin-bottom:6px;font-size:14px;font-weight:700;color:var(--modal-text-secondary, #8b98a5)}.adv-form-group input[type=text],.adv-form-group input[type=number],.adv-form-group input[type=date],.adv-form-group select{width:100%;background-color:var(--modal-input-bg, #202327);border:1px solid var(--modal-input-border, #38444d);border-radius:4px;padding:8px 12px;color:var(--modal-text-primary, #e7e9ea);font-size:15px;box-sizing:border-box}.adv-form-group input:focus,.adv-form-group select:focus{outline:0;border-color:var(--modal-primary-color)}.adv-form-group input::-moz-placeholder{color:var(--modal-text-secondary, #536471)}.adv-form-group input::placeholder{color:var(--modal-text-secondary, #536471)}.adv-form-group-date-container{display:flex;gap:10px}.adv-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.adv-checkbox-group{background-color:var(--modal-input-bg, #202327);border:1px solid var(--modal-input-border, #38444d);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}.adv-checkbox-group span{font-weight:700;font-size:14px;color:var(--modal-text-primary, #e7e9ea)}.adv-checkbox-item{display:flex;align-items:center}.adv-checkbox-item input{margin-right:8px; accent-color: var(--modal-primary-color);}.adv-checkbox-item label{color:var(--modal-text-secondary, #8b98a5);margin-bottom:0}.adv-modal-footer{padding:12px 16px;border-top:1px solid var(--modal-border, #333);display:flex;justify-content:flex-end;gap:12px}.adv-modal-button{padding:8px 16px;border-radius:9999px;border:1px solid var(--modal-text-secondary, #536471);background-color:transparent;color:var(--modal-text-primary, #e7e9ea);font-weight:700;cursor:pointer;transition:background-color .2s}.adv-modal-button:hover{background-color: var(--modal-button-hover-bg, rgba(231,233,234,.1));}.adv-modal-button.primary{background-color:var(--modal-primary-color);border-color:var(--modal-primary-color);color:var(--modal-primary-text-color)}.adv-modal-button.primary:hover{background-color:var(--modal-primary-color-hover)}.adv-modal-body::-webkit-scrollbar{width:8px}.adv-modal-body::-webkit-scrollbar-track{background:var(--modal-scrollbar-track, #202327)}.adv-modal-body::-webkit-scrollbar-thumb{background:var(--modal-scrollbar-thumb, #536471);border-radius:4px}body.adv-dragging{-webkit-user-select:none;moz-user-select:none;user-select:none}
-        .adv-account-label-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .adv-exclude-toggle { display: flex; align-items: center; }
-        .adv-exclude-toggle input { margin-right: 4px; }
-        .adv-exclude-toggle label { font-size: 13px; font-weight: normal; color: var(--modal-text-secondary, #8b98a5); cursor: pointer; }
-        hr.adv-separator { border: none; height: 1px; background-color: var(--hr-color, #333); margin: 20px 0; transition: background-color 0.2s; }
+        :root { --modal-primary-color:#1d9bf0; --modal-primary-color-hover:#1a8cd8; --modal-primary-text-color:#fff; }
+        #advanced-search-trigger { position:fixed; top:18px; right:20px; z-index:9999; background-color:var(--modal-primary-color); color:var(--modal-primary-text-color); border:none; border-radius:50%; width:50px; height:50px; font-size:24px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; transition:transform .2s, background-color .2s; }
+        #advanced-search-trigger:hover { transform:scale(1.1); background-color:var(--modal-primary-color-hover); }
+        #advanced-search-modal { position:fixed; z-index:10000; width:380px; max-height:80vh; display:none; flex-direction:column; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background-color:var(--modal-bg, #000); color:var(--modal-text-primary, #e7e9ea); border:1px solid var(--modal-border, #333); border-radius:16px; box-shadow:0 8px 24px rgba(29,155,240,.2); transition:background-color .2s,color .2s,border-color .2s; }
+        .adv-modal-header{padding:12px 16px;border-bottom:1px solid var(--modal-border,#333);cursor:move;display:flex;justify-content:space-between;align-items:center}
+        .adv-modal-header h2{margin:0;font-size:18px;font-weight:700}
+        .adv-modal-close{background:0 0;border:none;color:var(--modal-close-color,#e7e9ea);font-size:24px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background-color .2s}
+        .adv-modal-close:hover{background-color:var(--modal-close-hover-bg,rgba(231,233,234,.1))}
+        .adv-modal-body{flex:1;overflow-y:auto;padding:16px}
+        .adv-form-group{margin-bottom:16px}
+        .adv-form-group label{display:block;margin-bottom:6px;font-size:14px;font-weight:700;color:var(--modal-text-secondary,#8b98a5)}
+        .adv-form-group input[type=text],.adv-form-group input[type=number],.adv-form-group input[type=date],.adv-form-group select{width:100%;background-color:var(--modal-input-bg,#202327);border:1px solid var(--modal-input-border,#38444d);border-radius:4px;padding:8px 12px;color:var(--modal-text-primary,#e7e9ea);font-size:15px;box-sizing:border-box}
+        .adv-form-group input:focus,.adv-form-group select:focus{outline:0;border-color:var(--modal-primary-color)}
+        .adv-form-group input::placeholder{color:var(--modal-text-secondary,#536471)}
+        .adv-form-group-date-container{display:flex;gap:10px}
+        .adv-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .adv-checkbox-group{background-color:var(--modal-input-bg,#202327);border:1px solid var(--modal-input-border,#38444d);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}
+        .adv-checkbox-group span{font-weight:700;font-size:14px;color:var(--modal-text-primary,#e7e9ea)}
+        .adv-checkbox-item{display:flex;align-items:center}
+        .adv-checkbox-item input{margin-right:8px; accent-color:var(--modal-primary-color);}
+        .adv-checkbox-item label{color:var(--modal-text-secondary,#8b98a5);margin-bottom:0}
+        .adv-modal-footer{padding:12px 16px;border-top:1px solid var(--modal-border,#333);display:flex;justify-content:flex-end;gap:12px}
+        .adv-modal-button{padding:8px 16px;border-radius:9999px;border:1px solid var(--modal-text-secondary,#536471);background-color:transparent;color:var(--modal-text-primary,#e7e9ea);font-weight:700;cursor:pointer;transition:background-color .2s}
+        .adv-modal-button:hover{background-color:var(--modal-button-hover-bg,rgba(231,233,234,.1))}
+        .adv-modal-button.primary{background-color:var(--modal-primary-color);border-color:var(--modal-primary-color);color:var(--modal-primary-text-color)}
+        .adv-modal-button.primary:hover{background-color:var(--modal-primary-color-hover)}
+        .adv-modal-body::-webkit-scrollbar{width:8px}
+        .adv-modal-body::-webkit-scrollbar-track{background:var(--modal-scrollbar-track,#202327)}
+        .adv-modal-body::-webkit-scrollbar-thumb{background:var(--modal-scrollbar-thumb,#536471);border-radius:4px}
+        body.adv-dragging{user-select:none}
+        .adv-account-label-group{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+        .adv-exclude-toggle{display:flex;align-items:center}
+        .adv-exclude-toggle input{margin-right:4px}
+        .adv-exclude-toggle label{font-size:13px;font-weight:normal;color:var(--modal-text-secondary,#8b98a5);cursor:pointer}
+        hr.adv-separator{border:none;height:1px;background-color:var(--hr-color,#333);margin:20px 0;transition:background-color .2s}
     `);
 
-    // --- HTML構造の定義 ---
+    // --- 6. HTML ---
     const modalHTML = `
         <div id="advanced-search-modal">
             <div class="adv-modal-header">
@@ -206,46 +233,18 @@
         </div>
     `;
 
-    function waitForElement(selector, timeout = 10000, checkProperty = null) {
-        return new Promise((resolve) => {
-            const checkInterval = 100;
-            let elapsedTime = 0;
-            const intervalId = setInterval(() => {
-                const element = document.querySelector(selector);
-                if (element) {
-                    if (checkProperty) {
-                        if (element[checkProperty]) {
-                            clearInterval(intervalId);
-                            resolve(element);
-                            return;
-                        }
-                    } else {
-                        clearInterval(intervalId);
-                        resolve(element);
-                        return;
-                    }
-                }
-                elapsedTime += checkInterval;
-                if (elapsedTime >= timeout) {
-                    clearInterval(intervalId);
-                    resolve(null);
-                }
-            }, checkInterval);
-        });
-    }
-
-    // --- メインロジック ---
+    // --- 7. メイン ---
     const initialize = async () => {
         i18n.init();
 
-        // --- トリガーボタン作成 ---
+        // トリガーボタン
         const trigger = document.createElement('button');
         trigger.id = 'advanced-search-trigger';
         trigger.innerHTML = '🔍';
         trigger.title = i18n.t('tooltipTrigger');
         document.body.appendChild(trigger);
 
-        // --- モーダル作成 ---
+        // モーダル
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = modalHTML;
         document.body.appendChild(modalContainer);
@@ -263,272 +262,168 @@
             'div[data-testid="primaryColumn"] input[data-testid="SearchBox_Search_Input"]',
             'div[data-testid="sidebarColumn"] input[data-testid="SearchBox_Search_Input"]'
         ];
-
         const getActiveSearchInput = () => {
             for (const selector of searchInputSelectors) {
                 const input = document.querySelector(selector);
-                if (input && input.offsetParent !== null) {
-                    return input;
-                }
+                if (input && input.offsetParent !== null) return input;
             }
-            const fallbackInput = document.querySelector('input[data-testid="SearchBox_Search_Input"]');
-            if (fallbackInput && fallbackInput.offsetParent !== null) {
-                return fallbackInput;
-            }
-            return null;
+            const fallback = document.querySelector('input[data-testid="SearchBox_Search_Input"]');
+            return (fallback && fallback.offsetParent !== null) ? fallback : null;
         };
 
-        // --- 状態キー（モーダル／トリガー別管理） ---
+        // 状態キー
         const MODAL_STATE_KEY   = 'advSearchModalState_v3.2';
         const TRIGGER_STATE_KEY = 'advSearchTriggerState_v1.0';
 
-        // ========== 1) モーダル位置と表示状態の保存/復元 ==========
+        // モーダル位置保存（手動操作時のみ呼ぶ）
         const saveModalRelativeState = () => {
             if (modal.style.display === 'none') {
                 try {
-                    const currentState = JSON.parse(localStorage.getItem(MODAL_STATE_KEY) || '{}');
-                    currentState.visible = false;
-                    localStorage.setItem(MODAL_STATE_KEY, JSON.stringify(currentState));
-                } catch(e) { /* ignore */ }
+                    const current = JSON.parse(localStorage.getItem(MODAL_STATE_KEY) || '{}');
+                    current.visible = false;
+                    localStorage.setItem(MODAL_STATE_KEY, JSON.stringify(current));
+                } catch(_) {}
                 return;
             }
             const rect = modal.getBoundingClientRect();
-            const winWidth = window.innerWidth;
-            const winHeight = window.innerHeight;
-
-            const fromRight  = winWidth - rect.right;
-            const fromBottom = winHeight - rect.bottom;
-
+            const winW = window.innerWidth, winH = window.innerHeight;
+            const fromRight = winW - rect.right, fromBottom = winH - rect.bottom;
             const h_anchor = rect.left < fromRight ? 'left' : 'right';
             const h_value  = h_anchor === 'left' ? rect.left : fromRight;
             const v_anchor = rect.top  < fromBottom ? 'top'  : 'bottom';
             const v_value  = v_anchor === 'top' ? rect.top : fromBottom;
-
             const state = { h_anchor, h_value, v_anchor, v_value, visible: true };
             localStorage.setItem(MODAL_STATE_KEY, JSON.stringify(state));
         };
-
         const applyModalStoredPosition = () => {
             try {
-                const state = JSON.parse(localStorage.getItem(MODAL_STATE_KEY) || '{}');
-                const h_anchor = state.h_anchor || 'right';
-                const h_value  = state.h_value ?? 20;
-                const v_anchor = state.v_anchor || 'top';
-                const v_value  = state.v_value ?? 80;
-
+                const s = JSON.parse(localStorage.getItem(MODAL_STATE_KEY) || '{}');
+                const h_anchor = s.h_anchor || 'right';
+                const h_value  = s.h_value ?? 20;
+                const v_anchor = s.v_anchor || 'top';
+                const v_value  = s.v_value ?? 80;
                 modal.style.left = modal.style.right = modal.style.top = modal.style.bottom = 'auto';
-
-                if (h_anchor === 'right') modal.style.right = `${h_value}px`;
-                else modal.style.left = `${h_value}px`;
-
-                if (v_anchor === 'bottom') modal.style.bottom = `${v_value}px`;
-                else modal.style.top = `${v_value}px`;
-
-            } catch (e) { console.error("Failed to apply stored modal position:", e); }
+                if (h_anchor === 'right') modal.style.right = `${h_value}px`; else modal.style.left = `${h_value}px`;
+                if (v_anchor === 'bottom') modal.style.bottom = `${v_value}px`; else modal.style.top = `${v_value}px`;
+            } catch(e) { console.error('Failed to apply modal position:', e); }
         };
-
         const keepModalInViewport = () => {
             if (modal.style.display === 'none') return;
             const rect = modal.getBoundingClientRect();
-            let newX = rect.left;
-            let newY = rect.top;
-            const winWidth = window.innerWidth;
-            const winHeight = window.innerHeight;
-            const margin = 10;
-
-            if (newX < margin) newX = margin;
-            if (newY < margin) newY = margin;
-            if (newX + rect.width  > winWidth  - margin) newX = winWidth  - rect.width  - margin;
-            if (newY + rect.height > winHeight - margin) newY = winHeight - rect.height - margin;
-
-            if (Math.round(newX) !== Math.round(rect.left) || Math.round(newY) !== Math.round(rect.top)) {
-                modal.style.left = `${newX}px`;
-                modal.style.top  = `${newY}px`;
-                modal.style.right = 'auto';
-                modal.style.bottom = 'auto';
+            const winW = window.innerWidth, winH = window.innerHeight, m = 10;
+            let x = rect.left, y = rect.top;
+            if (x < m) x = m; if (y < m) y = m;
+            if (x + rect.width > winW - m) x = winW - rect.width - m;
+            if (y + rect.height > winH - m) y = winH - rect.height - m;
+            if (Math.round(x) !== Math.round(rect.left) || Math.round(y) !== Math.round(rect.top)) {
+                modal.style.left = `${x}px`; modal.style.top = `${y}px`;
+                modal.style.right = 'auto'; modal.style.bottom = 'auto';
             }
         };
-
         const loadModalState = () => {
-            try {
-                const state = JSON.parse(localStorage.getItem(MODAL_STATE_KEY) || '{}');
-                if (state.visible) {
-                    modal.style.display = 'flex';
-                    applyModalStoredPosition();
-                    requestAnimationFrame(keepModalInViewport);
-                }
-            } catch (e) {
-                console.error("Failed to load modal state, resetting:", e);
+            try { applyModalStoredPosition(); } catch(e) {
+                console.error('Failed to load modal state:', e);
                 localStorage.removeItem(MODAL_STATE_KEY);
             }
         };
 
-        // ========== 2) トリガーボタン位置の保存/復元（ドラッグ可） ==========
+        // トリガー位置保存/復元
         const saveTriggerRelativeState = () => {
             const rect = trigger.getBoundingClientRect();
-            const winWidth = window.innerWidth;
-            const winHeight = window.innerHeight;
-
-            const fromRight  = winWidth - rect.right;
-            const fromBottom = winHeight - rect.bottom;
-
+            const winW = window.innerWidth, winH = window.innerHeight;
+            const fromRight = winW - rect.right, fromBottom = winH - rect.bottom;
             const h_anchor = rect.left < fromRight ? 'left' : 'right';
             const h_value  = h_anchor === 'left' ? rect.left : fromRight;
             const v_anchor = rect.top  < fromBottom ? 'top'  : 'bottom';
             const v_value  = v_anchor === 'top' ? rect.top : fromBottom;
-
             const state = { h_anchor, h_value, v_anchor, v_value };
             localStorage.setItem(TRIGGER_STATE_KEY, JSON.stringify(state));
         };
-
         const applyTriggerStoredPosition = () => {
             try {
-                const state = JSON.parse(localStorage.getItem(TRIGGER_STATE_KEY) || '{}');
-                const h_anchor = state.h_anchor || 'right';
-                const h_value  = state.h_value ?? 20;
-                const v_anchor = state.v_anchor || 'top';
-                const v_value  = state.v_value ?? 18;
-
+                const s = JSON.parse(localStorage.getItem(TRIGGER_STATE_KEY) || '{}');
+                const h_anchor = s.h_anchor || 'right';
+                const h_value  = s.h_value ?? 20;
+                const v_anchor = s.v_anchor || 'top';
+                const v_value  = s.v_value ?? 18;
                 trigger.style.left = trigger.style.right = trigger.style.top = trigger.style.bottom = 'auto';
-
-                if (h_anchor === 'right') trigger.style.right = `${h_value}px`;
-                else trigger.style.left = `${h_value}px`;
-
-                if (v_anchor === 'bottom') trigger.style.bottom = `${v_value}px`;
-                else trigger.style.top = `${v_value}px`;
-            } catch (e) { console.error("Failed to apply trigger position:", e); }
+                if (h_anchor === 'right') trigger.style.right = `${h_value}px`; else trigger.style.left = `${h_value}px`;
+                if (v_anchor === 'bottom') trigger.style.bottom = `${v_value}px`; else trigger.style.top = `${v_value}px`;
+            } catch(e) { console.error('Failed to apply trigger position:', e); }
         };
-
         const keepTriggerInViewport = () => {
             const rect = trigger.getBoundingClientRect();
-            let newX = rect.left;
-            let newY = rect.top;
-            const winWidth = window.innerWidth;
-            const winHeight = window.innerHeight;
-            const margin = 6;
-
-            if (newX < margin) newX = margin;
-            if (newY < margin) newY = margin;
-            if (newX + rect.width  > winWidth  - margin) newX = winWidth  - rect.width  - margin;
-            if (newY + rect.height > winHeight - margin) newY = winHeight - rect.height - margin;
-
-            if (Math.round(newX) !== Math.round(rect.left) || Math.round(newY) !== Math.round(rect.top)) {
-                trigger.style.left = `${newX}px`;
-                trigger.style.top  = `${newY}px`;
-                trigger.style.right = 'auto';
-                trigger.style.bottom = 'auto';
-                // 位置を補正したら相対値として保存しておく
+            const winW = window.innerWidth, winH = window.innerHeight, m = 6;
+            let x = rect.left, y = rect.top;
+            if (x < m) x = m; if (y < m) y = m;
+            if (x + rect.width > winW - m) x = winW - rect.width - m;
+            if (y + rect.height > winH - m) y = winH - rect.height - m;
+            if (Math.round(x) !== Math.round(rect.left) || Math.round(y) !== Math.round(rect.top)) {
+                trigger.style.left = `${x}px`; trigger.style.top = `${y}px`;
+                trigger.style.right = 'auto'; trigger.style.bottom = 'auto';
                 saveTriggerRelativeState();
             }
         };
-
-        // クリックでは位置を変えず、ドラッグ閾値を超えたら再アンカーして移動開始
         const setupTriggerDrag = () => {
-            const DRAG_THRESHOLD = 4; // px：これ未満はクリック扱い
-            let isPointerDown = false;
-            let isDragging = false;
-            let start = { x: 0, y: 0, left: 0, top: 0 };
-            let suppressClick = false;
-
+            const DRAG_THRESHOLD = 4;
+            let isPointerDown = false, isDragging = false, start = {x:0,y:0,left:0,top:0}, suppressClick=false;
             const onPointerDown = (e) => {
-                if (e.button !== 0) return; // 左クリックのみ
-                isPointerDown = true;
-                isDragging = false;
-                suppressClick = false;
-
+                if (e.button !== 0) return;
+                isPointerDown = true; isDragging = false; suppressClick=false;
                 const rect = trigger.getBoundingClientRect();
-                start = { x: e.clientX, y: e.clientY, left: rect.left, top: rect.top };
-
-                try { trigger.setPointerCapture(e.pointerId); } catch (_) {}
+                start = { x:e.clientX, y:e.clientY, left:rect.left, top:rect.top };
+                try{ trigger.setPointerCapture(e.pointerId);}catch(_){}
             };
-
             const onPointerMove = (e) => {
                 if (!isPointerDown) return;
-
-                const dx = e.clientX - start.x;
-                const dy = e.clientY - start.y;
-
-                // まだドラッグ開始していない && 閾値未満 → 何もしない（クリックのまま）
+                const dx = e.clientX - start.x, dy = e.clientY - start.y;
                 if (!isDragging) {
                     if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
-
-                    // ここで初めて再アンカー（right/bottom → left/top）
                     isDragging = true;
-                    trigger.style.right = 'auto';
-                    trigger.style.bottom = 'auto';
-                    trigger.style.left = `${start.left}px`;
-                    trigger.style.top  = `${start.top}px`;
+                    trigger.style.right = 'auto'; trigger.style.bottom = 'auto';
+                    trigger.style.left = `${start.left}px`; trigger.style.top = `${start.top}px`;
                     document.body.classList.add('adv-dragging');
                 }
-
-                // ドラッグ中の位置更新（ビューポート内にクランプ）
-                const winW = window.innerWidth;
-                const winH = window.innerHeight;
-                const width  = trigger.offsetWidth;
-                const height = trigger.offsetHeight;
-
-                let newX = start.left + dx;
-                let newY = start.top  + dy;
-
-                newX = Math.max(0, Math.min(newX, winW - width));
-                newY = Math.max(0, Math.min(newY, winH - height));
-
-                trigger.style.left = `${newX}px`;
-                trigger.style.top  = `${newY}px`;
+                const winW = window.innerWidth, winH = window.innerHeight;
+                const w = trigger.offsetWidth, h = trigger.offsetHeight;
+                let nx = start.left + dx, ny = start.top + dy;
+                nx = Math.max(0, Math.min(nx, winW - w)); ny = Math.max(0, Math.min(ny, winH - h));
+                trigger.style.left = `${nx}px`; trigger.style.top = `${ny}px`;
             };
-
             const onPointerUp = (e) => {
-                if (!isPointerDown) return;
-                isPointerDown = false;
-                try { trigger.releasePointerCapture(e.pointerId); } catch (_) {}
-
+                if (!isPointerDown) return; isPointerDown = false;
+                try{ trigger.releasePointerCapture(e.pointerId);}catch(_){}
                 if (isDragging) {
-                    isDragging = false;
-                    document.body.classList.remove('adv-dragging');
-                    suppressClick = true; // ドラッグ直後のクリック発火を抑止
-                    setTimeout(() => { suppressClick = false; }, 150);
-                    saveTriggerRelativeState(); // ここでのみ保存（クリックでは保存しない）
+                    isDragging = false; document.body.classList.remove('adv-dragging');
+                    suppressClick = true; setTimeout(()=>{suppressClick=false;},150);
+                    saveTriggerRelativeState();
                 }
             };
-
-            // ドラッグ後の“誤クリック”抑止
-            trigger.addEventListener('click', (e) => {
-                if (suppressClick) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            }, true);
-
+            trigger.addEventListener('click', (e)=>{ if(suppressClick){ e.preventDefault(); e.stopPropagation(); }}, true);
             trigger.addEventListener('pointerdown', onPointerDown);
             window.addEventListener('pointermove', onPointerMove);
             window.addEventListener('pointerup', onPointerUp);
             window.addEventListener('pointercancel', onPointerUp);
         };
 
-        // 初期位置の適用（トリガー）
+        // 初期トリガー位置
         applyTriggerStoredPosition();
         requestAnimationFrame(keepTriggerInViewport);
         setupTriggerDrag();
 
-        // ========== 検索ボックス同期 ==========
-
-        const syncSelectorsJoined = searchInputSelectors.join(',');
-
+        // ===== 検索ボックス同期 =====
         const STATE_SYNC = {
             parseFromSearchToModal: () => {
                 if (isUpdating || modal.style.display === 'none') return;
-                const searchInput = getActiveSearchInput();
-                parseQueryAndApplyToModal(searchInput ? searchInput.value : '');
+                const si = getActiveSearchInput();
+                parseQueryAndApplyToModal(si ? si.value : '');
             },
             applyFromModalToSearch: () => {
                 if (isUpdating) return;
                 isUpdating = true;
                 const finalQuery = buildQueryStringFromModal();
-                const searchInput = getActiveSearchInput();
-                if (searchInput) {
-                    searchInput.value = finalQuery;
-                    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-                }
+                const si = getActiveSearchInput();
+                if (si) { si.value = finalQuery; si.dispatchEvent(new Event('input',{bubbles:true})); }
                 isUpdating = false;
             }
         };
@@ -549,12 +444,11 @@
                 since: document.getElementById('adv-since').value,
                 until: document.getElementById('adv-until').value,
             };
-
             if (fields.all) q.push(fields.all);
-            if (fields.exact) q.push(`"${fields.exact.replace(/"/g, '')}"`);
-            if (fields.any) q.push(`(${fields.any.split(/\s+/).filter(Boolean).join(" OR ")})`);
-            if (fields.not) q.push(...fields.not.split(/\s+/).filter(Boolean).map(w => `-${w}`));
-            if (fields.hash) q.push(...fields.hash.split(/\s+/).filter(Boolean).map(h => `#${h.replace(/^#/, "")}`));
+            if (fields.exact) q.push(`"${fields.exact.replace(/"/g,'')}"`);
+            if (fields.any) q.push(`(${fields.any.split(/\s+/).filter(Boolean).join(' OR ')})`);
+            if (fields.not) q.push(...fields.not.split(/\s+/).filter(Boolean).map(w=>`-${w}`));
+            if (fields.hash) q.push(...fields.hash.split(/\s+/).filter(Boolean).map(h=>`#${h.replace(/^#/,'')}`));
             if (fields.lang) q.push(`lang:${fields.lang}`);
 
             const createAccountQuery = (inputId, operator) => {
@@ -562,19 +456,13 @@
                 if (!value) return null;
                 const isExclude = document.getElementById(`${inputId}-exclude`).checked;
                 const terms = value.split(/\s+/).filter(Boolean);
-                if (isExclude) {
-                    return terms.map(term => `-${operator}${term.replace(/^@/, '')}`).join(' ');
-                } else {
-                    const processedTerms = terms.map(term => `${operator}${term.replace(/^@/, '')}`);
-                    return processedTerms.length > 1 ? `(${processedTerms.join(' OR ')})` : processedTerms[0];
-                }
+                if (isExclude) return terms.map(t=>`-${operator}${t.replace(/^@/,'')}`).join(' ');
+                const processed = terms.map(t=>`${operator}${t.replace(/^@/,'')}`);
+                return processed.length>1 ? `(${processed.join(' OR ')})` : processed[0];
             };
-            const fromQuery = createAccountQuery('adv-from-user', 'from:');
-            if (fromQuery) q.push(fromQuery);
-            const toQuery = createAccountQuery('adv-to-user', 'to:');
-            if (toQuery) q.push(toQuery);
-            const mentionQuery = createAccountQuery('adv-mentioning', '@');
-            if (mentionQuery) q.push(mentionQuery);
+            const fromQ = createAccountQuery('adv-from-user','from:'); if (fromQ) q.push(fromQ);
+            const toQ = createAccountQuery('adv-to-user','to:'); if (toQ) q.push(toQ);
+            const mentionQ = createAccountQuery('adv-mentioning','@'); if (mentionQ) q.push(mentionQ);
 
             if (fields.min_replies) q.push(`min_replies:${fields.min_replies}`);
             if (fields.min_faves) q.push(`min_faves:${fields.min_faves}`);
@@ -588,202 +476,169 @@
                 if (include) q.push(mapping);
                 if (exclude) q.push(`-${mapping}`);
             };
-            addFilter('verified', 'is:verified');
-            addFilter('links', 'filter:links');
-            addFilter('images', 'filter:images');
-            addFilter('videos', 'filter:videos');
+            addFilter('verified','is:verified');
+            addFilter('links','filter:links');
+            addFilter('images','filter:images');
+            addFilter('videos','filter:videos');
 
             if (fields.replies) {
-                const replyMap = { include: 'include:replies', only: 'filter:replies', exclude: '-filter:replies' };
+                const replyMap = { include:'include:replies', only:'filter:replies', exclude:'-filter:replies' };
                 if (replyMap[fields.replies]) q.push(replyMap[fields.replies]);
             }
-            return q.join(" ");
+            return q.join(' ');
         };
 
         const parseQueryAndApplyToModal = (query) => {
-            if (isUpdating) return;
-            isUpdating = true;
+            if (isUpdating) return; isUpdating = true;
             form.reset();
             let q = ` ${query} `;
-
             const parseAccountField = (inputId, operator) => {
                 const exclOperator = `-${operator}`;
                 const values = [];
-                const exclRegex = new RegExp(`\\s(${exclOperator.replace(/[-:]/g, '\\$&')}[^\\s()]+)`, 'g');
-                const exclMatches = [...q.matchAll(exclRegex)];
-                if (exclMatches.length > 0) {
-                    exclMatches.forEach(match => {
-                        values.push(match[1].substring(exclOperator.length));
-                        q = q.replace(match[0], ' ');
-                    });
-                    document.getElementById(inputId).value = values.join(' ');
-                    document.getElementById(`${inputId}-exclude`).checked = true;
-                    return;
-                }
-                const inclGroupRegex = new RegExp(`\\((${operator.replace(':', '\\:')}[^)]+)\\)`, 'g');
-                const groupMatches = [...q.matchAll(inclGroupRegex)];
-                groupMatches.forEach(match => {
-                    const content = match[1];
-                    const terms = content.split(/\s+OR\s+/);
-                    terms.forEach(term => values.push(term.substring(operator.length)));
-                    q = q.replace(match[0], ' ');
+                const exclRegex = new RegExp(`\\s(${exclOperator.replace(/[-:]/g,'\\$&')}[^\\s()]+)`,'g');
+                [...q.matchAll(exclRegex)].forEach(m=>{ values.push(m[1].substring(exclOperator.length)); q=q.replace(m[0],' '); });
+                if (values.length>0){ document.getElementById(inputId).value = values.join(' '); document.getElementById(`${inputId}-exclude`).checked=true; return; }
+                const inclGroupRegex = new RegExp(`\\((${operator.replace(':','\\:')}[^)]+)\\)`,'g');
+                [...q.matchAll(inclGroupRegex)].forEach(m=>{
+                    m[1].split(/\s+OR\s+/).forEach(t=>values.push(t.substring(operator.length)));
+                    q=q.replace(m[0],' ');
                 });
-                const inclSingleRegex = new RegExp(`\\s(?!-)(${operator.replace(':', '\\:')}[^\\s()]+)`, 'g');
-                const singleMatches = [...q.matchAll(inclSingleRegex)];
-                singleMatches.forEach(match => {
-                    values.push(match[1].substring(operator.length));
-                    q = q.replace(match[0], ' ');
-                });
-                if (values.length > 0) {
-                    document.getElementById(inputId).value = [...new Set(values)].join(' ');
-                    document.getElementById(`${inputId}-exclude`).checked = false;
-                }
+                const inclSingleRegex = new RegExp(`\\s(?!-)(${operator.replace(':','\\:')}[^\\s()]+)`,'g');
+                [...q.matchAll(inclSingleRegex)].forEach(m=>{ values.push(m[1].substring(operator.length)); q=q.replace(m[0],' '); });
+                if (values.length>0){ document.getElementById(inputId).value=[...new Set(values)].join(' '); document.getElementById(`${inputId}-exclude`).checked=false; }
             };
-            parseAccountField('adv-from-user', 'from:');
-            parseAccountField('adv-to-user', 'to:');
-            parseAccountField('adv-mentioning', '@');
+            parseAccountField('adv-from-user','from:');
+            parseAccountField('adv-to-user','to:');
+            parseAccountField('adv-mentioning','@');
 
-            const extract = (regex, callback) => {
-                let match;
-                while ((match = regex.exec(q)) !== null) {
-                    callback(match[1].trim());
-                    q = q.replace(match[0], ' ');
-                    regex.lastIndex = 0;
-                }
-            };
+            const extract = (regex, cb) => { let m; while((m=regex.exec(q))!==null){ cb(m[1].trim()); q=q.replace(m[0],' '); regex.lastIndex=0; } };
+            extract(/"([^"]+)"/g, v=>document.getElementById('adv-exact-phrase').value=v);
+            extract(/lang:([^\s]+)/g, v=>document.getElementById('adv-lang').value=v);
+            extract(/#([^\s]+)/g, v=>document.getElementById('adv-hashtag').value=(document.getElementById('adv-hashtag').value+' '+v).trim());
+            extract(/min_replies:(\d+)/g, v=>document.getElementById('adv-min-replies').value=v);
+            extract(/min_faves:(\d+)/g, v=>document.getElementById('adv-min-faves').value=v);
+            extract(/min_retweets:(\d+)/g, v=>document.getElementById('adv-min-retweets').value=v);
+            extract(/since:(\d{4}-\d{2}-\d{2})/g, v=>document.getElementById('adv-since').value=v);
+            extract(/until:(\d{4}-\d{2}-\d{2})/g, v=>document.getElementById('adv-until').value=v);
 
-            extract(/"([^"]+)"/g, val => document.getElementById('adv-exact-phrase').value = val);
-            extract(/lang:([^\s]+)/g, val => document.getElementById('adv-lang').value = val);
-            extract(/#([^\s]+)/g, val => document.getElementById('adv-hashtag').value = (document.getElementById('adv-hashtag').value + ' ' + val).trim());
-            extract(/min_replies:(\d+)/g, val => document.getElementById('adv-min-replies').value = val);
-            extract(/min_faves:(\d+)/g, val => document.getElementById('adv-min-faves').value = val);
-            extract(/min_retweets:(\d+)/g, val => document.getElementById('adv-min-retweets').value = val);
-            extract(/since:(\d{4}-\d{2}-\d{2})/g, val => document.getElementById('adv-since').value = val);
-            extract(/until:(\d{4}-\d{2}-\d{2})/g, val => document.getElementById('adv-until').value = val);
-
-            const filterMap = { 'is:verified': 'verified', 'filter:links': 'links', 'filter:images': 'images', 'filter:videos': 'videos' };
-            Object.entries(filterMap).forEach(([op, id]) => {
-                const regex = new RegExp(`\\s(-?)${op.replace(':', '\\:')}\\s`, 'g');
-                q = q.replace(regex, (match, prefix) => {
-                    document.getElementById(`adv-filter-${id}-${prefix ? 'exclude' : 'include'}`).checked = true;
-                    return ' ';
-                });
+            const filterMap = { 'is:verified':'verified', 'filter:links':'links', 'filter:images':'images', 'filter:videos':'videos' };
+            Object.entries(filterMap).forEach(([op,id])=>{
+                const r = new RegExp(`\\s(-?)${op.replace(':','\\:')}\\s`,'g');
+                q=q.replace(r,(m,prefix)=>{ document.getElementById(`adv-filter-${id}-${prefix? 'exclude':'include'}`).checked=true; return ' '; });
             });
 
-            if (/\sinclude:replies\s/.test(q)) { document.getElementById('adv-replies').value = 'include'; q = q.replace(/\sinclude:replies\s/, ' '); }
-            else if (/\sfilter:replies\s/.test(q)) { document.getElementById('adv-replies').value = 'only'; q = q.replace(/\sfilter:replies\s/, ' '); }
-            else if (/\s-filter:replies\s/.test(q)) { document.getElementById('adv-replies').value = 'exclude'; q = q.replace(/\s-filter:replies\s/, ' '); }
+            if (/\sinclude:replies\s/.test(q)) { document.getElementById('adv-replies').value='include'; q=q.replace(/\sinclude:replies\s/,' '); }
+            else if (/\sfilter:replies\s/.test(q)) { document.getElementById('adv-replies').value='only'; q=q.replace(/\sfilter:replies\s/,' '); }
+            else if (/\s-filter:replies\s/.test(q)) { document.getElementById('adv-replies').value='exclude'; q=q.replace(/\s-filter:replies\s/,' '); }
 
             const orGroups = q.match(/\(([^)]+)\)/g);
             if (orGroups) {
-                const anyWords = orGroups.map(g => g.replace(/[()]/g, '').replace(/\s+OR\s+/g, ' ')).join(' ');
+                const anyWords = orGroups.map(g=>g.replace(/[()]/g,'').replace(/\s+OR\s+/g,' ')).join(' ');
                 document.getElementById('adv-any-words').value = anyWords.trim();
-                q = q.replace(/\(([^)]+)\)/g, ' ');
+                q=q.replace(/\(([^)]+)\)/g,' ');
             }
 
-            document.getElementById('adv-not-words').value = (q.match(/\s-\S+/g) || []).map(w => w.trim().substring(1)).join(' ');
-            q = q.replace(/\s-\S+/g, ' ');
+            document.getElementById('adv-not-words').value = (q.match(/\s-\S+/g)||[]).map(w=>w.trim().substring(1)).join(' ');
+            q=q.replace(/\s-\S+/g,' ');
             document.getElementById('adv-all-words').value = q.trim().split(/\s+/).filter(Boolean).join(' ');
-            isUpdating = false;
+            isUpdating=false;
         };
 
         const syncFromModalToSearchBox = () => {
-            if (isUpdating) return;
-            isUpdating = true;
+            if (isUpdating) return; isUpdating=true;
             const finalQuery = buildQueryStringFromModal();
-            const searchInput = getActiveSearchInput();
-            if (searchInput) {
-                searchInput.value = finalQuery;
-                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-            isUpdating = false;
+            const si = getActiveSearchInput();
+            if (si){ si.value = finalQuery; si.dispatchEvent(new Event('input',{bubbles:true})); }
+            isUpdating=false;
         };
-
         const syncFromSearchBoxToModal = STATE_SYNC.parseFromSearchToModal;
 
         const executeSearch = () => {
             const finalQuery = buildQueryStringFromModal().trim();
             if (!finalQuery) return;
-
-            const searchInput = getActiveSearchInput();
+            const si = getActiveSearchInput();
             const oldURL = location.href;
-
-            if (searchInput) {
-                searchInput.value = finalQuery;
-                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-
-                const parentForm = searchInput.closest('form');
+            if (si) {
+                si.value = finalQuery; si.dispatchEvent(new Event('input',{bubbles:true}));
+                const parentForm = si.closest('form');
                 if (parentForm && typeof parentForm.requestSubmit === 'function') {
                     parentForm.requestSubmit();
-
-                    // fallback: 遷移が発生しなかったら手動でURL遷移
-                    setTimeout(() => {
-                        if (location.href === oldURL) {
-                            console.warn("[X Adv Search] requestSubmit() had no effect. Falling back to manual redirect.");
-                            window.location.href = `https://x.com/search?q=${encodeURIComponent(finalQuery)}&src=typed_query`;
-                        }
-                    }, 300);
-
+                    setTimeout(()=>{ if(location.href===oldURL){ window.location.href=`https://x.com/search?q=${encodeURIComponent(finalQuery)}&src=typed_query`; }}, 300);
                     return;
                 }
             }
-
-            // fallback: 検索窓がなかった場合
             window.location.href = `https://x.com/search?q=${encodeURIComponent(finalQuery)}&src=typed_query`;
         };
 
-        // ========== モーダルのドラッグ処理 ==========
+        // モーダルドラッグ
         const setupModalDrag = () => {
             const header = modal.querySelector('.adv-modal-header');
-            let isDragging = false, offset = { x: 0, y: 0 };
-            header.addEventListener('mousedown', e => {
-                if (e.target.matches('button, a')) return;
-                isDragging = true;
-
+            let dragging=false, offset={x:0,y:0};
+            header.addEventListener('mousedown', e=>{
+                if (e.target.matches('button,a')) return;
+                dragging=true;
                 const rect = modal.getBoundingClientRect();
-                const computedLeft = rect.left;
-                const computedTop  = rect.top;
-                modal.style.right = modal.style.bottom = 'auto';
-                modal.style.left  = `${computedLeft}px`;
-                modal.style.top   = `${computedTop}px`;
-
-                offset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+                modal.style.right=modal.style.bottom='auto';
+                modal.style.left=`${rect.left}px`; modal.style.top=`${rect.top}px`;
+                offset = { x:e.clientX-rect.left, y:e.clientY-rect.top };
                 document.body.classList.add('adv-dragging');
             });
-            document.addEventListener('mousemove', e => {
-                if (!isDragging) return;
-                let newX = e.clientX - offset.x;
-                let newY = e.clientY - offset.y;
-                newX = Math.max(0, Math.min(newX, window.innerWidth  - modal.offsetWidth));
-                newY = Math.max(0, Math.min(newY, window.innerHeight - modal.offsetHeight));
-                modal.style.left = `${newX}px`;
-                modal.style.top  = `${newY}px`;
+            document.addEventListener('mousemove', e=>{
+                if(!dragging) return;
+                let nx = e.clientX - offset.x, ny = e.clientY - offset.y;
+                nx=Math.max(0,Math.min(nx,window.innerWidth - modal.offsetWidth));
+                ny=Math.max(0,Math.min(ny,window.innerHeight - modal.offsetHeight));
+                modal.style.left=`${nx}px`; modal.style.top=`${ny}px`;
             });
-            document.addEventListener('mouseup', () => {
-                if (isDragging) {
-                    isDragging = false;
-                    document.body.classList.remove('adv-dragging');
-                    saveModalRelativeState();
-                }
+            document.addEventListener('mouseup', ()=>{
+                if(dragging){ dragging=false; document.body.classList.remove('adv-dragging'); saveModalRelativeState(); }
             });
         };
 
-        // ========== トリガークリック（モーダル開閉） ==========
-        trigger.addEventListener('click', () => {
-            const isVisible = modal.style.display === 'flex';
-            modal.style.display = isVisible ? 'none' : 'flex';
+        // ===== ここがポイント：UI一元調停（モーダル＋トリガー） =====
+        const reconcileUI = () => {
+            const stored = (()=>{ try { return JSON.parse(localStorage.getItem(MODAL_STATE_KEY)||'{}'); } catch{ return {}; } })();
+            const desiredVisible = !!stored.visible;
+            const media = isMediaViewPath(location.pathname);
 
-            if (isVisible) {
-                saveModalRelativeState();
+            // 1) トリガー可視性：メディアURLでは非表示（保存不要）
+            if (media) {
+                trigger.style.display = 'none';
             } else {
-                syncFromSearchBoxToModal();
+                trigger.style.display = ''; // CSSの display:flex を有効化
+                applyTriggerStoredPosition();
+                requestAnimationFrame(keepTriggerInViewport);
+            }
+
+            // 2) モーダル可視性：メディアURLでは必ず非表示（手動オーバーライドも無効化）
+            const shouldShow = (!media) && (desiredVisible || manualOverrideOpen);
+            modal.style.display = shouldShow ? 'flex' : 'none';
+            if (shouldShow) {
                 applyModalStoredPosition();
                 requestAnimationFrame(keepModalInViewport);
-                saveModalRelativeState();
+            }
+        };
+
+        // クリックで開閉（非メディアURL時のみ実質意味がある）
+        trigger.addEventListener('click', () => {
+            // トリガー自体が非表示のときはクリックできない前提だが、念のため
+            if (trigger.style.display === 'none') return;
+            const isVisibleNow = modal.style.display === 'flex';
+            if (isVisibleNow) {
+                manualOverrideOpen = false;
+                modal.style.display = 'none';
+                saveModalRelativeState(); // 手動閉じ＝保存 visible=false
+            } else {
+                manualOverrideOpen = true;
+                modal.style.display = 'flex';
+                applyModalStoredPosition();
+                requestAnimationFrame(keepModalInViewport);
+                saveModalRelativeState(); // 手動開き＝保存 visible=true
             }
         });
 
         closeButton.addEventListener('click', () => {
+            manualOverrideOpen = false;
             modal.style.display = 'none';
             saveModalRelativeState();
         });
@@ -798,101 +653,82 @@
             }
         });
 
-        const observeURLChanges = (callback) => {
-            let lastUrl = location.href;
-            const debouncedCallback = (() => {
-                let timeout;
-                return () => { clearTimeout(timeout); timeout = setTimeout(callback, 250); };
-            })();
-            const checkURL = () => {
-                requestAnimationFrame(() => {
-                    const currentUrl = location.href;
-                    if (currentUrl !== lastUrl) {
-                        lastUrl = currentUrl;
-                        debouncedCallback();
-                    }
-                });
+        // --- SPA遷移フック ---
+        const installNavigationHooks = (onRouteChange) => {
+            let lastHref = location.href;
+            const _debounce = (fn, wait=150) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); }; };
+            const fireIfChanged = _debounce(() => {
+                const now = location.href;
+                if (now !== lastHref) { lastHref = now; onRouteChange(); }
+            }, 120);
+
+            const wrapHistory = (m) => {
+                const orig = history[m];
+                history[m] = function(...args){ const ret = orig.apply(this,args); queueMicrotask(fireIfChanged); return ret; };
             };
-            ['pushState', 'replaceState'].forEach(method => {
-                const original = history[method];
-                history[method] = function() {
-                    const result = original.apply(this, arguments);
-                    checkURL();
-                    return result;
-                };
-            });
-            window.addEventListener('popstate', checkURL);
+            wrapHistory('pushState'); wrapHistory('replaceState');
+            window.addEventListener('popstate', fireIfChanged);
+
+            document.addEventListener('click', (e) => {
+                const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+                if (!a) return;
+                try { const u = new URL(a.href, location.href); if (u.origin === location.origin) setTimeout(fireIfChanged, 0); } catch(_){}
+            }, true);
+
+            const mo = new MutationObserver(fireIfChanged);
+            mo.observe(document.documentElement, { childList:true, subtree:true });
+            const pollId = setInterval(fireIfChanged, 1500);
+            return () => { mo.disconnect(); clearInterval(pollId); };
         };
 
         const setupObservers = () => {
             const observer = new MutationObserver((mutations) => {
-                let searchBoxChanged = false;
-                for (const mutation of mutations) {
-                    if (mutation.addedNodes.length > 0) {
-                        for (const node of mutation.addedNodes) {
-                            if (node.nodeType !== Node.ELEMENT_NODE) continue;
-                            if (node.matches('input[data-testid="SearchBox_Search_Input"]') || node.querySelector('input[data-testid="SearchBox_Search_Input"]')) {
-                                searchBoxChanged = true;
-                                break;
-                            }
+                let searchBoxChanged=false;
+                for (const m of mutations) {
+                    if (m.addedNodes.length>0) {
+                        for (const node of m.addedNodes) {
+                            if (node.nodeType!==Node.ELEMENT_NODE) continue;
+                            if (node.matches?.('input[data-testid="SearchBox_Search_Input"]') || node.querySelector?.('input[data-testid="SearchBox_Search_Input"]')) { searchBoxChanged=true; break; }
                         }
                     }
                     if (searchBoxChanged) break;
                 }
-
-                if (searchBoxChanged) {
-                    syncFromSearchBoxToModal();
-                }
-
-                const allSearchInputs = document.querySelectorAll('input[data-testid="SearchBox_Search_Input"]');
-                allSearchInputs.forEach(input => {
+                if (searchBoxChanged) { syncFromSearchBoxToModal(); }
+                document.querySelectorAll('input[data-testid="SearchBox_Search_Input"]').forEach(input=>{
                     if (!input.dataset.advSearchAttached) {
-                        input.dataset.advSearchAttached = 'true';
-                        input.addEventListener('input', () => {
-                            if (input === getActiveSearchInput()) {
-                                syncFromSearchBoxToModal();
-                            }
-                        });
+                        input.dataset.advSearchAttached='true';
+                        input.addEventListener('input', () => { if (input === getActiveSearchInput()) { syncFromSearchBoxToModal(); } });
                     }
                 });
             });
-            observer.observe(document.body, { childList: true, subtree: true });
-            observeURLChanges(() => {
-                console.log('[X Adv Search] URL changed, re-syncing...');
-                syncFromSearchBoxToModal();
+            observer.observe(document.body, { childList:true, subtree:true });
+
+            installNavigationHooks(() => {
+                console.log('[X Adv Search] Route changed, re-syncing...');
+                manualOverrideOpen = false;   // ルート遷移時は手動オーバーライド解除
+                reconcileUI();                // トリガー＆モーダルの表示を再評価
+                syncFromSearchBoxToModal();   // 検索窓→モーダル同期
             });
         };
 
-        // --- ウィンドウリサイズ ---
-        window.addEventListener('resize', debounce(() => {
-            // モーダル位置補正
-            if (modal.style.display === 'flex') {
-                applyModalStoredPosition();
-                requestAnimationFrame(keepModalInViewport);
-            }
-            // トリガー位置補正
-            applyTriggerStoredPosition();
-            requestAnimationFrame(keepTriggerInViewport);
+        // リサイズ
+        window.addEventListener('resize', debounce(()=>{
+            if (modal.style.display === 'flex') { applyModalStoredPosition(); requestAnimationFrame(keepModalInViewport); }
+            if (trigger.style.display !== 'none') { applyTriggerStoredPosition(); requestAnimationFrame(keepTriggerInViewport); }
         }, 100));
 
-        // --- 初期化処理の実行 ---
+        // 初期処理
         loadModalState();
+        reconcileUI();     // 初回にトリガー＆モーダル表示を決定（メディアURLなら両方隠す）
         setupModalDrag();
         setupObservers();
 
         (async () => {
-            console.log('[X Adv Search] Initial load, waiting for an active search input...');
-            const input = await waitForElement(syncSelectorsJoined, 7000);
-            if (input) {
-                console.log('[X Adv Search] Active search input found on load. Syncing.');
-                syncFromSearchBoxToModal();
-            } else {
-                console.log('[X Adv Search] No active search input found on initial load.');
-            }
+            const input = await waitForElement(searchInputSelectors.join(','), 7000);
+            if (input) syncFromSearchBoxToModal();
         })();
     };
 
-    // --- スクリプトの実行 ---
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initialize);
     } else {
