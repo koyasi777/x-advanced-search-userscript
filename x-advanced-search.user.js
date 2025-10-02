@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      3.5.0
+// @version      3.6.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -112,6 +112,35 @@
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
         };
+    }
+
+    // waitForElement
+    function waitForElement(selector, timeout = 10000, checkProperty = null) {
+        return new Promise((resolve) => {
+            const checkInterval = 100;
+            let elapsedTime = 0;
+            const intervalId = setInterval(() => {
+                const element = document.querySelector(selector);
+                if (element) {
+                    if (checkProperty) {
+                        if (element[checkProperty]) {
+                            clearInterval(intervalId);
+                            resolve(element);
+                            return;
+                        }
+                    } else {
+                        clearInterval(intervalId);
+                        resolve(element);
+                        return;
+                    }
+                }
+                elapsedTime += checkInterval;
+                if (elapsedTime >= timeout) {
+                    clearInterval(intervalId);
+                    resolve(null);
+                }
+            }, checkInterval);
+        });
     }
 
     // --- 4. グローバル状態 ---
@@ -595,13 +624,13 @@
             });
         };
 
-        // ===== ここがポイント：UI一元調停（モーダル＋トリガー） =====
+        // ===== UI一元調停（モーダル＋トリガー） =====
         const reconcileUI = () => {
             const stored = (()=>{ try { return JSON.parse(localStorage.getItem(MODAL_STATE_KEY)||'{}'); } catch{ return {}; } })();
             const desiredVisible = !!stored.visible;
             const media = isMediaViewPath(location.pathname);
 
-            // 1) トリガー可視性：メディアURLでは非表示（保存不要）
+            // 1) トリガー可視性
             if (media) {
                 trigger.style.display = 'none';
             } else {
@@ -610,18 +639,20 @@
                 requestAnimationFrame(keepTriggerInViewport);
             }
 
-            // 2) モーダル可視性：メディアURLでは必ず非表示（手動オーバーライドも無効化）
+            // 2) モーダル可視性
             const shouldShow = (!media) && (desiredVisible || manualOverrideOpen);
+            const wasShown = (modal.style.display === 'flex');
             modal.style.display = shouldShow ? 'flex' : 'none';
             if (shouldShow) {
                 applyModalStoredPosition();
                 requestAnimationFrame(keepModalInViewport);
+                // 非表示→表示の遷移時に同期
+                if (!wasShown) syncFromSearchBoxToModal();
             }
         };
 
-        // クリックで開閉（非メディアURL時のみ実質意味がある）
+        // クリックで開閉
         trigger.addEventListener('click', () => {
-            // トリガー自体が非表示のときはクリックできない前提だが、念のため
             if (trigger.style.display === 'none') return;
             const isVisibleNow = modal.style.display === 'flex';
             if (isVisibleNow) {
@@ -631,6 +662,8 @@
             } else {
                 manualOverrideOpen = true;
                 modal.style.display = 'flex';
+                // 開いた瞬間にハイドレート
+                syncFromSearchBoxToModal();
                 applyModalStoredPosition();
                 requestAnimationFrame(keepModalInViewport);
                 saveModalRelativeState(); // 手動開き＝保存 visible=true
@@ -707,7 +740,7 @@
                 console.log('[X Adv Search] Route changed, re-syncing...');
                 manualOverrideOpen = false;   // ルート遷移時は手動オーバーライド解除
                 reconcileUI();                // トリガー＆モーダルの表示を再評価
-                syncFromSearchBoxToModal();   // 検索窓→モーダル同期
+                syncFromSearchBoxToModal();   // 検索窓→モーダル同期（表示時は反映、非表示時は後述の reconcileUI で可視化時に同期）
             });
         };
 
