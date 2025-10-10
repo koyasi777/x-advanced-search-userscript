@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      3.6.0
+// @version      3.6.5
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -20,7 +20,7 @@
 // @description:fr   Ajoute une fenêtre modale de recherche avancée à X.com (Twitter), synchronisée avec la barre de recherche et mémoire de l’état d’affichage. L’icône de recherche en haut à droite est déplaçable et sa position persiste.
 // @description:es   Agrega un modal flotante de búsqueda avanzada en X.com (Twitter), sincronizado con la caja de búsqueda y con estado persistente. El ícono de búsqueda arriba a la derecha es arrastrable con posición persistente.
 // @description:de   Fügt X.com (Twitter) ein modales Fenster für erweiterte Suche hinzu, synchronisiert mit der Suchleiste und speichert Position/Zustand. Das Suchsymbol oben rechts ist per Drag & Drop verschiebbar und bleibt gespeichert.
-// @description:pt-BR Adiciona um modal de busca avançada flutuante no X.com (Twitter), sincronizado com a caixa de busca e com estado salvo. O ícone de busca no canto superior direito é arrastável com posição persistente.
+// @description:pt-BR Adiciona um modal de busca avançada flutuante no X.com (Twitter), sincronizado com a caixa de busca y com estado salvo. O ícone de busca no canto superior direito é arrastável com posição persistente.
 // @description:ru   Добавляет модальное окно расширенного поиска на X.com (Twitter). Синхронизируется с поисковой строкой и запоминает состояние. Кнопку поиска в правом верхнем углу можно перетаскивать; её положение сохраняется.
 // @namespace    https://github.com/koyasi777/x-advanced-search-userscript
 // @author       koyasi777
@@ -141,6 +141,13 @@
                 }
             }, checkInterval);
         });
+    }
+
+    // --- 即時隠蔽は“見た目のみ”。状態(storage/manualOverrideOpen)は変更しない ---
+    function hideUIImmediately(modal, trigger) {
+        if (modal)  modal.style.display = 'none';
+        if (trigger) trigger.style.display = 'none';
+        // ここで localStorage の visible や manualOverrideOpen は触らない
     }
 
     // --- 4. グローバル状態 ---
@@ -689,15 +696,31 @@
         // --- SPA遷移フック ---
         const installNavigationHooks = (onRouteChange) => {
             let lastHref = location.href;
-            const _debounce = (fn, wait=150) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); }; };
+            // NEW: 体感レスポンス改善（120-150ms → 60ms）
+            const _debounce = (fn, wait=60) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); }; };
             const fireIfChanged = _debounce(() => {
                 const now = location.href;
                 if (now !== lastHref) { lastHref = now; onRouteChange(); }
-            }, 120);
+            }, 60);
 
             const wrapHistory = (m) => {
                 const orig = history[m];
-                history[m] = function(...args){ const ret = orig.apply(this,args); queueMicrotask(fireIfChanged); return ret; };
+                history[m] = function(...args){
+                    // NEW: pushState/replaceState の第3引数（URL）がメディアなら先に隠す
+                    try {
+                        const href = args && args[2];
+                        if (href) {
+                            const u = new URL(href, location.href);
+                            if (u.origin === location.origin && isMediaViewPath(u.pathname)) {
+                                hideUIImmediately(document.getElementById('advanced-search-modal'),
+                                                  document.getElementById('advanced-search-trigger'));
+                            }
+                        }
+                    } catch(_) {}
+                    const ret = orig.apply(this, args);
+                    queueMicrotask(fireIfChanged);
+                    return ret;
+                };
             };
             wrapHistory('pushState'); wrapHistory('replaceState');
             window.addEventListener('popstate', fireIfChanged);
@@ -705,12 +728,25 @@
             document.addEventListener('click', (e) => {
                 const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
                 if (!a) return;
-                try { const u = new URL(a.href, location.href); if (u.origin === location.origin) setTimeout(fireIfChanged, 0); } catch(_){}
+                try {
+                    const u = new URL(a.href, location.href);
+                    if (u.origin === location.origin) {
+                        // NEW: 事前非表示（同一タブ遷移のみ。新規タブ/新規ウィンドウは除外）
+                        const sameTab = !(e.metaKey || e.ctrlKey || e.shiftKey || a.target === '_blank' || e.button === 1);
+                        if (sameTab && isMediaViewPath(u.pathname)) {
+                            hideUIImmediately(document.getElementById('advanced-search-modal'),
+                                              document.getElementById('advanced-search-trigger'));
+                        }
+                        // 既存の SPA 変更検知はゼロ遅延でスケジュール
+                        setTimeout(fireIfChanged, 0);
+                    }
+                } catch(_) {}
             }, true);
 
             const mo = new MutationObserver(fireIfChanged);
             mo.observe(document.documentElement, { childList:true, subtree:true });
-            const pollId = setInterval(fireIfChanged, 1500);
+            // NEW: 最悪待ち時間の短縮（1500ms → 300ms）
+            const pollId = setInterval(fireIfChanged, 300);
             return () => { mo.disconnect(); clearInterval(pollId); };
         };
 
