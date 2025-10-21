@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      3.7.0
+// @version      3.7.5
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -148,6 +148,41 @@
         if (modal)  modal.style.display = 'none';
         if (trigger) trigger.style.display = 'none';
         // ここで localStorage の visible や manualOverrideOpen は触らない
+    }
+
+    // === URL 変化を確実に待つユーティリティ ===
+    function waitForUrlChange(oldURL, timeout = 1800) {
+        return new Promise((resolve) => {
+            let done = false;
+            const finish = (ok) => { if (!done) { done = true; cleanup(); resolve(ok); } };
+
+            const check = () => { if (location.href !== oldURL) finish(true); };
+
+            // pushState/replaceState を一時フック
+            const origPush = history.pushState, origReplace = history.replaceState;
+            history.pushState = function(...a){ const r = origPush.apply(this, a); queueMicrotask(check); return r; };
+            history.replaceState = function(...a){ const r = origReplace.apply(this, a); queueMicrotask(check); return r; };
+
+            const onPop = () => queueMicrotask(check);
+            window.addEventListener('popstate', onPop);
+
+            // DOM 変化でも一応チェック
+            const mo = new MutationObserver(check);
+            mo.observe(document.body, { childList: true, subtree: true });
+
+            const to = setTimeout(() => finish(false), timeout);
+
+            function cleanup() {
+                history.pushState = origPush;
+                history.replaceState = origReplace;
+                window.removeEventListener('popstate', onPop);
+                mo.disconnect();
+                clearTimeout(to);
+            }
+
+            // 即時チェック
+            check();
+        });
     }
 
     // --- 4. グローバル状態 ---
@@ -661,21 +696,46 @@
         };
         const syncFromSearchBoxToModal = STATE_SYNC.parseFromSearchToModal;
 
-        const executeSearch = () => {
+        // === 送信ロジック：Enter投下 + URL変化を確実に待ってからフォールバック ===
+        const executeSearch = async () => {
             const finalQuery = buildQueryStringFromModal().trim();
             if (!finalQuery) return;
+
             const si = getActiveSearchInput();
-            const oldURL = location.href;
+            const targetURL = `https://x.com/search?q=${encodeURIComponent(finalQuery)}&src=typed_query`;
+            const before = location.href;
+
             if (si) {
-                si.value = finalQuery; si.dispatchEvent(new Event('input',{bubbles:true}));
-                const parentForm = si.closest('form');
-                if (parentForm && typeof parentForm.requestSubmit === 'function') {
-                    parentForm.requestSubmit();
-                    setTimeout(()=>{ if(location.href===oldURL){ window.location.href=`https://x.com/search?q=${encodeURIComponent(finalQuery)}&src=typed_query`; }}, 300);
-                    return;
+                // 値の反映と input 送出
+                si.value = finalQuery;
+                try {
+                    si.dispatchEvent(new InputEvent('input', { bubbles:true, cancelable:true, inputType:'insertReplacementText', data:finalQuery }));
+                } catch {
+                    si.dispatchEvent(new Event('input', { bubbles:true }));
                 }
+
+                // Enter を投下（X 側のキー依存ロジックを確実に踏む）
+                const ev = { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true };
+                si.dispatchEvent(new KeyboardEvent('keydown', ev));
+                si.dispatchEvent(new KeyboardEvent('keyup', ev));
+
+                // 念のためフォーム submit も併用（実装差分の吸収）
+                const formEl = si.closest('form');
+                if (formEl?.requestSubmit) {
+                    try { formEl.requestSubmit(); } catch(_) {}
+                }
+
+                // URL 変化を十分待つ（1.8s）
+                const didSpa = await waitForUrlChange(before, 1800);
+
+                // ナビゲーション開始/完了後にサジェストを畳む（Enter フローを殺さないため遅延）
+                try { si.blur(); } catch(_) {}
+
+                if (didSpa) return;
             }
-            window.location.href = `https://x.com/search?q=${encodeURIComponent(finalQuery)}&src=typed_query`;
+
+            // SPA が動かなかった場合のみハード遷移
+            location.assign(targetURL);
         };
 
         // モーダルドラッグ
