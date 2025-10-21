@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      3.6.5
+// @version      3.7.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -194,6 +194,14 @@
         .adv-exclude-toggle input{margin-right:4px}
         .adv-exclude-toggle label{font-size:13px;font-weight:normal;color:var(--modal-text-secondary,#8b98a5);cursor:pointer}
         hr.adv-separator{border:none;height:1px;background-color:var(--hr-color,#333);margin:20px 0;transition:background-color .2s}
+        /* ------------- ここからズーム対応 ------------- */
+        #adv-zoom-root{
+            transform-origin: top left;
+            will-change: transform;
+        }
+        /* transform フォールバック時に横溢れを抑えるため、body 側は overflow を許可 */
+        .adv-modal-body{ overflow:auto; }
+        /* ------------- ズーム対応ここまで ------------- */
     `);
 
     // --- 6. HTML ---
@@ -204,6 +212,8 @@
                 <button class="adv-modal-close" data-i18n-title="tooltipClose">&times;</button>
             </div>
             <div class="adv-modal-body">
+                <!-- ズームの影響範囲を切り分けるラッパー -->
+                <div id="adv-zoom-root">
                 <form id="advanced-search-form">
                     <div class="adv-form-group"><label for="adv-all-words" data-i18n="labelAllWords"></label><input type="text" id="adv-all-words" data-i18n-placeholder="placeholderAllWords"></div>
                     <div class="adv-form-group"><label for="adv-exact-phrase" data-i18n="labelExactPhrase"></label><input type="text" id="adv-exact-phrase" data-i18n-placeholder="placeholderExactPhrase"></div>
@@ -261,6 +271,7 @@
                         <input type="text" id="adv-mentioning" data-i18n-placeholder="placeholderMentioning">
                     </div>
                 </form>
+                </div> <!-- /#adv-zoom-root -->
             </div>
             <div class="adv-modal-footer">
                 <button id="adv-clear-button" class="adv-modal-button" data-i18n="buttonClear"></button>
@@ -293,6 +304,67 @@
         const applyButton = document.getElementById('adv-apply-button');
 
         themeManager.observeChanges(modal);
+
+        // ======== ズーム管理（Ctrl/⌘ + ホイール / + / - / 0）ここから ========
+        const ZOOM_STATE_KEY = 'advSearchZoom_v1';
+        let zoom = 1.0;
+        const ZOOM_MIN = 0.5, ZOOM_MAX = 2.0, ZOOM_STEP = 0.1;
+
+        const zoomRoot = () => document.getElementById('adv-zoom-root');
+        const loadZoom = () => {
+            try {
+                const z = parseFloat(localStorage.getItem(ZOOM_STATE_KEY) || '1');
+                if (!Number.isNaN(z)) zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+            } catch(_) {}
+        };
+        const saveZoom = () => {
+            try { localStorage.setItem(ZOOM_STATE_KEY, String(zoom)); } catch(_) {}
+        };
+        const applyZoom = () => {
+            const el = zoomRoot();
+            if (!el) return;
+            el.style.zoom = '';
+            el.style.transform = '';
+            el.style.width = '';
+            if ('zoom' in el.style) {
+                el.style.zoom = zoom;
+            } else {
+                el.style.transform = `scale(${zoom})`;
+                el.style.width = `${(100/zoom).toFixed(3)}%`;
+            }
+        };
+        const setZoom = (z) => {
+            zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z*100)/100));
+            applyZoom(); saveZoom();
+        };
+        const onWheelZoom = (e) => {
+            const isAccel = e.ctrlKey || e.metaKey;
+            if (!isAccel) return;
+            if (!modal.contains(e.target)) return;
+            e.preventDefault();
+            const factor = e.deltaY > 0 ? (1 - ZOOM_STEP) : (1 + ZOOM_STEP);
+            setZoom(zoom * factor);
+        };
+        const onKeyZoom = (e) => {
+            const accel = (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey;
+            if (!accel) return;
+            if (!modal.contains(e.target)) return;
+            const k = e.key;
+            if (k === '+' || k === '=') { e.preventDefault(); setZoom(zoom + ZOOM_STEP); }
+            else if (k === '-' || k === '_') { e.preventDefault(); setZoom(zoom - ZOOM_STEP); }
+            else if (k === '0') { e.preventDefault(); setZoom(1.0); }
+        };
+        loadZoom();
+        requestAnimationFrame(applyZoom);
+        modal.addEventListener('wheel', onWheelZoom, { passive:false });
+        modal.addEventListener('keydown', onKeyZoom);
+
+        // モーダル display 変化で再適用（SPA遷移/テーマ反映後にも確実に発火）
+        const modalDisplayObserver = new MutationObserver(() => {
+            if (modal.style.display === 'flex') applyZoom();
+        });
+        modalDisplayObserver.observe(modal, { attributes:true, attributeFilter:['style'] });
+        // ======== ズーム管理ここまで ========
 
         const searchInputSelectors = [
             'div[data-testid="primaryColumn"] input[data-testid="SearchBox_Search_Input"]',
@@ -654,7 +726,9 @@
                 applyModalStoredPosition();
                 requestAnimationFrame(keepModalInViewport);
                 // 非表示→表示の遷移時に同期
-                if (!wasShown) syncFromSearchBoxToModal();
+                if (!wasShown) {
+                    syncFromSearchBoxToModal();
+                }
             }
         };
 
@@ -673,6 +747,8 @@
                 syncFromSearchBoxToModal();
                 applyModalStoredPosition();
                 requestAnimationFrame(keepModalInViewport);
+                // 開いた直後にズームを適用
+                applyZoom();
                 saveModalRelativeState(); // 手動開き＝保存 visible=true
             }
         });
@@ -776,7 +852,7 @@
                 console.log('[X Adv Search] Route changed, re-syncing...');
                 manualOverrideOpen = false;   // ルート遷移時は手動オーバーライド解除
                 reconcileUI();                // トリガー＆モーダルの表示を再評価
-                syncFromSearchBoxToModal();   // 検索窓→モーダル同期（表示時は反映、非表示時は後述の reconcileUI で可視化時に同期）
+                syncFromSearchBoxToModal();   // 同期
             });
         };
 
