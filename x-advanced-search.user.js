@@ -10,14 +10,14 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.0.0
+// @version      4.1.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
 // @description:zh-CN 为X.com（Twitter）添加高级搜索浮动模态框，支持与搜索框双向同步并记住位置与显示状态。右上角的搜索图标可拖动，并会记住位置。
 // @description:zh-TW 為 X.com（Twitter）增加高級搜尋模態框，支援與搜尋框雙向同步並記住位置與顯示狀態。右上角搜尋圖示可拖曳，位置會被保存。
 // @description:ko   X.com(Twitter)에 고급 검색 모달을 추가합니다. 검색창과 양방향 동기화하며 위치와 표시 상태를 기억합니다. 우상단 검색 아이콘은 드래그 이동 및 위치 저장이 가능합니다。
-// @description:fr   Ajoute une fenêtre modale de recherche avancée à X.com (Twitter), synchronisée avec la barre de recherche et mémoire de l’état d’affichage. L’icône de recherche en haut à droite est déplaçable et sa position persiste.
+// @description:fr   Ajoute une fenêtre modale de recherche avancée à X.com (Twitter), synchronisée avec la barre de recherche et mémoire de l’état d’affichage. L’icône de recherche en haut à droite est déplaçable.
 // @description:es   Agrega un modal flotante de búsqueda avanzada en X.com (Twitter), sincronizado con la caja de búsqueda y con estado persistente.
 // @description:de   Fügt X.com (Twitter) ein modales Fenster für erweiterte Suche hinzu, synchronisiert mit der Suchleiste und speichert Position/Zustand. Das Suchsymbol oben rechts ist per Drag & Drop verschiebbar und bleibt gespeichert.
 // @description:pt-BR Adiciona um modal de busca avançada flutuante no X.com (Twitter), sincronizado com a caixa de busca e com estado salvo. O ícone de busca no canto superior direito é arrastável com posição persistente.
@@ -31,6 +31,7 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
+// @run-at       document-idle
 // @license      MIT
 // @homepageURL  https://github.com/koyasi777/x-advanced-search-userscript
 // @supportURL   https://github.com/koyasi777/x-advanced-search-userscript/issues
@@ -38,6 +39,10 @@
 
 (function() {
     'use strict';
+
+    // 多重初期化防止
+    if (window.__X_ADV_SEARCH_INITED__) return;
+    window.__X_ADV_SEARCH_INITED__ = true;
 
     // --- 1. i18n ---
     const i18n = {
@@ -117,7 +122,15 @@
                 optLocationAll: "All locations",
                 optLocationNearby: "Near you",
                 chipFollowing: "Following",
-                chipNearby: "Nearby"
+                chipNearby: "Nearby",
+
+                // --- added: search target (NEW) ---
+                labelSearchTarget: "Search target",
+                labelHitName: "Exclude hits in display name",
+                labelHitHandle: "Exclude hits in username (@handle)",
+                hintSearchTarget: "Hide posts that only match in name or handle (not in body).",
+                hintName: "If a keyword appears only in the display name, hide it.",
+                hintHandle: "If a keyword appears only in @username, hide it. Exception: when the query explicitly uses from:/to:/@ with the same word."
             },
             'ja': {
                 modalTitle: "高度な検索",
@@ -194,7 +207,15 @@
                 optLocationAll: "すべての場所",
                 optLocationNearby: "近くの場所",
                 chipFollowing: "フォロー中",
-                chipNearby: "近く"
+                chipNearby: "近く",
+
+                // --- added: search target (NEW) ---
+                labelSearchTarget: "検索対象",
+                labelHitName: "表示名（名前）でのヒットは除外",
+                labelHitHandle: "ユーザー名（@）でのヒットは除外",
+                hintSearchTarget: "本文ではなく、名前/ユーザー名のみに一致した投稿を非表示にします。",
+                hintName: "キーワードが表示名のみに含まれる場合は非表示にします。",
+                hintHandle: "キーワードが @ユーザー名のみに含まれる場合は非表示にします。例外: 同じ語を from:/to:/@ で明示しているときは表示します。"
             },
             'zh-CN': {},
             'ko': {},
@@ -448,6 +469,11 @@
 
         /* 履歴タブツールバー */
         .adv-tab-toolbar { display:flex; justify-content:flex-end; margin-bottom:8px; }
+
+        [data-testid="cellInnerDiv"][data-adv-hidden],
+        article[data-adv-hidden] {
+          display: none !important;
+        }
     `);
 
     // --- 6. HTML ---
@@ -491,8 +517,22 @@
                                 <div class="adv-checkbox-group"><span data-i18n="labelVideos"></span><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-videos-include"><label for="adv-filter-videos-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-videos-exclude"><label for="adv-filter-videos-exclude" data-i18n="checkExclude"></label></div></div>
                             </div>
                         </div>
+                        <!-- 検索対象（表示名/ユーザー名の除外設定） -->
+                        <div class="adv-form-group" title="" data-i18n-title="hintSearchTarget">
+                          <label data-i18n="labelSearchTarget"></label>
+                          <div class="adv-checkbox-group">
+                            <div class="adv-checkbox-item">
+                              <input type="checkbox" id="adv-exclude-hit-name" checked>
+                              <label for="adv-exclude-hit-name" data-i18n="labelHitName" title="" data-i18n-title="hintName"></label>
+                            </div>
+                            <div class="adv-checkbox-item">
+                              <input type="checkbox" id="adv-exclude-hit-handle" checked>
+                              <label for="adv-exclude-hit-handle" data-i18n="labelHitHandle" title="" data-i18n-title="hintHandle"></label>
+                            </div>
+                          </div>
+                        </div>
 
-                        <!-- ここから追加：アカウント/場所スコープ（返信の上に配置） -->
+                        <!-- アカウント/場所スコープ（返信の上に配置） -->
                         <div class="adv-form-row two-cols">
                             <div class="adv-form-group">
                                 <label for="adv-account-scope" data-i18n="labelAccountScope"></label>
@@ -509,7 +549,6 @@
                                 </select>
                             </div>
                         </div>
-                        <!-- 追加ここまで -->
 
                         <div class="adv-form-group"><label data-i18n="labelReplies"></label><select id="adv-replies"><option value="" data-i18n="optRepliesDefault"></option><option value="include" data-i18n="optRepliesInclude"></option><option value="only" data-i18n="optRepliesOnly"></option><option value="exclude" data-i18n="optRepliesExclude"></option></select></div>
                         <hr class="adv-separator">
@@ -603,8 +642,12 @@
         // トリガーボタン
         const trigger = document.createElement('button');
         trigger.id = 'advanced-search-trigger';
+        trigger.type = 'button';
         trigger.innerHTML = '🔍';
         trigger.title = i18n.t('tooltipTrigger');
+        trigger.setAttribute('aria-label', i18n.t('tooltipTrigger'));
+        trigger.setAttribute('aria-haspopup', 'dialog');
+        trigger.setAttribute('aria-expanded', 'false');
         document.body.appendChild(trigger);
 
         // モーダル
@@ -629,6 +672,32 @@
 
         const accountScopeSel = document.getElementById('adv-account-scope');
         const locationScopeSel = document.getElementById('adv-location-scope');
+
+        // --- NEW: 除外チェック要素と永続化 ---
+        const EXC_NAME_KEY   = 'advExcludeHitName_v1';
+        const EXC_HANDLE_KEY = 'advExcludeHitHandle_v1';
+        const excNameEl   = document.getElementById('adv-exclude-hit-name');
+        const excHandleEl = document.getElementById('adv-exclude-hit-handle');
+        const loadExcludeFlags = () => ({
+            name: kv.get(EXC_NAME_KEY, '1') === '1',
+            handle: kv.get(EXC_HANDLE_KEY, '1') === '1',
+        });
+        const saveExcludeFlags = (v) => {
+            kv.set(EXC_NAME_KEY, v.name ? '1':'0');
+            kv.set(EXC_HANDLE_KEY, v.handle ? '1':'0');
+        };
+        {
+            const st = loadExcludeFlags();
+            if (excNameEl) excNameEl.checked = st.name;
+            if (excHandleEl) excHandleEl.checked = st.handle;
+        }
+        [excNameEl, excHandleEl].forEach(el=>{
+            if (!el) return;
+            el.addEventListener('change', ()=>{
+                saveExcludeFlags({ name: excNameEl.checked, handle: excHandleEl.checked });
+                scanAndFilterTweets();
+            });
+        });
 
         themeManager.observeChanges(modal);
 
@@ -836,7 +905,14 @@
                     saveTriggerRelativeState();
                 }
             };
-            trigger.addEventListener('click', (e)=>{ if(suppressClick){ e.preventDefault(); e.stopPropagation(); }}, true);
+            trigger.addEventListener('click', (e)=> {
+                if (suppressClick) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    suppressClick = false; // 一度消費
+                    return;
+                }
+            }, true);
             trigger.addEventListener('pointerdown', onPointerDown);
             window.addEventListener('pointermove', onPointerMove);
             window.addEventListener('pointerup', onPointerUp);
@@ -950,6 +1026,14 @@
             if (isUpdating) return; isUpdating = true;
             const formEl = document.getElementById('advanced-search-form');
             formEl.reset();
+            // --- 永続化した「検索対象」の除外フラグを reset 後に再適用 ---
+            try {
+              const st = loadExcludeFlags(); // { name:boolean, handle:boolean }
+              const nameEl   = document.getElementById('adv-exclude-hit-name');
+              const handleEl = document.getElementById('adv-exclude-hit-handle');
+              if (nameEl)   { nameEl.checked = nameEl.defaultChecked = !!st.name; }
+              if (handleEl) { handleEl.checked = handleEl.defaultChecked = !!st.handle; }
+            } catch (_) {}
             let q = ` ${query} `;
             const parseAccountField = (inputId, operator) => {
                 const exclOperator = `-${operator}`;
@@ -992,7 +1076,7 @@
 
             const orGroups = q.match(/\(([^)]+)\)/g);
             if (orGroups) {
-                const anyWords = orGroups.map(g=>g.replace(/[()]/g,'').replace(/\s+OR\s+/g,' ')).join(' ');
+                const anyWords = orGroups.map(g=>g.replace(/[()]/g,'').replace(/\s+OR\s+/g, ' ')).join(' ');
                 document.getElementById('adv-any-words').value = anyWords.trim();
                 q=q.replace(/\(([^)]+)\)/g,' ');
             }
@@ -1257,6 +1341,158 @@
             return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         }
 
+        // --- NEW: クエリ解析とツイート可視性判定 ---
+        function parseSearchTokens(queryOrURL) {
+            let q = '';
+            try {
+                if (queryOrURL) q = String(queryOrURL);
+                else {
+                    const u = new URL(location.href);
+                    q = u.searchParams.get('q') || '';
+                }
+            } catch(_) {}
+
+            if (!q) {
+                const si = getActiveSearchInput?.();
+                if (si?.value) q = si.value;
+            }
+            if (!q) q = buildQueryStringFromModal?.() || '';
+
+            q = ' ' + q + ' ';
+
+            const NEG = [];
+            (q.match(/\s-\S+/g) || []).forEach(w => NEG.push(w.trim().slice(1)));
+
+            const phrases = [];
+            q = q.replace(/"([^"]+)"/g, (m, p1) => { phrases.push(p1.trim()); return ' '; });
+
+            const hashtags = [];
+            q = q.replace(/\s#([^\s)]+)/g, (m, p1) => { hashtags.push(p1); return ' '; });
+
+            const opUsers = new Set();
+            q.replace(/\s(?:from:|to:|@)([^\s()]+)/g, (m, user) => { if (!m.startsWith(' -')) opUsers.add(user.toLowerCase()); return m; });
+
+            q = q
+              .replace(/\s(?:lang|min_replies|min_faves|min_retweets|since|until):[^\s]+/g, ' ')
+              .replace(/\s(?:is:verified|filter:(?:links|images|videos|replies)|include:replies|-filter:replies)\b/g, ' ')
+              .replace(/\s(?:from:|to:|@)[^\s()]+/g, ' ');
+
+            const words = q.split(/\s+/).map(s=>s.trim()).filter(Boolean);
+
+            const includeTerms = new Set(
+                [...phrases, ...hashtags, ...words]
+                  .map(s=>s.toLowerCase())
+                  .filter(s=>s && !NEG.includes(s))
+            );
+
+            return { includeTerms, opUsers };
+        }
+
+        function pickTweetFields(article) {
+            const body = article.querySelector('[data-testid="tweetText"]')?.innerText || '';
+            let disp = '';
+            try {
+                const nameBlock = article.querySelector('[data-testid="User-Name"] a[href^="/"] div[dir="ltr"]');
+                disp = nameBlock?.innerText || '';
+            } catch(_) {}
+            let handle = '';
+            try {
+                const handleEl = article.querySelector('[data-testid="User-Name"] a[href^="/"] div[dir="ltr"] span')
+                              || article.querySelector('[data-testid="User-Name"] a[href^="/"] .r-1qd0xha');
+                handle = handleEl?.innerText || '';
+            } catch(_) {}
+              // pickTweetFields 内
+              // ツイート本文外の @ハンドルリンクをすべて拾う（返信先含む）
+              // 例: 「返信先: @wing_cornix」などは tweetText の外にあることが多い
+              const replyHandles = Array.from(
+                article.querySelectorAll('a[href^="/"]')
+              )
+                .filter(a => {
+                  const txt = (a.textContent || '').trim();
+                  if (!txt.startsWith('@')) return false;
+                  // 本文中の@は除外（本文ヒットは除外対象ではないので）
+                  return !a.closest('[data-testid="tweetText"]');
+                })
+                .map(a => (a.textContent || '').trim())
+                .filter(Boolean);
+            return { body, disp, handle, replyHandles };
+        }
+
+        // 追加: article から対応する cellInnerDiv を取る
+        function getTweetCell(article) {
+          return article.closest('[data-testid="cellInnerDiv"]') || article;
+        }
+
+        function shouldHideTweetByNameHandle(article, flags, tokens) {
+            const { includeTerms, opUsers } = tokens;
+            if (includeTerms.size === 0) return false;
+
+            const { body, disp, handle, replyHandles } = pickTweetFields(article);
+
+            const textBody = (body || '').toLowerCase();
+            const textName = (disp || '').toLowerCase();
+
+            const allHandles = new Set(
+                [handle, ...replyHandles]
+                  .map(s => String(s||'').replace(/^@/, '').toLowerCase())
+                  .filter(Boolean)
+            );
+
+            for (const term of includeTerms) {
+                if (term && textBody.includes(term)) return false;
+            }
+
+            if (flags.name) {
+                for (const term of includeTerms) {
+                    if (term && textName.includes(term)) {
+                        return true;
+                    }
+                }
+            }
+
+            if (flags.handle) {
+                for (const term of includeTerms) {
+                    const t = term.replace(/^@/, '').toLowerCase();
+                    if (!t) continue;
+                    if (opUsers.has(t)) continue;
+                    // shouldHideTweetByNameHandle 内
+                    // 完全一致 or 部分一致（例: term 'cornix' が 'wing_cornix' に含まれる）
+                    if ([...allHandles].some(h => h === t || h.includes(t))) return true;
+                }
+            }
+
+            return false;
+        }
+
+        function scanAndFilterTweets() {
+          try {
+            const flags = {
+              name:   document.getElementById('adv-exclude-hit-name')?.checked ?? true,
+              handle: document.getElementById('adv-exclude-hit-handle')?.checked ?? true,
+            };
+            if (!flags.name && !flags.handle) return;
+
+            const tokens = parseSearchTokens();
+            const list = document.querySelectorAll('article[data-testid="tweet"]');
+
+            for (const art of list) {
+              const cell = getTweetCell(art);                     // ★ article → 親セルへ
+              const hide = shouldHideTweetByNameHandle(art, flags, tokens);
+
+              if (hide) {
+                cell.setAttribute('data-adv-hidden', 'name_handle_only'); // ★ 属性で制御
+              } else {
+                cell.removeAttribute('data-adv-hidden');
+              }
+            }
+
+            // （任意）隣接の区切り線セルも掃除
+            cleanupAdjacentSeparators();
+          } catch (e) {
+            console.error('scanAndFilterTweets failed', e);
+          }
+        }
+
         // --- 検索実行 ---
         const executeSearch = async (scopesOverride) => {
             const finalQuery = buildQueryStringFromModal().trim();
@@ -1270,7 +1506,6 @@
             const before = location.href;
 
             if (si) {
-                // 値の反映 + 本物寄りの InputEvent
                 si.value = finalQuery;
                 try {
                     si.dispatchEvent(new InputEvent('input', { bubbles:true, cancelable:true, inputType:'insertReplacementText', data:finalQuery }));
@@ -1278,40 +1513,36 @@
                     si.dispatchEvent(new Event('input', { bubbles:true }));
                 }
 
-                // Enter を疑似投下（keydown→keyup）
                 const ev = { key:'Enter', code:'Enter', keyCode:13, which:13, bubbles:true, cancelable:true };
                 si.dispatchEvent(new KeyboardEvent('keydown', ev));
                 si.dispatchEvent(new KeyboardEvent('keyup', ev));
 
-                // 保険として submit
                 const formEl = si.closest('form');
                 if (formEl?.requestSubmit) { try { formEl.requestSubmit(); } catch(_) {} }
 
-                // SPA URL 変化を待機
                 const didSpa = await waitForUrlChange(before, 1500);
 
                 if (didSpa) {
-                    // pf/lf を静かに付け直し（履歴増殖・リロードなし）
                     try {
                         const u = new URL(location.href);
                         scopes.pf ? u.searchParams.set('pf','on') : u.searchParams.delete('pf');
                         scopes.lf ? u.searchParams.set('lf','on') : u.searchParams.delete('lf');
-                        if (u.toString() !== location.href) {
-                            history.replaceState(history.state, '', u.toString());
+                        const next = u.toString();
+                        if (next && next !== location.href) {
+                            try { history.replaceState(history.state, '', next); } catch {}
                         }
-                    } catch(_) {}
+                    } catch {}
                     recordHistory(finalQuery, scopes.pf, scopes.lf);
-                    try { si.blur(); } catch(_) {}
+                    try { si.blur(); } catch {}
                     return;
                 }
             }
 
-            // SPA が動かなかった場合のみ最終フォールバック
             recordHistory(finalQuery, scopes.pf, scopes.lf);
             window.location.href = `https://x.com/search?${params.toString()}`;
         };
 
-        // --- スコープ変更時は即URLへ反映＆実行（※要望により従来のハード遷移のまま） ---
+        // --- スコープ変更時は即URLへ反映＆実行 ---
         const onScopeChange = () => {
             const q = (()=> {
                 const si = getActiveSearchInput();
@@ -1377,7 +1608,6 @@
                 requestAnimationFrame(keepModalInViewport);
                 if (!wasShown) {
                     syncFromSearchBoxToModal();
-                    // URL から pf/lf を反映
                     applyScopesToControls(readScopesFromURL());
                     updateSaveButtonState();
                 }
@@ -1396,7 +1626,6 @@
                 manualOverrideOpen = true;
                 modal.style.display = 'flex';
                 syncFromSearchBoxToModal();
-                // URL -> pf/lf
                 applyScopesToControls(readScopesFromURL());
                 applyModalStoredPosition();
                 requestAnimationFrame(keepModalInViewport);
@@ -1413,7 +1642,10 @@
         });
 
         clearButton.addEventListener('click', () => { form.reset(); syncFromModalToSearchBox(); });
+
+        // 既存の検索実行リスナは触らず追加でフック（非同期で再評価）
         applyButton.addEventListener('click', () => executeSearch());
+        applyButton.addEventListener('click', () => { setTimeout(scanAndFilterTweets, 800); });
 
         // 保存（q+pf+lf）
         saveButton.addEventListener('click', () => {
@@ -1425,6 +1657,8 @@
         });
 
         form.addEventListener('input', syncFromModalToSearchBox);
+        // 既存を変えずに追加でフィルタを走らせる
+        form.addEventListener('input', scanAndFilterTweets);
         form.addEventListener('keydown', e => {
             if (e.key === 'Enter' && (e.target.matches('input[type="text"], input[type="number"]'))) {
                 e.preventDefault();
@@ -1440,7 +1674,6 @@
                 const now = location.href;
                 if (now !== lastHref) {
                     lastHref = now;
-                    // ルートが検索ページならURLから q/pf/lf を拾って履歴に記録
                     try {
                         const u = new URL(now, location.origin);
                         if (u.pathname.startsWith('/search')) {
@@ -1514,7 +1747,6 @@
                     if (!input.dataset.advSearchAttached) {
                         input.dataset.advSearchAttached='true';
                         input.addEventListener('input', () => { if (input === getActiveSearchInput()) { syncFromSearchBoxToModal(); } });
-                        // 直接検索対策：フォームsubmitで履歴を記録（pf/lfはURLに合わせる：submit後に遷移で拾えるが念のため）
                         const f = input.closest('form');
                         if (f && !f.dataset.advSearchSubmitAttached) {
                             f.dataset.advSearchSubmitAttached = 'true';
@@ -1526,6 +1758,8 @@
                         }
                     }
                 });
+                // NEW: DOM変化（ツイート流入）時は都度フィルタ適用
+                scanAndFilterTweets();
             });
             observer.observe(document.body, { childList:true, subtree:true });
 
@@ -1534,9 +1768,10 @@
                 manualOverrideOpen = false;
                 reconcileUI();
                 syncFromSearchBoxToModal();
-                // URL -> pf/lf
                 applyScopesToControls(readScopesFromURL());
                 updateSaveButtonState();
+                // NEW: ルート変更後に再評価
+                scanAndFilterTweets();
             });
         };
 
@@ -1559,9 +1794,10 @@
             const input = await waitForElement(searchInputSelectors.join(','), 7000);
             if (input) {
                 syncFromSearchBoxToModal();
-                // URLのpf/lfを反映
                 applyScopesToControls(readScopesFromURL());
                 updateSaveButtonState();
+                // NEW: 初期同期後に一度フィルタ実行
+                scanAndFilterTweets();
             }
         })();
     };
