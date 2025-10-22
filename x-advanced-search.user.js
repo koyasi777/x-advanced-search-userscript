@@ -4,13 +4,13 @@
 // @name:en      X.com (Twitter) Advanced Search Modal 🔍
 // @name:zh-CN   X.com（Twitter）高级搜索模态框 🔍
 // @name:zh-TW   X.com（Twitter）高級搜尋模態框 🔍
-// @name:ko      X.com (Twitter) 고급 검색 모달 🔍
+// @name:ko      X.com (Twitter) 고급 검색 モ달 🔍
 // @name:fr      X.com (Twitter) : Modal de recherche avancée 🔍
 // @name:es      Modal de búsqueda avanzada para X.com (Twitter) 🔍
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.2.5
+// @version      4.3.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -40,11 +40,9 @@
 (function() {
     'use strict';
 
-    // 多重初期化防止
     if (window.__X_ADV_SEARCH_INITED__) return;
     window.__X_ADV_SEARCH_INITED__ = true;
 
-    // --- 1. i18n ---
     const i18n = {
         translations: {
             'en': {
@@ -114,7 +112,6 @@
                 historyClearAll: "Clear All",
                 confirmClearHistory: "Clear all history?",
 
-                // --- added for scopes ---
                 labelAccountScope: "Accounts",
                 optAccountAll: "All accounts",
                 optAccountFollowing: "Accounts you follow",
@@ -124,13 +121,23 @@
                 chipFollowing: "Following",
                 chipNearby: "Nearby",
 
-                // --- search target ---
                 labelSearchTarget: "Search target",
                 labelHitName: "Exclude hits in display name",
                 labelHitHandle: "Exclude hits in username (@handle)",
                 hintSearchTarget: "Hide posts that only match in name or handle (not in body).",
                 hintName: "If a keyword appears only in the display name, hide it.",
-                hintHandle: "If a keyword appears only in @username, hide it. Exception: when the query explicitly uses from:/to:/@ with the same word."
+                hintHandle: "If a keyword appears only in @username, hide it. Exception: when the query explicitly uses from:/to:/@ with the same word.",
+
+                tabMute: "Mute",
+                labelMuteWord: "Add mute word",
+                placeholderMuteWord: "e.g., spoiler",
+                labelCaseSensitive: "Case sensitive",
+                buttonAdd: "Add",
+                emptyMuted: "No muted words.",
+                mutedListTitle: "Muted words",
+                muteHit: "Mute hits in body",
+                buttonImport: "Import",
+                buttonExport: "Export",
             },
             'ja': {
                 modalTitle: "高度な検索",
@@ -199,7 +206,6 @@
                 historyClearAll: "すべて削除",
                 confirmClearHistory: "履歴をすべて削除しますか？",
 
-                // --- added for scopes ---
                 labelAccountScope: "アカウント",
                 optAccountAll: "すべてのアカウント",
                 optAccountFollowing: "フォローしているアカウント",
@@ -209,13 +215,23 @@
                 chipFollowing: "フォロー中",
                 chipNearby: "近く",
 
-                // --- search target ---
                 labelSearchTarget: "検索対象",
                 labelHitName: "表示名（名前）でのヒットは除外",
                 labelHitHandle: "ユーザー名（@）でのヒットは除外",
                 hintSearchTarget: "本文ではなく、名前/ユーザー名のみに一致した投稿を非表示にします。",
                 hintName: "キーワードが表示名のみに含まれる場合は非表示にします。",
-                hintHandle: "キーワードが @ユーザー名のみに含まれる場合は非表示にします。例外: 同じ語を from:/to:/@ で明示しているときは表示します。"
+                hintHandle: "キーワードが @ユーザー名のみに含まれる場合は非表示にします。例外: 同じ語を from:/to:/@ で明示しているときは表示します。",
+
+                tabMute: "ミュート",
+                labelMuteWord: "ミュート語句の追加",
+                placeholderMuteWord: "例: ネタバレ",
+                labelCaseSensitive: "大文字小文字を区別",
+                buttonAdd: "追加",
+                emptyMuted: "ミュート語句はまだありません。",
+                mutedListTitle: "ミュート語句",
+                muteHit: "本文でのヒットをミュート",
+                buttonImport: "インポート",
+                buttonExport: "エクスポート",
             },
             'zh-CN': {},
             'ko': {},
@@ -242,7 +258,6 @@
         }
     };
 
-    // --- 2. テーマ ---
     const themeManager = {
         colors: {
             light: {
@@ -282,7 +297,6 @@
         }
     };
 
-    // --- 3. ユーティリティ ---
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -323,13 +337,11 @@
         });
     }
 
-    // --- 即時隠蔽は“見た目のみ”。状態(storage/manualOverrideOpen)は変更しない ---
     function hideUIImmediately(modal, trigger) {
         if (modal)  modal.style.display = 'none';
         if (trigger) trigger.style.display = 'none';
     }
 
-    // === URL 変化を確実に待つユーティリティ ===
     function waitForUrlChange(oldURL, timeout = 1500) {
         return new Promise((resolve) => {
             let done = false;
@@ -360,19 +372,14 @@
         });
     }
 
-    // 簡易ID
     const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 
-    // --- 4. グローバル状態 ---
     let isUpdating = false;
     let manualOverrideOpen = false;
-    const lastHistory = { q: null, pf: null, lf: null, ts: 0 }; // 直近記録抑制にpf/lfも含める
+    const lastHistory = { q: null, pf: null, lf: null, ts: 0 };
 
-    // メディアビュー + アナリティクス判定
     const isMediaViewPath = (pathname) => /\/status\/\d+\/(?:photo|video|media|analytics)(?:\/\d+)?\/?$/.test(pathname);
 
-
-    // --- 5. スタイル ---
     GM_addStyle(`
         :root { --modal-primary-color:#1d9bf0; --modal-primary-color-hover:#1a8cd8; --modal-primary-text-color:#fff; }
         #advanced-search-trigger { position:fixed; top:18px; right:20px; z-index:9999; background-color:var(--modal-primary-color); color:var(--modal-primary-text-color); border:none; border-radius:50%; width:50px; height:50px; font-size:24px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; transition:transform .2s, background-color .2s; }
@@ -413,19 +420,9 @@
         #adv-zoom-root{ transform-origin: top left; will-change: transform; padding:16px; }
         .adv-modal-body{ overflow:auto; }
 
-        /* スコープ行（2カラム） */
-        .adv-form-row.two-cols {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        @media (max-width: 480px) {
-            .adv-form-row.two-cols {
-                grid-template-columns: 1fr;
-            }
-        }
+        .adv-form-row.two-cols { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        @media (max-width: 480px) { .adv-form-row.two-cols { grid-template-columns:1fr; } }
 
-        /* タブUI */
         .adv-tabs { display:flex; border-bottom:1px solid var(--modal-border,#333); padding:0 8px; gap:6px; align-items:stretch; }
         .adv-tab-btn { appearance:none; border:none; background:transparent; color:var(--modal-text-secondary,#8b98a5); padding:10px 12px; cursor:pointer; font-weight:700; border-radius:8px 8px 0 0; }
         .adv-tab-btn.active { color:var(--modal-text-primary,#e7e9ea); background-color:var(--modal-input-bg,#202327); border:1px solid var(--modal-input-border,#38444d); border-bottom:none; }
@@ -433,7 +430,6 @@
         .adv-tab-content.active { display:block; }
         #adv-tab-history, #adv-tab-saved { padding:12px 16px; }
 
-        /* シークレットモードボタン（少し小さく） */
         .adv-secret-wrap { display:flex; align-items:center; gap:8px; }
         .adv-secret-btn { cursor:pointer; border:1px solid var(--modal-input-border,#38444d); background:var(--modal-input-bg,#202327); color:var(--modal-text-primary,#e7e9ea); padding:4px 8px; border-radius:9999px; font-weight:700; user-select:none; display:flex; align-items:center; gap:6px; font-size:12px; }
         .adv-secret-btn .dot { width:7px; height:7px; border-radius:50%; background:#777; box-shadow:0 0 0px #0000; transition:all .2s; }
@@ -441,7 +437,6 @@
         .adv-secret-btn.on { background-color:var(--modal-primary-color); border-color:var(--modal-primary-color); color:var(--modal-primary-text-color); }
         .adv-secret-btn.on .dot { background:#fff; box-shadow:0 0 8px rgba(255,255,255,.9); }
 
-        /* リスト（履歴/保存） */
         .adv-list { display:flex; flex-direction:column; gap:8px; }
         .adv-item { border:1px solid var(--modal-input-border,#38444d); background:var(--modal-input-bg,#202327); border-radius:8px; padding:8px; display:flex; gap:8px; align-items:flex-start; }
         .adv-item.dragging { opacity:.6; }
@@ -453,32 +448,20 @@
         .adv-chip { border:1px solid var(--modal-input-border,#38444d); background:transparent; color:var(--modal-text-primary,#e7e9ea); padding:4px 8px; border-radius:9999px; font-size:12px; cursor:pointer; }
         .adv-chip.danger { border-color:#8b0000; color:#ffb3b3; }
         .adv-chip.primary { background-color:var(--modal-primary-color); border-color:var(--modal-primary-color); color:var(--modal-primary-text-color); }
-        /* チップ（スコープ用の小型バリアント） */
-        .adv-chip.scope {
-            padding: 2px 6px;
-            font-size: 11px;
-            line-height: 1.2;
-            opacity: 0.95;
-        }
+        .adv-chip.scope { padding:2px 6px; font-size:11px; line-height:1.2; opacity:0.95; }
 
-        /* トースト */
         .adv-toast { position:fixed; z-index:10001; left:50%; transform:translateX(-50%); bottom:24px; background:#111a; color:#fff; backdrop-filter: blur(6px); border:1px solid #fff3; padding:8px 12px; border-radius:8px; font-weight:700; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; }
         .adv-toast.show { opacity:1; transform:translateX(-50%) translateY(-6px); }
 
-        /* フッターのボタン整列（保存を左に） */
         .adv-modal-footer { justify-content:flex-end; }
         .adv-modal-footer .adv-modal-button#adv-save-button { margin-right:auto; }
 
-        /* 履歴タブツールバー */
         .adv-tab-toolbar { display:flex; justify-content:flex-end; margin-bottom:8px; }
 
         [data-testid="cellInnerDiv"][data-adv-hidden],
-        article[data-adv-hidden] {
-          display: none !important;
-        }
+        article[data-adv-hidden] { display:none !important; }
 
-        /* === resizable handles === */
-        #advanced-search-modal { max-height: none; }
+        #advanced-search-modal { max-height:none; }
         .adv-resizer { position:absolute; z-index:10002; background:transparent; }
         .adv-resizer.e, .adv-resizer.w { top:-3px; bottom:-3px; width:8px; }
         .adv-resizer.e { right:-3px; cursor: ew-resize; }
@@ -491,9 +474,21 @@
         .adv-resizer.ne { right:-4px;  top:-4px;    cursor:nesw-resize; }
         .adv-resizer.sw { left:-4px;   bottom:-4px; cursor:nesw-resize; }
         .adv-resizer.nw { left:-4px;   top:-4px;    cursor:nwse-resize; }
+
+        /* ▶ Mute タブ */
+        .adv-mute-add { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
+        .adv-mute-add input[type=text]{ flex:1; }
+        .adv-mute-list { display:flex; flex-direction:column; gap:8px; }
+        .adv-mute-item { border:1px solid var(--modal-input-border,#38444d); background:var(--modal-input-bg,#202327); border-radius:8px; padding:8px; display:flex; justify-content:space-between; align-items:center; }
+        .adv-mute-word { font-weight:700; color:var(--modal-text-primary,#e7e9ea); word-break:break-word; }
+        .adv-mute-actions { display:flex; gap:6px; align-items:center; }
+        .adv-toggle { display:flex; gap:6px; align-items:center; font-size:12px; color:var(--modal-text-secondary,#8b98a5); }
+
+        /* ▶ 「ミュート語句」見出しの右側に CS トグルを配置＆小さく */
+        .adv-mute-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+        .adv-mute-header .adv-toggle { font-size:11px; }
     `);
 
-    // --- 6. HTML ---
     const modalHTML = `
         <div id="advanced-search-modal">
             <div class="adv-modal-header">
@@ -512,9 +507,9 @@
                     <button class="adv-tab-btn active" data-tab="search" data-i18n="tabSearch"></button>
                     <button class="adv-tab-btn" data-tab="history" data-i18n="tabHistory"></button>
                     <button class="adv-tab-btn" data-tab="saved" data-i18n="tabSaved"></button>
+                    <button class="adv-tab-btn" data-tab="mute" data-i18n="tabMute"></button>
                 </div>
 
-                <!-- 検索タブ（既存フォーム） -->
                 <div class="adv-tab-content active" id="adv-tab-search">
                     <div id="adv-zoom-root">
                     <form id="advanced-search-form">
@@ -534,7 +529,7 @@
                                 <div class="adv-checkbox-group"><span data-i18n="labelVideos"></span><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-videos-include"><label for="adv-filter-videos-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-videos-exclude"><label for="adv-filter-videos-exclude" data-i18n="checkExclude"></label></div></div>
                             </div>
                         </div>
-                        <!-- 検索対象（表示名/ユーザー名の除外設定） -->
+
                         <div class="adv-form-group" title="" data-i18n-title="hintSearchTarget">
                           <label data-i18n="labelSearchTarget"></label>
                           <div class="adv-checkbox-group">
@@ -549,7 +544,6 @@
                           </div>
                         </div>
 
-                        <!-- アカウント/場所スコープ（返信の上に配置） -->
                         <div class="adv-form-row two-cols">
                             <div class="adv-form-group">
                                 <label for="adv-account-scope" data-i18n="labelAccountScope"></label>
@@ -610,7 +604,6 @@
                     </div>
                 </div>
 
-                <!-- 履歴タブ（全削除ボタン付き） -->
                 <div class="adv-tab-content" id="adv-tab-history">
                     <div class="adv-tab-toolbar">
                         <button id="adv-history-clear-all" class="adv-chip danger"></button>
@@ -619,10 +612,30 @@
                     <div id="adv-history-list" class="adv-list"></div>
                 </div>
 
-                <!-- 保存タブ -->
                 <div class="adv-tab-content" id="adv-tab-saved">
                     <div id="adv-saved-empty" class="adv-item-sub"></div>
                     <div id="adv-saved-list" class="adv-list"></div>
+                </div>
+
+                <!-- ▶ Mute タブ：CSトグルを見出しの右側に移動＆小さく -->
+                <div class="adv-tab-content" id="adv-tab-mute">
+                  <div style="padding:12px 16px;">
+                    <div class="adv-form-group">
+                      <div class="adv-mute-header">
+                        <label data-i18n="mutedListTitle"></label>
+                        <label class="adv-toggle">
+                          <input type="checkbox" id="adv-mute-cs">
+                          <span data-i18n="labelCaseSensitive"></span>
+                        </label>
+                      </div>
+                      <div class="adv-mute-add">
+                        <input type="text" id="adv-mute-input" data-i18n-placeholder="placeholderMuteWord">
+                        <button id="adv-mute-add" class="adv-modal-button" data-i18n="buttonAdd"></button>
+                      </div>
+                      <div id="adv-mute-empty" class="adv-item-sub"></div>
+                      <div id="adv-mute-list" class="adv-mute-list"></div>
+                    </div>
+                  </div>
                 </div>
             </div>
             <div class="adv-modal-footer">
@@ -635,17 +648,14 @@
         <div id="adv-toast" class="adv-toast" role="status" aria-live="polite"></div>
     `;
 
-    // --- 7. メイン ---
     const initialize = async () => {
         i18n.init();
 
-        // --- KV (Tampermonkey storage) wrapper ---
         const kv = {
             get(key, def) { try { return GM_getValue(key, def); } catch (_) { return def; } },
             set(key, val) { try { GM_setValue(key, val); } catch (_) {} },
             del(key)      { try { GM_deleteValue(key); } catch (_) {} },
         };
-        // JSON storage helpers（localStorage版を置き換え）
         const loadJSON = (key, def) => {
             try {
                 const raw = kv.get(key, JSON.stringify(def));
@@ -656,7 +666,6 @@
             try { kv.set(key, JSON.stringify(value)); } catch(_) {}
         };
 
-        // トリガーボタン
         const trigger = document.createElement('button');
         trigger.id = 'advanced-search-trigger';
         trigger.type = 'button';
@@ -667,7 +676,6 @@
         trigger.setAttribute('aria-expanded', 'false');
         document.body.appendChild(trigger);
 
-        // モーダル
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = modalHTML;
         document.body.appendChild(modalContainer);
@@ -690,7 +698,6 @@
         const accountScopeSel = document.getElementById('adv-account-scope');
         const locationScopeSel = document.getElementById('adv-location-scope');
 
-        // === リサイズ用ハンドル生成（HTML構造は触らず、動的に付与） ===
         ['n','e','s','w','ne','nw','se','sw'].forEach(dir => {
             const h = document.createElement('div');
             h.className = `adv-resizer ${dir}`;
@@ -698,7 +705,6 @@
             modal.appendChild(h);
         });
 
-        // --- 除外チェック要素と永続化 ---
         const EXC_NAME_KEY   = 'advExcludeHitName_v1';
         const EXC_HANDLE_KEY = 'advExcludeHitHandle_v1';
         const excNameEl   = document.getElementById('adv-exclude-hit-name');
@@ -726,7 +732,6 @@
 
         themeManager.observeChanges(modal);
 
-        // === ズーム ===
         const ZOOM_STATE_KEY = 'advSearchZoom_v1';
         let zoom = 1.0;
         const ZOOM_MIN = 0.5, ZOOM_MAX = 2.0, ZOOM_STEP = 0.1;
@@ -777,7 +782,6 @@
         const modalDisplayObserver = new MutationObserver(() => { if (modal.style.display === 'flex') applyZoom(); });
         modalDisplayObserver.observe(modal, { attributes:true, attributeFilter:['style'] });
 
-        // 検索ボックス
         const searchInputSelectors = [
             'div[data-testid="primaryColumn"] input[data-testid="SearchBox_Search_Input"]',
             'div[data-testid="sidebarColumn"] input[data-testid="SearchBox_Search_Input"]'
@@ -791,20 +795,53 @@
             return (fallback && fallback.offsetParent !== null) ? fallback : null;
         };
 
-        // 状態キー
         const MODAL_STATE_KEY   = 'advSearchModalState_v3.2';
         const TRIGGER_STATE_KEY = 'advSearchTriggerState_v1.0';
-        const HISTORY_KEY = 'advSearchHistory_v2'; // v2: pf/lf を含む
-        const SAVED_KEY   = 'advSearchSaved_v2';   // v2: pf/lf を含む
+        const HISTORY_KEY = 'advSearchHistory_v2';
+        const SAVED_KEY   = 'advSearchSaved_v2';
         const SECRET_KEY  = 'advSearchSecretMode_v1';
 
-        // タブ
+        const MUTE_KEY = 'advMutedWords_v1';
+        const migrateMuted = (list) =>
+          Array.isArray(list)
+            ? list
+                .map(it => ({ id: it.id || uid(), word: (it.word||'').trim(), cs: !!it.cs, ts: it.ts || Date.now() }))
+                .filter(it => it.word)
+            : [];
+        const loadMuted = () => migrateMuted(loadJSON(MUTE_KEY, []));
+        const saveMuted = (arr) => saveJSON(MUTE_KEY, migrateMuted(arr));
+
+        const addMuted = (word, cs=false) => {
+          const w = (word||'').trim();
+          if (!w) return;
+          const list = loadMuted();
+          if (list.some(it => it.word === w && !!it.cs === !!cs)) return;
+          list.unshift({ id: uid(), word: w, cs: !!cs, ts: Date.now() });
+          saveMuted(list);
+          renderMuted();
+          scanAndFilterTweets();
+        };
+
+        const deleteMuted = (id) => {
+          const list = loadMuted().filter(it => it.id !== id);
+          saveMuted(list);
+          renderMuted();
+          scanAndFilterTweets();
+        };
+
+        const toggleMutedCS = (id) => {
+          const list = loadMuted().map(it => it.id === id ? { ...it, cs: !it.cs, ts: Date.now() } : it);
+          saveMuted(list);
+          renderMuted();
+          scanAndFilterTweets();
+        };
+
         const tabButtons = Array.from(document.querySelectorAll('.adv-tab-btn'));
         const tabSearch = document.getElementById('adv-tab-search');
         const tabHistory = document.getElementById('adv-tab-history');
         const tabSaved = document.getElementById('adv-tab-saved');
+        const tabMute = document.getElementById('adv-tab-mute');
 
-        // モーダル位置保存/復元
         const saveModalRelativeState = () => {
             if (modal.style.display === 'none') {
                 try {
@@ -824,7 +861,7 @@
             const v_anchor = rect.top  < fromBottom ? 'top'  : 'bottom';
             const v_value  = v_anchor === 'top' ? rect.top : fromBottom;
             const state = { h_anchor, h_value, v_anchor, v_value, visible: true,
-                            w: Math.round(rect.width), h: Math.round(rect.height) }; // w/h を保存
+                            w: Math.round(rect.width), h: Math.round(rect.height) };
             kv.set(MODAL_STATE_KEY, JSON.stringify(state));
         };
         const applyModalStoredPosition = () => {
@@ -838,7 +875,6 @@
                 if (h_anchor === 'right') modal.style.right = `${h_value}px`; else modal.style.left = `${h_value}px`;
                 if (v_anchor === 'bottom') modal.style.bottom = `${v_value}px`; else modal.style.top = `${v_value}px`;
 
-                // サイズ復元
                 const minW = 300, minH = 240;
                 if (s.w) modal.style.width  = `${Math.max(minW, Math.min(s.w, window.innerWidth  - 20))}px`;
                 else     modal.style.width  = '380px';
@@ -851,7 +887,6 @@
             const rect = modal.getBoundingClientRect();
             const winW = window.innerWidth, winH = window.innerHeight, m = 10;
 
-            // サイズのクランプ
             const minW = 300, minH = 240;
             const maxW = Math.max(minW, winW - 2*m);
             const maxH = Math.max(minH, winH - 2*m);
@@ -860,7 +895,6 @@
             if (Math.round(w) !== Math.round(rect.width))  modal.style.width  = `${w}px`;
             if (Math.round(h) !== Math.round(rect.height)) modal.style.height = `${h}px`;
 
-            // 位置のクランプ（サイズクランプ後の値で）
             let x = rect.left, y = rect.top;
             if (x < m) x = m; if (y < m) y = m;
             if (x + w > winW - m) x = winW - w - m;
@@ -877,7 +911,6 @@
             }
         };
 
-        // トリガー位置保存/復元
         const saveTriggerRelativeState = () => {
             const rect = trigger.getBoundingClientRect();
             const winW = window.innerWidth, winH = window.innerHeight;
@@ -953,7 +986,7 @@
                 if (suppressClick) {
                     e.preventDefault();
                     e.stopPropagation();
-                    suppressClick = false; // 一度消費
+                    suppressClick = false;
                     return;
                 }
             }, true);
@@ -967,11 +1000,7 @@
         requestAnimationFrame(keepTriggerInViewport);
         setupTriggerDrag();
 
-        // --- スコープ（pf/lf）ユーティリティ ---
-        const readScopesFromControls = () => ({
-            pf: accountScopeSel.value === 'following',
-            lf: locationScopeSel.value === 'nearby'
-        });
+        const readScopesFromControls = () => ({ pf: accountScopeSel.value === 'following', lf: locationScopeSel.value === 'nearby' });
         const applyScopesToControls = ({pf=false, lf=false}) => {
             accountScopeSel.value = pf ? 'following' : '';
             locationScopeSel.value = lf ? 'nearby' : '';
@@ -985,13 +1014,11 @@
             } catch { return { pf:false, lf:false }; }
         };
 
-        // 同期
         const STATE_SYNC = {
             parseFromSearchToModal: () => {
                 if (isUpdating || modal.style.display === 'none') return;
                 const si = getActiveSearchInput();
                 parseQueryAndApplyToModal(si ? si.value : '');
-                // URL -> pf/lf も反映
                 applyScopesToControls(readScopesFromURL());
                 updateSaveButtonState();
             },
@@ -1070,9 +1097,8 @@
             if (isUpdating) return; isUpdating = true;
             const formEl = document.getElementById('advanced-search-form');
             formEl.reset();
-            // --- 永続化した「検索対象」の除外フラグを reset 後に再適用 ---
             try {
-              const st = loadExcludeFlags(); // { name:boolean, handle:boolean }
+              const st = loadExcludeFlags();
               const nameEl   = document.getElementById('adv-exclude-hit-name');
               const handleEl = document.getElementById('adv-exclude-hit-handle');
               if (nameEl)   { nameEl.checked = nameEl.defaultChecked = !!st.name; }
@@ -1141,14 +1167,12 @@
         };
         const syncFromSearchBoxToModal = STATE_SYNC.parseFromSearchToModal;
 
-        // トースト
         const showToast = (msg) => {
             toastEl.textContent = msg;
             toastEl.classList.add('show');
             setTimeout(()=> toastEl.classList.remove('show'), 1500);
         };
 
-        // シークレットモード
         const loadSecret = () => { try { return kv.get(SECRET_KEY, '0') === '1'; } catch(_) { return false; } };
         const saveSecret = (on) => { try { kv.set(SECRET_KEY, on ? '1' : '0'); } catch(_) {} };
         const applySecretBtn = () => {
@@ -1167,14 +1191,11 @@
         });
         applySecretBtn();
 
-        // v1 -> v2 マイグレーション（既存データをpf/lf=falseで扱う）
         const migrateList = (list) => Array.isArray(list) ? list.map(it => ({ id:it.id||uid(), q:it.q||'', ts:it.ts||Date.now(), pf:!!it.pf, lf:!!it.lf })) : [];
 
-        // 履歴（同一 q/pf/lf は 新規追加せず ts を更新して先頭へ）
         const recordHistory = (q, pf, lf) => {
             if (!q || loadSecret()) return;
             const now = Date.now();
-            // ★ 2秒→3秒に拡大して二重記録抑制
             if (lastHistory.q === q && lastHistory.pf === pf && lastHistory.lf === lf && (now - lastHistory.ts) < 3000) return;
             lastHistory.q = q; lastHistory.pf = pf; lastHistory.lf = lf; lastHistory.ts = now;
 
@@ -1211,7 +1232,6 @@
             showToast(i18n.t('toastDeleted'));
         };
 
-        // 保存（q+pf+lf 単位で一意）
         const addSaved = (q, pf, lf) => {
             const listRaw = loadJSON(SAVED_KEY, []);
             const list = migrateList(listRaw);
@@ -1239,7 +1259,6 @@
 
         const fmtTime = (ts) => { try { return new Date(ts).toLocaleString(); } catch { return ''; } };
 
-        // 現在の q/pf/lf が保存済みかをチェックして保存ボタンの状態を更新
         const updateSaveButtonState = () => {
             const q = buildQueryStringFromModal().trim();
             const {pf, lf} = readScopesFromControls();
@@ -1252,11 +1271,11 @@
 
         const activateTab = (name) => {
             tabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-            [tabSearch, tabHistory, tabSaved].forEach((el) => el.classList.toggle('active', el.id === `adv-tab-${name}`));
-            // 検索タブのときのみフッター表示
+            [tabSearch, tabHistory, tabSaved, tabMute].forEach((el) => el.classList.toggle('active', el.id === `adv-tab-${name}`));
             footerEl.style.display = (name === 'search') ? '' : 'none';
             if (name === 'history') renderHistory();
             if (name === 'saved') renderSaved();
+            if (name === 'mute') renderMuted();
             if (name === 'search') updateSaveButtonState();
         };
         tabButtons.forEach(btn => btn.addEventListener('click', (e)=> { e.preventDefault(); activateTab(btn.dataset.tab); }));
@@ -1268,7 +1287,6 @@
             return chips.join('');
         };
 
-        // 履歴レンダリング
         const historyEmptyEl = document.getElementById('adv-history-empty');
         const historyListEl = document.getElementById('adv-history-list');
         const renderHistory = () => {
@@ -1303,7 +1321,6 @@
         };
         historyClearAllBtn.addEventListener('click', clearAllHistory);
 
-        // 保存レンダリング（ドラッグ並べ替え維持）
         const savedEmptyEl = document.getElementById('adv-saved-empty');
         const savedListEl = document.getElementById('adv-saved-list');
         const renderSaved = () => {
@@ -1385,7 +1402,6 @@
             return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         }
 
-        // --- クエリ解析とツイート可視性判定 ---
         function parseSearchTokens(queryOrURL) {
             let q = '';
             try {
@@ -1445,16 +1461,12 @@
                               || article.querySelector('[data-testid="User-Name"] a[href^="/"] .r-1qd0xha');
                 handle = handleEl?.innerText || '';
             } catch(_) {}
-              // pickTweetFields 内
-              // ツイート本文外の @ハンドルリンクをすべて拾う（返信先含む）
-              // 例: 「返信先: @wing_cornix」などは tweetText の外にあることが多い
-              const replyHandles = Array.from(
+            const replyHandles = Array.from(
                 article.querySelectorAll('a[href^="/"]')
-              )
+            )
                 .filter(a => {
                   const txt = (a.textContent || '').trim();
                   if (!txt.startsWith('@')) return false;
-                  // 本文中の@は除外（本文ヒットは除外対象ではないので）
                   return !a.closest('[data-testid="tweetText"]');
                 })
                 .map(a => (a.textContent || '').trim())
@@ -1462,7 +1474,6 @@
             return { body, disp, handle, replyHandles };
         }
 
-        // article から対応する cellInnerDiv を取る
         function getTweetCell(article) {
           return article.closest('[data-testid="cellInnerDiv"]') || article;
         }
@@ -1499,7 +1510,6 @@
                     const t = term.replace(/^@/, '').toLowerCase();
                     if (!t) continue;
                     if (opUsers.has(t)) continue;
-                    // 完全一致 or 部分一致
                     if ([...allHandles].some(h => h === t || h.includes(t))) return true;
                 }
             }
@@ -1513,30 +1523,54 @@
               name:   document.getElementById('adv-exclude-hit-name')?.checked ?? true,
               handle: document.getElementById('adv-exclude-hit-handle')?.checked ?? true,
             };
-            if (!flags.name && !flags.handle) return;
+
+            const muted = loadMuted();
+            const hasMute = muted.length > 0;
+            const muteCI = hasMute ? new Set(muted.filter(m => !m.cs).map(m => m.word.toLowerCase())) : new Set();
+            const muteCS = hasMute ? muted.filter(m => m.cs).map(m => m.word) : [];
+
+            if (!flags.name && !flags.handle && !hasMute) return;
 
             const tokens = parseSearchTokens();
             const list = document.querySelectorAll('article[data-testid="tweet"]');
 
             for (const art of list) {
               const cell = getTweetCell(art);
-              const hide = shouldHideTweetByNameHandle(art, flags, tokens);
 
-              if (hide) {
-                cell.setAttribute('data-adv-hidden', 'name_handle_only');
+              const hideByNameHandle = shouldHideTweetByNameHandle(art, flags, tokens);
+
+              let hideByMute = false;
+              if (hasMute) {
+                const body = (art.querySelector('[data-testid="tweetText"]')?.innerText || '');
+                const bodyCI = body.toLowerCase();
+
+                for (const w of muteCI) { if (w && bodyCI.includes(w)) { hideByMute = true; break; } }
+                if (!hideByMute) {
+                  for (const w of muteCS) { if (w && body.includes(w)) { hideByMute = true; break; } }
+                }
+              }
+
+              const reasons = [];
+              if (hideByMute) reasons.push('muted_word');
+              if (hideByNameHandle) reasons.push('name_handle_only');
+
+              if (reasons.length > 0) {
+                cell.setAttribute('data-adv-hidden', reasons.join(' '));
               } else {
                 cell.removeAttribute('data-adv-hidden');
               }
             }
 
-            // （任意）隣接の区切り線セルも掃除
             cleanupAdjacentSeparators();
           } catch (e) {
             console.error('scanAndFilterTweets failed', e);
           }
         }
 
-        // --- 検索実行 ---
+        function cleanupAdjacentSeparators() {
+          // （既存のまま：必要ならここに区切り線セルの非表示処理）
+        }
+
         const executeSearch = async (scopesOverride) => {
             const finalQuery = buildQueryStringFromModal().trim();
             if (!finalQuery) return;
@@ -1585,7 +1619,6 @@
             window.location.href = `https://x.com/search?${params.toString()}`;
         };
 
-        // --- スコープ変更時は即URLへ反映＆実行 ---
         const onScopeChange = () => {
             const q = (()=> {
                 const si = getActiveSearchInput();
@@ -1604,7 +1637,6 @@
         accountScopeSel.addEventListener('change', onScopeChange);
         locationScopeSel.addEventListener('change', onScopeChange);
 
-        // モーダルドラッグ（そのまま）
         const setupModalDrag = () => {
             const header = modal.querySelector('.adv-modal-header');
             let dragging=false, offset={x:0,y:0};
@@ -1629,11 +1661,10 @@
             });
         };
 
-        // === モーダルの8方向リサイズ ===
         const setupModalResize = () => {
             const MIN_W = 300, MIN_H = 240;
             const MARGIN = 10;
-            let resizing = null; // {dir, startX, startY, startLeft, startTop, startW, startH}
+            let resizing = null;
 
             const onPointerDown = (e) => {
                 const h = e.target.closest('.adv-resizer');
@@ -1642,7 +1673,6 @@
                 const dir = h.dataset.dir;
                 const r = modal.getBoundingClientRect();
 
-                // left/top で絶対配置に正規化
                 modal.style.right = 'auto';
                 modal.style.bottom= 'auto';
                 modal.style.left  = `${r.left}px`;
@@ -1676,15 +1706,12 @@
 
                 const dir = resizing.dir;
 
-                // 横方向
                 if (dir.includes('e')) newW = resizing.startW + dx;
                 if (dir.includes('w')) { newW = resizing.startW - dx; newLeft = resizing.startLeft + dx; }
 
-                // 縦方向
                 if (dir.includes('s')) newH = resizing.startH + dy;
                 if (dir.includes('n')) { newH = resizing.startH - dy; newTop = resizing.startTop + dy; }
 
-                // ビューポート制約
                 const maxW = window.innerWidth  - 2*MARGIN;
                 const maxH = window.innerHeight - 2*MARGIN;
 
@@ -1704,7 +1731,7 @@
                 document.body.classList.remove('adv-dragging');
                 try { e.target.releasePointerCapture?.(e.pointerId); } catch(_) {}
                 resizing = null;
-                saveModalRelativeState(); // 新しい位置とサイズを保存
+                saveModalRelativeState();
             };
 
             modal.addEventListener('pointerdown', onPointerDown);
@@ -1713,7 +1740,6 @@
             window.addEventListener('pointercancel', onPointerUp);
         };
 
-        // UI調停（そのまま＋pf/lfのフォーム反映を追加）
         const reconcileUI = () => {
             const stored = (()=>{ try { return JSON.parse(kv.get(MODAL_STATE_KEY,'{}')); } catch{ return {}; } })();
             const desiredVisible = !!stored.visible;
@@ -1741,7 +1767,6 @@
             }
         };
 
-        // 開閉
         trigger.addEventListener('click', () => {
             if (trigger.style.display === 'none') return;
             const isVisibleNow = modal.style.display === 'flex';
@@ -1770,21 +1795,18 @@
 
         clearButton.addEventListener('click', () => { form.reset(); syncFromModalToSearchBox(); });
 
-        // 既存の検索実行リスナは触らず追加でフック（非同期で再評価）
         applyButton.addEventListener('click', () => executeSearch());
         applyButton.addEventListener('click', () => { setTimeout(scanAndFilterTweets, 800); });
 
-        // 保存（q+pf+lf）
         saveButton.addEventListener('click', () => {
             const q = buildQueryStringFromModal().trim();
             if (!q) return;
             const {pf, lf} = readScopesFromControls();
             addSaved(q, pf, lf);
-            activateTab('saved'); // 保存後、保存タブへ
+            activateTab('saved');
         });
 
         form.addEventListener('input', syncFromModalToSearchBox);
-        // 既存を変えずに追加でフィルタを走らせる
         form.addEventListener('input', scanAndFilterTweets);
         form.addEventListener('keydown', e => {
             if (e.key === 'Enter' && (e.target.matches('input[type="text"], input[type="number"]'))) {
@@ -1793,7 +1815,44 @@
             }
         });
 
-        // === SPA遷移フック & 直接検索の履歴記録（pf/lf対応） ===
+        const muteEmptyEl = document.getElementById('adv-mute-empty');
+        const muteListEl  = document.getElementById('adv-mute-list');
+        const muteInputEl = document.getElementById('adv-mute-input');
+        const muteCsEl    = document.getElementById('adv-mute-cs');
+        const muteAddBtn  = document.getElementById('adv-mute-add');
+
+        const renderMuted = () => {
+          const list = loadMuted();
+          muteListEl.innerHTML = '';
+          muteEmptyEl.textContent = list.length ? '' : i18n.t('emptyMuted');
+          list.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'adv-mute-item';
+            row.innerHTML = `
+              <div class="adv-mute-word">${escapeHTML(item.word)}</div>
+              <div class="adv-mute-actions">
+                <label class="adv-toggle">
+                  <input type="checkbox" ${item.cs ? 'checked' : ''} data-action="toggle-cs">
+                  <span data-i18n="labelCaseSensitive">${i18n.t('labelCaseSensitive')}</span>
+                </label>
+                <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
+              </div>
+            `;
+            row.querySelector('[data-action="toggle-cs"]').addEventListener('change', () => toggleMutedCS(item.id));
+            row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteMuted(item.id));
+            muteListEl.appendChild(row);
+          });
+        };
+
+        muteAddBtn.addEventListener('click', () => {
+          addMuted(muteInputEl.value, !!muteCsEl.checked);
+          muteInputEl.value = '';
+          muteCsEl.checked = false;
+        });
+        muteInputEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); muteAddBtn.click(); }
+        });
+
         const installNavigationHooks = (onRouteChange) => {
             let lastHref = location.href;
             const _debounce = (fn, wait=60) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); }; };
@@ -1885,19 +1944,16 @@
                         }
                     }
                 });
-                // DOM変化（ツイート流入）時は都度フィルタ適用
                 scanAndFilterTweets();
             });
             observer.observe(document.body, { childList:true, subtree:true });
 
             installNavigationHooks(() => {
-                // ルート変更時
                 manualOverrideOpen = false;
                 reconcileUI();
                 syncFromSearchBoxToModal();
                 applyScopesToControls(readScopesFromURL());
                 updateSaveButtonState();
-                // ルート変更後に再評価
                 scanAndFilterTweets();
             });
         };
@@ -1907,16 +1963,16 @@
             if (trigger.style.display !== 'none') { applyTriggerStoredPosition(); requestAnimationFrame(keepTriggerInViewport); }
         }, 100));
 
-        // 初期処理
         loadModalState();
         reconcileUI();
         setupModalDrag();
-        setupModalResize(); // リサイズ有効化
+        setupModalResize();
         setupObservers();
 
         renderHistory();
         renderSaved();
-        activateTab('search'); // 初期は検索タブ
+        renderMuted();
+        activateTab('search');
 
         (async () => {
             const input = await waitForElement(searchInputSelectors.join(','), 7000);
@@ -1924,7 +1980,6 @@
                 syncFromSearchBoxToModal();
                 applyScopesToControls(readScopesFromURL());
                 updateSaveButtonState();
-                // 初期同期後に一度フィルタ実行
                 scanAndFilterTweets();
             }
         })();
