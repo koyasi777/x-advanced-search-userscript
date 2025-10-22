@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.3.2
+// @version      4.3.5
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -379,6 +379,8 @@
     const lastHistory = { q: null, pf: null, lf: null, ts: 0 };
 
     const isMediaViewPath = (pathname) => /\/status\/\d+\/(?:photo|video|media|analytics)(?:\/\d+)?\/?$/.test(pathname);
+    const isComposePath = (pathname) => /^\/compose\/post(?:\/|$)/.test(pathname);
+    const isBlockedPath = (pathname) => isMediaViewPath(pathname) || isComposePath(pathname);
 
     GM_addStyle(`
         :root { --modal-primary-color:#1d9bf0; --modal-primary-color-hover:#1a8cd8; --modal-primary-text-color:#fff; }
@@ -1783,9 +1785,9 @@
         const reconcileUI = () => {
             const stored = (()=>{ try { return JSON.parse(kv.get(MODAL_STATE_KEY,'{}')); } catch{ return {}; } })();
             const desiredVisible = !!stored.visible;
-            const media = isMediaViewPath(location.pathname);
+            const blocked = isBlockedPath(location.pathname);
 
-            if (media) {
+            if (blocked) {
                 trigger.style.display = 'none';
             } else {
                 trigger.style.display = '';
@@ -1793,7 +1795,7 @@
                 requestAnimationFrame(keepTriggerInViewport);
             }
 
-            const shouldShow = (!media) && (desiredVisible || manualOverrideOpen);
+            const shouldShow = (!blocked) && (desiredVisible || manualOverrideOpen);
             const wasShown = (modal.style.display === 'flex');
             modal.style.display = shouldShow ? 'flex' : 'none';
             if (shouldShow) {
@@ -1920,9 +1922,11 @@
                         const href = args && args[2];
                         if (href) {
                             const u = new URL(href, location.href);
-                            if (u.origin === location.origin && isMediaViewPath(u.pathname)) {
-                                hideUIImmediately(document.getElementById('advanced-search-modal'),
-                                                  document.getElementById('advanced-search-trigger'));
+                            if (u.origin === location.origin && isBlockedPath(u.pathname)) {
+                                hideUIImmediately(
+                                    document.getElementById('advanced-search-modal'),
+                                    document.getElementById('advanced-search-trigger')
+                                );
                             }
                         }
                     } catch(_) {}
@@ -1941,9 +1945,11 @@
                     const u = new URL(a.href, location.href);
                     if (u.origin === location.origin) {
                         const sameTab = !(e.metaKey || e.ctrlKey || e.shiftKey || a.target === '_blank' || e.button === 1);
-                        if (sameTab && isMediaViewPath(u.pathname)) {
-                            hideUIImmediately(document.getElementById('advanced-search-modal'),
-                                              document.getElementById('advanced-search-trigger'));
+                        if (sameTab && isBlockedPath(u.pathname)) {
+                            hideUIImmediately(
+                                document.getElementById('advanced-search-modal'),
+                                document.getElementById('advanced-search-trigger')
+                            );
                         }
                         setTimeout(fireIfChanged, 0);
                     }
