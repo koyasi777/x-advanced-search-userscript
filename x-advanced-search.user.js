@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.2.0
+// @version      4.2.5
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -368,7 +368,9 @@
     let manualOverrideOpen = false;
     const lastHistory = { q: null, pf: null, lf: null, ts: 0 }; // 直近記録抑制にpf/lfも含める
 
-    const isMediaViewPath = (pathname) => /\/status\/\d+\/(?:photo|video|media)(?:\/\d+)?\/?$/.test(pathname);
+    // メディアビュー + アナリティクス判定
+    const isMediaViewPath = (pathname) => /\/status\/\d+\/(?:photo|video|media|analytics)(?:\/\d+)?\/?$/.test(pathname);
+
 
     // --- 5. スタイル ---
     GM_addStyle(`
