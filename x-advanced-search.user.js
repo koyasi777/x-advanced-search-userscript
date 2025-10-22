@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      3.7.5
+// @version      4.0.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -18,9 +18,9 @@
 // @description:zh-TW 為 X.com（Twitter）增加高級搜尋模態框，支援與搜尋框雙向同步並記住位置與顯示狀態。右上角搜尋圖示可拖曳，位置會被保存。
 // @description:ko   X.com(Twitter)에 고급 검색 모달을 추가합니다. 검색창과 양방향 동기화하며 위치와 표시 상태를 기억합니다. 우상단 검색 아이콘은 드래그 이동 및 위치 저장이 가능합니다。
 // @description:fr   Ajoute une fenêtre modale de recherche avancée à X.com (Twitter), synchronisée avec la barre de recherche et mémoire de l’état d’affichage. L’icône de recherche en haut à droite est déplaçable et sa position persiste.
-// @description:es   Agrega un modal flotante de búsqueda avanzada en X.com (Twitter), sincronizado con la caja de búsqueda y con estado persistente. El ícono de búsqueda arriba a la derecha es arrastrable con posición persistente.
+// @description:es   Agrega un modal flotante de búsqueda avanzada en X.com (Twitter), sincronizado con la caja de búsqueda y con estado persistente.
 // @description:de   Fügt X.com (Twitter) ein modales Fenster für erweiterte Suche hinzu, synchronisiert mit der Suchleiste und speichert Position/Zustand. Das Suchsymbol oben rechts ist per Drag & Drop verschiebbar und bleibt gespeichert.
-// @description:pt-BR Adiciona um modal de busca avançada flutuante no X.com (Twitter), sincronizado com a caixa de busca y com estado salvo. O ícone de busca no canto superior direito é arrastável com posição persistente.
+// @description:pt-BR Adiciona um modal de busca avançada flutuante no X.com (Twitter), sincronizado com a caixa de busca e com estado salvo. O ícone de busca no canto superior direito é arrastável com posição persistente.
 // @description:ru   Добавляет модальное окно расширенного поиска на X.com (Twitter). Синхронизируется с поисковой строкой и запоминает состояние. Кнопку поиска в правом верхнем углу можно перетаскивать; её положение сохраняется.
 // @namespace    https://github.com/koyasi777/x-advanced-search-userscript
 // @author       koyasi777
@@ -28,6 +28,9 @@
 // @match        https://twitter.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=x.com
 // @grant        GM_addStyle
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_deleteValue
 // @license      MIT
 // @homepageURL  https://github.com/koyasi777/x-advanced-search-userscript
 // @supportURL   https://github.com/koyasi777/x-advanced-search-userscript/issues
@@ -39,10 +42,167 @@
     // --- 1. i18n ---
     const i18n = {
         translations: {
-            'en': { modalTitle: "Advanced Search", tooltipClose: "Close", labelAllWords: "All of these words", placeholderAllWords: "e.g., AI news", labelExactPhrase: "This exact phrase", placeholderExactPhrase: 'e.g., "ChatGPT 4o"', labelAnyWords: "Any of these words (OR)", placeholderAnyWords: "e.g., iPhone Android", labelNotWords: "None of these words (-)", placeholderNotWords: "e.g., -sale -ads", labelHashtag: "Hashtags (#)", placeholderHashtag: "e.g., #TechEvent", labelLang: "Language (lang:)", optLangDefault: "Any language", optLangJa: "Japanese (ja)", optLangEn: "English (en)", hrSeparator: " ", labelFilters: "Filters", labelVerified: "Verified accounts", labelLinks: "Links", labelImages: "Images", labelVideos: "Videos", checkInclude: "Include", checkExclude: "Exclude", labelReplies: "Replies", optRepliesDefault: "Default (Show all)", optRepliesInclude: "Include replies", optRepliesOnly: "Replies only", optRepliesExclude: "Exclude replies", labelEngagement: "Engagement", placeholderMinReplies: "Min replies", placeholderMinLikes: "Min likes", placeholderMinRetweets: "Min retweets", labelDateRange: "Date range", tooltipSince: "From this date", tooltipUntil: "Until this date", labelFromUser: "From these accounts (from:)", placeholderFromUser: "e.g., @X", labelToUser: "To these accounts (to:)", placeholderToUser: "e.g., @google", labelMentioning: "Mentioning these accounts (@)", placeholderMentioning: "e.g., @OpenAI", buttonClear: "Clear", buttonApply: "Search", tooltipTrigger: "Open Advanced Search" },
-            'ja': { modalTitle: "高度な検索", tooltipClose: "閉じる", labelAllWords: "すべての語句を含む", placeholderAllWords: "例: AI ニュース", labelExactPhrase: "この語句を完全に含む", placeholderExactPhrase: '例: "ChatGPT 4o"', labelAnyWords: "いずれかの語句を含む (OR)", placeholderAnyWords: "例: iPhone Android", labelNotWords: "含まない語句 (-)", placeholderNotWords: "例: -セール -広告", labelHashtag: "ハッシュタグ (#)", placeholderHashtag: "例: #技術書典", labelLang: "言語 (lang:)", optLangDefault: "指定しない", optLangJa: "日本語 (ja)", optLangEn: "英語 (en)", hrSeparator: " ", labelFilters: "フィルター", labelVerified: "認証済みアカウント", labelLinks: "リンク", labelImages: "画像", labelVideos: "動画", checkInclude: "含む", checkExclude: "含まない", labelReplies: "返信", optRepliesDefault: "指定しない", optRepliesInclude: "返信を含める", optRepliesOnly: "返信のみ", optRepliesExclude: "返信を除外", labelEngagement: "エンゲージメント", placeholderMinReplies: "最小返信数", placeholderMinLikes: "最小いいね数", placeholderMinRetweets: "最小リポスト数", labelDateRange: "期間指定", tooltipSince: "この日以降", tooltipUntil: "この日以前", labelFromUser: "このアカウントから (from:)", placeholderFromUser: "例: @X", labelToUser: "このアカウントへ (to:)", placeholderToUser: "例: @google", labelMentioning: "このアカウントへのメンション (@)", placeholderMentioning: "例: @OpenAI", buttonClear: "クリア", buttonApply: "検索実行", tooltipTrigger: "高度な検索を開く" },
-            'zh-CN': { modalTitle: "高级搜索", tooltipClose: "关闭", labelAllWords: "包含所有这些词语", placeholderAllWords: "例如：AI 新闻", labelExactPhrase: "包含此完整短语", placeholderExactPhrase: "例如：\"ChatGPT 4o\"", labelAnyWords: "包含这些词语中的任何一个 (OR)", placeholderAnyWords: "例如：iPhone Android", labelNotWords: "不包含这些词语 (-)", placeholderNotWords: "例如：-促销 -广告", labelHashtag: "话题标签 (#)", placeholderHashtag: "例如：#技术活动", labelLang: "语言 (lang:)", optLangDefault: "任何语言", optLangJa: "日语 (ja)", optLangEn: "英语 (en)", labelFilters: "筛选", labelVerified: "认证账户", labelLinks: "链接", labelImages: "图片", labelVideos: "视频", checkInclude: "包括", checkExclude: "排除", labelReplies: "回复", optRepliesDefault: "默认 (显示全部)", optRepliesInclude: "包括回复", optRepliesOnly: "仅回复", optRepliesExclude: "排除回复", labelEngagement: "互动", placeholderMinReplies: "最少回复", placeholderMinLikes: "最少喜欢", placeholderMinRetweets: "最少转推", labelDateRange: "日期范围", tooltipSince: "从此日期", tooltipUntil: "至此日期", labelFromUser: "来自这些账户 (from:)", placeholderFromUser: "例如：@X", labelToUser: "发往这些账户 (to:)", placeholderToUser: "例如：@google", labelMentioning: "提及这些账户 (@)", placeholderMentioning: "例如：@OpenAI", buttonClear: "清除", buttonApply: "搜索", tooltipTrigger: "打开高级搜索" },
-            'ko': { modalTitle: "고급 검색", tooltipClose: "닫기", labelAllWords: "다음 단어 모두 포함", placeholderAllWords: "예: AI 뉴스", labelExactPhrase: "정확히 일치하는 문구", placeholderExactPhrase: "예: \"ChatGPT 4o\"", labelAnyWords: "다음 단어 중 하나라도 포함 (OR)", placeholderAnyWords: "예: iPhone Android", labelNotWords: "다음 단어 제외 (-)", placeholderNotWords: "예: -세일 -광고", labelHashtag: "해시태그 (#)", placeholderHashtag: "예: #기술이벤트", labelLang: "언어 (lang:)", optLangDefault: "모든 언어", optLangJa: "일본어 (ja)", optLangEn: "영어 (en)", labelFilters: "필터", labelVerified: "인증된 계정", labelLinks: "링크", labelImages: "이미지", labelVideos: "동영상", checkInclude: "포함", checkExclude: "제외", labelReplies: "답글", optRepliesDefault: "기본 (모두 표시)", optRepliesInclude: "답글 포함", optRepliesOnly: "답글만", optRepliesExclude: "답글 제외", labelEngagement: "참여", placeholderMinReplies: "최소 답글 수", placeholderMinLikes: "최소 좋아요 수", placeholderMinRetweets: "최소 리트윗 수", labelDateRange: "날짜 범위", tooltipSince: "이 날짜부터", tooltipUntil: "이 날짜까지", labelFromUser: "이 계정에서 보낸 트윗 (from:)", placeholderFromUser: "예: @X", labelToUser: "이 계정으로 보낸 트윗 (to:)", placeholderToUser: "예: @google", labelMentioning: "이 계정을 맨션 (@)", placeholderMentioning: "예: @OpenAI", buttonClear: "지우기", buttonApply: "검색", tooltipTrigger: "고급 검색 열기" }
+            'en': {
+                modalTitle: "Advanced Search",
+                tooltipClose: "Close",
+                labelAllWords: "All of these words",
+                placeholderAllWords: "e.g., AI news",
+                labelExactPhrase: "This exact phrase",
+                placeholderExactPhrase: 'e.g., "ChatGPT 4o"',
+                labelAnyWords: "Any of these words (OR)",
+                placeholderAnyWords: "e.g., iPhone Android",
+                labelNotWords: "None of these words (-)",
+                placeholderNotWords: "e.g., -sale -ads",
+                labelHashtag: "Hashtags (#)",
+                placeholderHashtag: "e.g., #TechEvent",
+                labelLang: "Language (lang:)",
+                optLangDefault: "Any language",
+                optLangJa: "Japanese (ja)",
+                optLangEn: "English (en)",
+                hrSeparator: " ",
+                labelFilters: "Filters",
+                labelVerified: "Verified accounts",
+                labelLinks: "Links",
+                labelImages: "Images",
+                labelVideos: "Videos",
+                checkInclude: "Include",
+                checkExclude: "Exclude",
+                labelReplies: "Replies",
+                optRepliesDefault: "Default (Show all)",
+                optRepliesInclude: "Include replies",
+                optRepliesOnly: "Replies only",
+                optRepliesExclude: "Exclude replies",
+                labelEngagement: "Engagement",
+                placeholderMinReplies: "Min replies",
+                placeholderMinLikes: "Min likes",
+                placeholderMinRetweets: "Min retweets",
+                labelDateRange: "Date range",
+                tooltipSince: "From this date",
+                tooltipUntil: "Until this date",
+                labelFromUser: "From these accounts (from:)",
+                placeholderFromUser: "e.g., @X",
+                labelToUser: "To these accounts (to:)",
+                placeholderToUser: "e.g., @google",
+                labelMentioning: "Mentioning these accounts (@)",
+                placeholderMentioning: "e.g., @OpenAI",
+                buttonClear: "Clear",
+                buttonApply: "Search",
+                tooltipTrigger: "Open Advanced Search",
+
+                tabSearch: "Search",
+                tabHistory: "History",
+                tabSaved: "Saved",
+                buttonSave: "Save",
+                buttonSaved: "Saved",
+                secretMode: "Secret",
+                secretOn: "Secret mode ON (No history)",
+                secretOff: "Secret mode OFF",
+                toastSaved: "Saved.",
+                toastDeleted: "Deleted.",
+                toastReordered: "Order updated.",
+                emptyHistory: "No history yet.",
+                emptySaved: "No saved searches.",
+                run: "Run",
+                delete: "Delete",
+                updated: "Updated.",
+                tooltipSecret: "Toggle Secret Mode (no history will be recorded)",
+                historyClearAll: "Clear All",
+                confirmClearHistory: "Clear all history?",
+
+                // --- added for scopes ---
+                labelAccountScope: "Accounts",
+                optAccountAll: "All accounts",
+                optAccountFollowing: "Accounts you follow",
+                labelLocationScope: "Location",
+                optLocationAll: "All locations",
+                optLocationNearby: "Near you",
+                chipFollowing: "Following",
+                chipNearby: "Nearby"
+            },
+            'ja': {
+                modalTitle: "高度な検索",
+                tooltipClose: "閉じる",
+                labelAllWords: "すべての語句を含む",
+                placeholderAllWords: "例: AI ニュース",
+                labelExactPhrase: "この語句を完全に含む",
+                placeholderExactPhrase: '例: "ChatGPT 4o"',
+                labelAnyWords: "いずれかの語句を含む (OR)",
+                placeholderAnyWords: "例: iPhone Android",
+                labelNotWords: "含まない語句 (-)",
+                placeholderNotWords: "例: -セール -広告",
+                labelHashtag: "ハッシュタグ (#)",
+                placeholderHashtag: "例: #技術書典",
+                labelLang: "言語 (lang:)",
+                optLangDefault: "指定しない",
+                optLangJa: "日本語 (ja)",
+                optLangEn: "英語 (en)",
+                hrSeparator: " ",
+                labelFilters: "フィルター",
+                labelVerified: "認証済みアカウント",
+                labelLinks: "リンク",
+                labelImages: "画像",
+                labelVideos: "動画",
+                checkInclude: "含む",
+                checkExclude: "含まない",
+                labelReplies: "返信",
+                optRepliesDefault: "指定しない",
+                optRepliesInclude: "返信を含める",
+                optRepliesOnly: "返信のみ",
+                optRepliesExclude: "返信を除外",
+                labelEngagement: "エンゲージメント",
+                placeholderMinReplies: "最小返信数",
+                placeholderMinLikes: "最小いいね数",
+                placeholderMinRetweets: "最小リポスト数",
+                labelDateRange: "期間指定",
+                tooltipSince: "この日以降",
+                tooltipUntil: "この日以前",
+                labelFromUser: "このアカウントから (from:)",
+                placeholderFromUser: "例: @X",
+                labelToUser: "このアカウントへ (to:)",
+                placeholderToUser: "例: @google",
+                labelMentioning: "このアカウントへのメンション (@)",
+                placeholderMentioning: "例: @OpenAI",
+                buttonClear: "クリア",
+                buttonApply: "検索実行",
+                tooltipTrigger: "高度な検索を開く",
+
+                tabSearch: "検索",
+                tabHistory: "履歴",
+                tabSaved: "保存",
+                buttonSave: "保存",
+                buttonSaved: "保存済み",
+                secretMode: "シークレット",
+                secretOn: "シークレットモード ON（履歴は記録しません）",
+                secretOff: "シークレットモード OFF",
+                toastSaved: "保存しました。",
+                toastDeleted: "削除しました。",
+                toastReordered: "並び順を更新しました。",
+                emptyHistory: "履歴はまだありません。",
+                emptySaved: "保存済みの検索はありません。",
+                run: "実行",
+                delete: "削除",
+                updated: "更新しました。",
+                tooltipSecret: "シークレットモードを切り替え（履歴を記録しません）",
+                historyClearAll: "すべて削除",
+                confirmClearHistory: "履歴をすべて削除しますか？",
+
+                // --- added for scopes ---
+                labelAccountScope: "アカウント",
+                optAccountAll: "すべてのアカウント",
+                optAccountFollowing: "フォローしているアカウント",
+                labelLocationScope: "場所",
+                optLocationAll: "すべての場所",
+                optLocationNearby: "近くの場所",
+                chipFollowing: "フォロー中",
+                chipNearby: "近く"
+            },
+            'zh-CN': {},
+            'ko': {},
+            'fr': {},
+            'es': {},
+            'de': {},
+            'pt-BR': {},
+            'ru': {}
         },
         lang: 'en',
         init: function() {
@@ -114,7 +274,6 @@
         };
     }
 
-    // waitForElement
     function waitForElement(selector, timeout = 10000, checkProperty = null) {
         return new Promise((resolve) => {
             const checkInterval = 100;
@@ -147,18 +306,15 @@
     function hideUIImmediately(modal, trigger) {
         if (modal)  modal.style.display = 'none';
         if (trigger) trigger.style.display = 'none';
-        // ここで localStorage の visible や manualOverrideOpen は触らない
     }
 
     // === URL 変化を確実に待つユーティリティ ===
-    function waitForUrlChange(oldURL, timeout = 1800) {
+    function waitForUrlChange(oldURL, timeout = 1500) {
         return new Promise((resolve) => {
             let done = false;
             const finish = (ok) => { if (!done) { done = true; cleanup(); resolve(ok); } };
-
             const check = () => { if (location.href !== oldURL) finish(true); };
 
-            // pushState/replaceState を一時フック
             const origPush = history.pushState, origReplace = history.replaceState;
             history.pushState = function(...a){ const r = origPush.apply(this, a); queueMicrotask(check); return r; };
             history.replaceState = function(...a){ const r = origReplace.apply(this, a); queueMicrotask(check); return r; };
@@ -166,7 +322,6 @@
             const onPop = () => queueMicrotask(check);
             window.addEventListener('popstate', onPop);
 
-            // DOM 変化でも一応チェック
             const mo = new MutationObserver(check);
             mo.observe(document.body, { childList: true, subtree: true });
 
@@ -180,16 +335,18 @@
                 clearTimeout(to);
             }
 
-            // 即時チェック
             check();
         });
     }
 
+    // 簡易ID
+    const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+
     // --- 4. グローバル状態 ---
     let isUpdating = false;
-    let manualOverrideOpen = false; // 非メディアURLで手動開きを維持する用
+    let manualOverrideOpen = false;
+    const lastHistory = { q: null, pf: null, lf: null, ts: 0 }; // 直近記録抑制にpf/lfも含める
 
-    // メディアURL判定: /status/123...(photo|video|media)/?
     const isMediaViewPath = (pathname) => /\/status\/\d+\/(?:photo|video|media)(?:\/\d+)?\/?$/.test(pathname);
 
     // --- 5. スタイル ---
@@ -202,7 +359,7 @@
         .adv-modal-header h2{margin:0;font-size:18px;font-weight:700}
         .adv-modal-close{background:0 0;border:none;color:var(--modal-close-color,#e7e9ea);font-size:24px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background-color .2s}
         .adv-modal-close:hover{background-color:var(--modal-close-hover-bg,rgba(231,233,234,.1))}
-        .adv-modal-body{flex:1;overflow-y:auto;padding:16px}
+        .adv-modal-body{flex:1;overflow-y:auto;padding:0}
         .adv-form-group{margin-bottom:16px}
         .adv-form-group label{display:block;margin-bottom:6px;font-size:14px;font-weight:700;color:var(--modal-text-secondary,#8b98a5)}
         .adv-form-group input[type=text],.adv-form-group input[type=number],.adv-form-group input[type=date],.adv-form-group select{width:100%;background-color:var(--modal-input-bg,#202327);border:1px solid var(--modal-input-border,#38444d);border-radius:4px;padding:8px 12px;color:var(--modal-text-primary,#e7e9ea);font-size:15px;box-sizing:border-box}
@@ -220,6 +377,7 @@
         .adv-modal-button:hover{background-color:var(--modal-button-hover-bg,rgba(231,233,234,.1))}
         .adv-modal-button.primary{background-color:var(--modal-primary-color);border-color:var(--modal-primary-color);color:var(--modal-primary-text-color)}
         .adv-modal-button.primary:hover{background-color:var(--modal-primary-color-hover)}
+        .adv-modal-button[disabled]{opacity:.5; cursor:not-allowed;}
         .adv-modal-body::-webkit-scrollbar{width:8px}
         .adv-modal-body::-webkit-scrollbar-track{background:var(--modal-scrollbar-track,#202327)}
         .adv-modal-body::-webkit-scrollbar-thumb{background:var(--modal-scrollbar-thumb,#536471);border-radius:4px}
@@ -229,14 +387,67 @@
         .adv-exclude-toggle input{margin-right:4px}
         .adv-exclude-toggle label{font-size:13px;font-weight:normal;color:var(--modal-text-secondary,#8b98a5);cursor:pointer}
         hr.adv-separator{border:none;height:1px;background-color:var(--hr-color,#333);margin:20px 0;transition:background-color .2s}
-        /* ------------- ここからズーム対応 ------------- */
-        #adv-zoom-root{
-            transform-origin: top left;
-            will-change: transform;
-        }
-        /* transform フォールバック時に横溢れを抑えるため、body 側は overflow を許可 */
+        #adv-zoom-root{ transform-origin: top left; will-change: transform; padding:16px; }
         .adv-modal-body{ overflow:auto; }
-        /* ------------- ズーム対応ここまで ------------- */
+
+        /* スコープ行（2カラム） */
+        .adv-form-row.two-cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        @media (max-width: 480px) {
+            .adv-form-row.two-cols {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* タブUI */
+        .adv-tabs { display:flex; border-bottom:1px solid var(--modal-border,#333); padding:0 8px; gap:6px; align-items:stretch; }
+        .adv-tab-btn { appearance:none; border:none; background:transparent; color:var(--modal-text-secondary,#8b98a5); padding:10px 12px; cursor:pointer; font-weight:700; border-radius:8px 8px 0 0; }
+        .adv-tab-btn.active { color:var(--modal-text-primary,#e7e9ea); background-color:var(--modal-input-bg,#202327); border:1px solid var(--modal-input-border,#38444d); border-bottom:none; }
+        .adv-tab-content { display:none; }
+        .adv-tab-content.active { display:block; }
+        #adv-tab-history, #adv-tab-saved { padding:12px 16px; }
+
+        /* シークレットモードボタン（少し小さく） */
+        .adv-secret-wrap { display:flex; align-items:center; gap:8px; }
+        .adv-secret-btn { cursor:pointer; border:1px solid var(--modal-input-border,#38444d); background:var(--modal-input-bg,#202327); color:var(--modal-text-primary,#e7e9ea); padding:4px 8px; border-radius:9999px; font-weight:700; user-select:none; display:flex; align-items:center; gap:6px; font-size:12px; }
+        .adv-secret-btn .dot { width:7px; height:7px; border-radius:50%; background:#777; box-shadow:0 0 0px #0000; transition:all .2s; }
+        .adv-secret-btn.off { opacity:0.9; }
+        .adv-secret-btn.on { background-color:var(--modal-primary-color); border-color:var(--modal-primary-color); color:var(--modal-primary-text-color); }
+        .adv-secret-btn.on .dot { background:#fff; box-shadow:0 0 8px rgba(255,255,255,.9); }
+
+        /* リスト（履歴/保存） */
+        .adv-list { display:flex; flex-direction:column; gap:8px; }
+        .adv-item { border:1px solid var(--modal-input-border,#38444d); background:var(--modal-input-bg,#202327); border-radius:8px; padding:8px; display:flex; gap:8px; align-items:flex-start; }
+        .adv-item.dragging { opacity:.6; }
+        .adv-item-handle { cursor:grab; user-select:none; padding:4px 6px; border-radius:6px; border:1px dashed var(--modal-border,#333); }
+        .adv-item-main { flex:1; min-width:0; }
+        .adv-item-title { font-size:14px; font-weight:700; color:var(--modal-text-primary,#e7e9ea); word-break:break-word; }
+        .adv-item-sub { font-size:12px; color:var(--modal-text-secondary,#8b98a5); margin-top:2px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+        .adv-item-actions { display:flex; gap:6px; }
+        .adv-chip { border:1px solid var(--modal-input-border,#38444d); background:transparent; color:var(--modal-text-primary,#e7e9ea); padding:4px 8px; border-radius:9999px; font-size:12px; cursor:pointer; }
+        .adv-chip.danger { border-color:#8b0000; color:#ffb3b3; }
+        .adv-chip.primary { background-color:var(--modal-primary-color); border-color:var(--modal-primary-color); color:var(--modal-primary-text-color); }
+        /* チップ（スコープ用の小型バリアント） */
+        .adv-chip.scope {
+            padding: 2px 6px;
+            font-size: 11px;
+            line-height: 1.2;
+            opacity: 0.95;
+        }
+
+        /* トースト */
+        .adv-toast { position:fixed; z-index:10001; left:50%; transform:translateX(-50%); bottom:24px; background:#111a; color:#fff; backdrop-filter: blur(6px); border:1px solid #fff3; padding:8px 12px; border-radius:8px; font-weight:700; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; }
+        .adv-toast.show { opacity:1; transform:translateX(-50%) translateY(-6px); }
+
+        /* フッターのボタン整列（保存を左に） */
+        .adv-modal-footer { justify-content:flex-end; }
+        .adv-modal-footer .adv-modal-button#adv-save-button { margin-right:auto; }
+
+        /* 履歴タブツールバー */
+        .adv-tab-toolbar { display:flex; justify-content:flex-end; margin-bottom:8px; }
     `);
 
     // --- 6. HTML ---
@@ -244,80 +455,150 @@
         <div id="advanced-search-modal">
             <div class="adv-modal-header">
                 <h2 data-i18n="modalTitle"></h2>
-                <button class="adv-modal-close" data-i18n-title="tooltipClose">&times;</button>
+                <div class="adv-secret-wrap">
+                    <button id="adv-secret-btn" class="adv-secret-btn off" data-i18n-title="tooltipSecret" title="">
+                        <span class="dot" aria-hidden="true"></span>
+                        <span id="adv-secret-label" data-i18n="secretMode"></span>
+                        <span id="adv-secret-state" style="font-weight:700;"></span>
+                    </button>
+                    <button class="adv-modal-close" data-i18n-title="tooltipClose">&times;</button>
+                </div>
             </div>
             <div class="adv-modal-body">
-                <!-- ズームの影響範囲を切り分けるラッパー -->
-                <div id="adv-zoom-root">
-                <form id="advanced-search-form">
-                    <div class="adv-form-group"><label for="adv-all-words" data-i18n="labelAllWords"></label><input type="text" id="adv-all-words" data-i18n-placeholder="placeholderAllWords"></div>
-                    <div class="adv-form-group"><label for="adv-exact-phrase" data-i18n="labelExactPhrase"></label><input type="text" id="adv-exact-phrase" data-i18n-placeholder="placeholderExactPhrase"></div>
-                    <div class="adv-form-group"><label for="adv-any-words" data-i18n="labelAnyWords"></label><input type="text" id="adv-any-words" data-i18n-placeholder="placeholderAnyWords"></div>
-                    <div class="adv-form-group"><label for="adv-not-words" data-i18n="labelNotWords"></label><input type="text" id="adv-not-words" data-i18n-placeholder="placeholderNotWords"></div>
-                    <div class="adv-form-group"><label for="adv-hashtag" data-i18n="labelHashtag"></label><input type="text" id="adv-hashtag" data-i18n-placeholder="placeholderHashtag"></div>
-                    <div class="adv-form-group"><label for="adv-lang" data-i18n="labelLang"></label><select id="adv-lang"><option value="" data-i18n="optLangDefault"></option><option value="ja" data-i18n="optLangJa"></option><option value="en" data-i18n="optLangEn"></option></select></div>
-                    <hr class="adv-separator">
-                    <div class="adv-form-group">
-                        <label data-i18n="labelFilters"></label>
-                        <div class="adv-filter-grid">
-                            <div class="adv-checkbox-group"><span data-i18n="labelVerified"></span><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-verified-include"><label for="adv-filter-verified-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-verified-exclude"><label for="adv-filter-verified-exclude" data-i18n="checkExclude"></label></div></div>
-                            <div class="adv-checkbox-group"><span data-i18n="labelLinks"></span><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-links-include"><label for="adv-filter-links-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-links-exclude"><label for="adv-filter-links-exclude" data-i18n="checkExclude"></label></div></div>
-                            <div class="adv-checkbox-group"><span data-i18n="labelImages"></span><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-images-include"><label for="adv-filter-images-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-images-exclude"><label for="adv-filter-images-exclude" data-i18n="checkExclude"></label></div></div>
-                            <div class="adv-checkbox-group"><span data-i18n="labelVideos"></span><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-videos-include"><label for="adv-filter-videos-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-videos-exclude"><label for="adv-filter-videos-exclude" data-i18n="checkExclude"></label></div></div>
+                <div class="adv-tabs">
+                    <button class="adv-tab-btn active" data-tab="search" data-i18n="tabSearch"></button>
+                    <button class="adv-tab-btn" data-tab="history" data-i18n="tabHistory"></button>
+                    <button class="adv-tab-btn" data-tab="saved" data-i18n="tabSaved"></button>
+                </div>
+
+                <!-- 検索タブ（既存フォーム） -->
+                <div class="adv-tab-content active" id="adv-tab-search">
+                    <div id="adv-zoom-root">
+                    <form id="advanced-search-form">
+                        <div class="adv-form-group"><label for="adv-all-words" data-i18n="labelAllWords"></label><input type="text" id="adv-all-words" data-i18n-placeholder="placeholderAllWords"></div>
+                        <div class="adv-form-group"><label for="adv-exact-phrase" data-i18n="labelExactPhrase"></label><input type="text" id="adv-exact-phrase" data-i18n-placeholder="placeholderExactPhrase"></div>
+                        <div class="adv-form-group"><label for="adv-any-words" data-i18n="labelAnyWords"></label><input type="text" id="adv-any-words" data-i18n-placeholder="placeholderAnyWords"></div>
+                        <div class="adv-form-group"><label for="adv-not-words" data-i18n="labelNotWords"></label><input type="text" id="adv-not-words" data-i18n-placeholder="placeholderNotWords"></div>
+                        <div class="adv-form-group"><label for="adv-hashtag" data-i18n="labelHashtag"></label><input type="text" id="adv-hashtag" data-i18n-placeholder="placeholderHashtag"></div>
+                        <div class="adv-form-group"><label for="adv-lang" data-i18n="labelLang"></label><select id="adv-lang"><option value="" data-i18n="optLangDefault"></option><option value="ja" data-i18n="optLangJa"></option><option value="en" data-i18n="optLangEn"></option></select></div>
+                        <hr class="adv-separator">
+                        <div class="adv-form-group">
+                            <label data-i18n="labelFilters"></label>
+                            <div class="adv-filter-grid">
+                                <div class="adv-checkbox-group"><span data-i18n="labelVerified"></span><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-verified-include"><label for="adv-filter-verified-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-verified-exclude"><label for="adv-filter-verified-exclude" data-i18n="checkExclude"></label></div></div>
+                                <div class="adv-checkbox-group"><span data-i18n="labelLinks"></span><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-links-include"><label for="adv-filter-links-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-links-exclude"><label for="adv-filter-links-exclude" data-i18n="checkExclude"></label></div></div>
+                                <div class="adv-checkbox-group"><span data-i18n="labelImages"></span><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-images-include"><label for="adv-filter-images-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-images-exclude"><label for="adv-filter-images-exclude" data-i18n="checkExclude"></label></div></div>
+                                <div class="adv-checkbox-group"><span data-i18n="labelVideos"></span><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-videos-include"><label for="adv-filter-videos-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-videos-exclude"><label for="adv-filter-videos-exclude" data-i18n="checkExclude"></label></div></div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="adv-form-group"><label data-i18n="labelReplies"></label><select id="adv-replies"><option value="" data-i18n="optRepliesDefault"></option><option value="include" data-i18n="optRepliesInclude"></option><option value="only" data-i18n="optRepliesOnly"></option><option value="exclude" data-i18n="optRepliesExclude"></option></select></div>
-                    <hr class="adv-separator">
-                    <div class="adv-form-group">
-                        <label data-i18n="labelEngagement"></label>
-                        <div class="adv-filter-grid">
-                            <input type="number" id="adv-min-replies" data-i18n-placeholder="placeholderMinReplies" min="0">
-                            <input type="number" id="adv-min-faves" data-i18n-placeholder="placeholderMinLikes" min="0">
-                            <input type="number" id="adv-min-retweets" data-i18n-placeholder="placeholderMinRetweets" min="0">
+
+                        <!-- ここから追加：アカウント/場所スコープ（返信の上に配置） -->
+                        <div class="adv-form-row two-cols">
+                            <div class="adv-form-group">
+                                <label for="adv-account-scope" data-i18n="labelAccountScope"></label>
+                                <select id="adv-account-scope">
+                                    <option value="" data-i18n="optAccountAll"></option>
+                                    <option value="following" data-i18n="optAccountFollowing"></option>
+                                </select>
+                            </div>
+                            <div class="adv-form-group">
+                                <label for="adv-location-scope" data-i18n="labelLocationScope"></label>
+                                <select id="adv-location-scope">
+                                    <option value="" data-i18n="optLocationAll"></option>
+                                    <option value="nearby" data-i18n="optLocationNearby"></option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="adv-form-group">
-                        <label data-i18n="labelDateRange"></label>
-                        <div class="adv-form-group-date-container">
-                            <input type="date" id="adv-since" data-i18n-title="tooltipSince">
-                            <input type="date" id="adv-until" data-i18n-title="tooltipUntil">
+                        <!-- 追加ここまで -->
+
+                        <div class="adv-form-group"><label data-i18n="labelReplies"></label><select id="adv-replies"><option value="" data-i18n="optRepliesDefault"></option><option value="include" data-i18n="optRepliesInclude"></option><option value="only" data-i18n="optRepliesOnly"></option><option value="exclude" data-i18n="optRepliesExclude"></option></select></div>
+                        <hr class="adv-separator">
+                        <div class="adv-form-group">
+                            <label data-i18n="labelEngagement"></label>
+                            <div class="adv-filter-grid">
+                                <input type="number" id="adv-min-replies" data-i18n-placeholder="placeholderMinReplies" min="0">
+                                <input type="number" id="adv-min-faves" data-i18n-placeholder="placeholderMinLikes" min="0">
+                                <input type="number" id="adv-min-retweets" data-i18n-placeholder="placeholderMinRetweets" min="0">
+                            </div>
                         </div>
-                    </div>
-                    <hr class="adv-separator">
-                    <div class="adv-form-group">
-                        <div class="adv-account-label-group">
-                            <label for="adv-from-user" data-i18n="labelFromUser"></label>
-                            <div class="adv-exclude-toggle"><input type="checkbox" id="adv-from-user-exclude"><label for="adv-from-user-exclude" data-i18n="checkExclude"></label></div>
+                        <div class="adv-form-group">
+                            <label data-i18n="labelDateRange"></label>
+                            <div class="adv-form-group-date-container">
+                                <input type="date" id="adv-since" data-i18n-title="tooltipSince">
+                                <input type="date" id="adv-until" data-i18n-title="tooltipUntil">
+                            </div>
                         </div>
-                        <input type="text" id="adv-from-user" data-i18n-placeholder="placeholderFromUser">
-                    </div>
-                    <div class="adv-form-group">
-                        <div class="adv-account-label-group">
-                            <label for="adv-to-user" data-i18n="labelToUser"></label>
-                            <div class="adv-exclude-toggle"><input type="checkbox" id="adv-to-user-exclude"><label for="adv-to-user-exclude" data-i18n="checkExclude"></label></div>
+                        <hr class="adv-separator">
+                        <div class="adv-form-group">
+                            <div class="adv-account-label-group">
+                                <label for="adv-from-user" data-i18n="labelFromUser"></label>
+                                <div class="adv-exclude-toggle"><input type="checkbox" id="adv-from-user-exclude"><label for="adv-from-user-exclude" data-i18n="checkExclude"></label></div>
+                            </div>
+                            <input type="text" id="adv-from-user" data-i18n-placeholder="placeholderFromUser">
                         </div>
-                        <input type="text" id="adv-to-user" data-i18n-placeholder="placeholderToUser">
-                    </div>
-                    <div class="adv-form-group">
-                        <div class="adv-account-label-group">
-                            <label for="adv-mentioning" data-i18n="labelMentioning"></label>
-                            <div class="adv-exclude-toggle"><input type="checkbox" id="adv-mentioning-exclude"><label for="adv-mentioning-exclude" data-i18n="checkExclude"></label></div>
+                        <div class="adv-form-group">
+                            <div class="adv-account-label-group">
+                                <label for="adv-to-user" data-i18n="labelToUser"></label>
+                                <div class="adv-exclude-toggle"><input type="checkbox" id="adv-to-user-exclude"><label for="adv-to-user-exclude" data-i18n="checkExclude"></label></div>
+                            </div>
+                            <input type="text" id="adv-to-user" data-i18n-placeholder="placeholderToUser">
                         </div>
-                        <input type="text" id="adv-mentioning" data-i18n-placeholder="placeholderMentioning">
+                        <div class="adv-form-group">
+                            <div class="adv-account-label-group">
+                                <label for="adv-mentioning" data-i18n="labelMentioning"></label>
+                                <div class="adv-exclude-toggle"><input type="checkbox" id="adv-mentioning-exclude"><label for="adv-mentioning-exclude" data-i18n="checkExclude"></label></div>
+                            </div>
+                            <input type="text" id="adv-mentioning" data-i18n-placeholder="placeholderMentioning">
+                        </div>
+                    </form>
                     </div>
-                </form>
-                </div> <!-- /#adv-zoom-root -->
+                </div>
+
+                <!-- 履歴タブ（全削除ボタン付き） -->
+                <div class="adv-tab-content" id="adv-tab-history">
+                    <div class="adv-tab-toolbar">
+                        <button id="adv-history-clear-all" class="adv-chip danger"></button>
+                    </div>
+                    <div id="adv-history-empty" class="adv-item-sub"></div>
+                    <div id="adv-history-list" class="adv-list"></div>
+                </div>
+
+                <!-- 保存タブ -->
+                <div class="adv-tab-content" id="adv-tab-saved">
+                    <div id="adv-saved-empty" class="adv-item-sub"></div>
+                    <div id="adv-saved-list" class="adv-list"></div>
+                </div>
             </div>
             <div class="adv-modal-footer">
+                <button id="adv-save-button" class="adv-modal-button" data-i18n="buttonSave"></button>
                 <button id="adv-clear-button" class="adv-modal-button" data-i18n="buttonClear"></button>
                 <button id="adv-apply-button" class="adv-modal-button primary" data-i18n="buttonApply"></button>
             </div>
         </div>
+
+        <div id="adv-toast" class="adv-toast" role="status" aria-live="polite"></div>
     `;
 
     // --- 7. メイン ---
     const initialize = async () => {
         i18n.init();
+
+        // --- KV (Tampermonkey storage) wrapper --- ＊追加
+        const kv = {
+            get(key, def) { try { return GM_getValue(key, def); } catch (_) { return def; } },
+            set(key, val) { try { GM_setValue(key, val); } catch (_) {} },
+            del(key)      { try { GM_deleteValue(key); } catch (_) {} },
+        };
+        // JSON storage helpers（localStorage版を置き換え）
+        const loadJSON = (key, def) => {
+            try {
+                const raw = kv.get(key, JSON.stringify(def));
+                return JSON.parse(raw);
+            } catch(_) { return def; }
+        };
+        const saveJSON = (key, value) => {
+            try { kv.set(key, JSON.stringify(value)); } catch(_) {}
+        };
 
         // トリガーボタン
         const trigger = document.createElement('button');
@@ -337,10 +618,21 @@
         const closeButton = modal.querySelector('.adv-modal-close');
         const clearButton = document.getElementById('adv-clear-button');
         const applyButton = document.getElementById('adv-apply-button');
+        const saveButton = document.getElementById('adv-save-button');
+        const footerEl = modal.querySelector('.adv-modal-footer');
+        const toastEl = document.getElementById('adv-toast');
+        const secretBtn = document.getElementById('adv-secret-btn');
+        const secretStateEl = document.getElementById('adv-secret-state');
+
+        const historyClearAllBtn = document.getElementById('adv-history-clear-all');
+        historyClearAllBtn.textContent = i18n.t('historyClearAll');
+
+        const accountScopeSel = document.getElementById('adv-account-scope');
+        const locationScopeSel = document.getElementById('adv-location-scope');
 
         themeManager.observeChanges(modal);
 
-        // ======== ズーム管理（Ctrl/⌘ + ホイール / + / - / 0）ここから ========
+        // === ズーム ===
         const ZOOM_STATE_KEY = 'advSearchZoom_v1';
         let zoom = 1.0;
         const ZOOM_MIN = 0.5, ZOOM_MAX = 2.0, ZOOM_STEP = 0.1;
@@ -348,13 +640,11 @@
         const zoomRoot = () => document.getElementById('adv-zoom-root');
         const loadZoom = () => {
             try {
-                const z = parseFloat(localStorage.getItem(ZOOM_STATE_KEY) || '1');
+                const z = parseFloat(kv.get(ZOOM_STATE_KEY, '1'));
                 if (!Number.isNaN(z)) zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
             } catch(_) {}
         };
-        const saveZoom = () => {
-            try { localStorage.setItem(ZOOM_STATE_KEY, String(zoom)); } catch(_) {}
-        };
+        const saveZoom = () => { try { kv.set(ZOOM_STATE_KEY, String(zoom)); } catch(_) {} };
         const applyZoom = () => {
             const el = zoomRoot();
             if (!el) return;
@@ -368,10 +658,7 @@
                 el.style.width = `${(100/zoom).toFixed(3)}%`;
             }
         };
-        const setZoom = (z) => {
-            zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z*100)/100));
-            applyZoom(); saveZoom();
-        };
+        const setZoom = (z) => { zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z*100)/100)); applyZoom(); saveZoom(); };
         const onWheelZoom = (e) => {
             const isAccel = e.ctrlKey || e.metaKey;
             if (!isAccel) return;
@@ -393,14 +680,10 @@
         requestAnimationFrame(applyZoom);
         modal.addEventListener('wheel', onWheelZoom, { passive:false });
         modal.addEventListener('keydown', onKeyZoom);
-
-        // モーダル display 変化で再適用（SPA遷移/テーマ反映後にも確実に発火）
-        const modalDisplayObserver = new MutationObserver(() => {
-            if (modal.style.display === 'flex') applyZoom();
-        });
+        const modalDisplayObserver = new MutationObserver(() => { if (modal.style.display === 'flex') applyZoom(); });
         modalDisplayObserver.observe(modal, { attributes:true, attributeFilter:['style'] });
-        // ======== ズーム管理ここまで ========
 
+        // 検索ボックス
         const searchInputSelectors = [
             'div[data-testid="primaryColumn"] input[data-testid="SearchBox_Search_Input"]',
             'div[data-testid="sidebarColumn"] input[data-testid="SearchBox_Search_Input"]'
@@ -417,14 +700,25 @@
         // 状態キー
         const MODAL_STATE_KEY   = 'advSearchModalState_v3.2';
         const TRIGGER_STATE_KEY = 'advSearchTriggerState_v1.0';
+        const HISTORY_KEY = 'advSearchHistory_v2'; // v2: pf/lf を含む
+        const SAVED_KEY   = 'advSearchSaved_v2';   // v2: pf/lf を含む
+        const SECRET_KEY  = 'advSearchSecretMode_v1';
 
-        // モーダル位置保存（手動操作時のみ呼ぶ）
+        // タブ
+        const tabButtons = Array.from(document.querySelectorAll('.adv-tab-btn'));
+        const tabSearch = document.getElementById('adv-tab-search');
+        const tabHistory = document.getElementById('adv-tab-history');
+        const tabSaved = document.getElementById('adv-tab-saved');
+
+        // モーダル位置保存/復元
         const saveModalRelativeState = () => {
             if (modal.style.display === 'none') {
                 try {
-                    const current = JSON.parse(localStorage.getItem(MODAL_STATE_KEY) || '{}');
+                    const current = (()=>{
+                        try { return JSON.parse(kv.get(MODAL_STATE_KEY, '{}')); } catch(_) { return {}; }
+                    })();
                     current.visible = false;
-                    localStorage.setItem(MODAL_STATE_KEY, JSON.stringify(current));
+                    kv.set(MODAL_STATE_KEY, JSON.stringify(current));
                 } catch(_) {}
                 return;
             }
@@ -436,11 +730,11 @@
             const v_anchor = rect.top  < fromBottom ? 'top'  : 'bottom';
             const v_value  = v_anchor === 'top' ? rect.top : fromBottom;
             const state = { h_anchor, h_value, v_anchor, v_value, visible: true };
-            localStorage.setItem(MODAL_STATE_KEY, JSON.stringify(state));
+            kv.set(MODAL_STATE_KEY, JSON.stringify(state));
         };
         const applyModalStoredPosition = () => {
             try {
-                const s = JSON.parse(localStorage.getItem(MODAL_STATE_KEY) || '{}');
+                const s = JSON.parse(kv.get(MODAL_STATE_KEY, '{}'));
                 const h_anchor = s.h_anchor || 'right';
                 const h_value  = s.h_value ?? 20;
                 const v_anchor = s.v_anchor || 'top';
@@ -466,7 +760,7 @@
         const loadModalState = () => {
             try { applyModalStoredPosition(); } catch(e) {
                 console.error('Failed to load modal state:', e);
-                localStorage.removeItem(MODAL_STATE_KEY);
+                kv.del(MODAL_STATE_KEY);
             }
         };
 
@@ -480,11 +774,11 @@
             const v_anchor = rect.top  < fromBottom ? 'top'  : 'bottom';
             const v_value  = v_anchor === 'top' ? rect.top : fromBottom;
             const state = { h_anchor, h_value, v_anchor, v_value };
-            localStorage.setItem(TRIGGER_STATE_KEY, JSON.stringify(state));
+            kv.set(TRIGGER_STATE_KEY, JSON.stringify(state));
         };
         const applyTriggerStoredPosition = () => {
             try {
-                const s = JSON.parse(localStorage.getItem(TRIGGER_STATE_KEY) || '{}');
+                const s = JSON.parse(kv.get(TRIGGER_STATE_KEY, '{}'));
                 const h_anchor = s.h_anchor || 'right';
                 const h_value  = s.h_value ?? 20;
                 const v_anchor = s.v_anchor || 'top';
@@ -549,17 +843,37 @@
             window.addEventListener('pointercancel', onPointerUp);
         };
 
-        // 初期トリガー位置
         applyTriggerStoredPosition();
         requestAnimationFrame(keepTriggerInViewport);
         setupTriggerDrag();
 
-        // ===== 検索ボックス同期 =====
+        // --- スコープ（pf/lf）ユーティリティ ---
+        const readScopesFromControls = () => ({
+            pf: accountScopeSel.value === 'following',
+            lf: locationScopeSel.value === 'nearby'
+        });
+        const applyScopesToControls = ({pf=false, lf=false}) => {
+            accountScopeSel.value = pf ? 'following' : '';
+            locationScopeSel.value = lf ? 'nearby' : '';
+        };
+        const readScopesFromURL = (urlStr) => {
+            try {
+                const u = new URL(urlStr || location.href, location.origin);
+                const pf = (u.searchParams.get('pf') || '') === 'on';
+                const lf = (u.searchParams.get('lf') || '') === 'on';
+                return { pf, lf };
+            } catch { return { pf:false, lf:false }; }
+        };
+
+        // 同期
         const STATE_SYNC = {
             parseFromSearchToModal: () => {
                 if (isUpdating || modal.style.display === 'none') return;
                 const si = getActiveSearchInput();
                 parseQueryAndApplyToModal(si ? si.value : '');
+                // URL -> pf/lf も反映
+                applyScopesToControls(readScopesFromURL());
+                updateSaveButtonState();
             },
             applyFromModalToSearch: () => {
                 if (isUpdating) return;
@@ -568,6 +882,7 @@
                 const si = getActiveSearchInput();
                 if (si) { si.value = finalQuery; si.dispatchEvent(new Event('input',{bubbles:true})); }
                 isUpdating = false;
+                updateSaveButtonState();
             }
         };
 
@@ -633,7 +948,8 @@
 
         const parseQueryAndApplyToModal = (query) => {
             if (isUpdating) return; isUpdating = true;
-            form.reset();
+            const formEl = document.getElementById('advanced-search-form');
+            formEl.reset();
             let q = ` ${query} `;
             const parseAccountField = (inputId, operator) => {
                 const exclOperator = `-${operator}`;
@@ -693,20 +1009,268 @@
             const si = getActiveSearchInput();
             if (si){ si.value = finalQuery; si.dispatchEvent(new Event('input',{bubbles:true})); }
             isUpdating=false;
+            updateSaveButtonState();
         };
         const syncFromSearchBoxToModal = STATE_SYNC.parseFromSearchToModal;
 
-        // === 送信ロジック：Enter投下 + URL変化を確実に待ってからフォールバック ===
-        const executeSearch = async () => {
+        // トースト
+        const showToast = (msg) => {
+            toastEl.textContent = msg;
+            toastEl.classList.add('show');
+            setTimeout(()=> toastEl.classList.remove('show'), 1500);
+        };
+
+        // シークレットモード
+        const loadSecret = () => { try { return kv.get(SECRET_KEY, '0') === '1'; } catch(_) { return false; } };
+        const saveSecret = (on) => { try { kv.set(SECRET_KEY, on ? '1' : '0'); } catch(_) {} };
+        const applySecretBtn = () => {
+            const on = loadSecret();
+            secretBtn.classList.toggle('on', on);
+            secretBtn.classList.toggle('off', !on);
+            secretBtn.title = i18n.t(on ? 'secretOn' : 'secretOff');
+            secretStateEl.textContent = on ? 'ON' : 'OFF';
+        };
+        secretBtn.addEventListener('click', (e)=>{
+            e.stopPropagation();
+            const on = !loadSecret();
+            saveSecret(on);
+            applySecretBtn();
+            showToast(i18n.t(on ? 'secretOn' : 'secretOff'));
+        });
+        applySecretBtn();
+
+        // v1 -> v2 マイグレーション（既存データをpf/lf=falseで扱う）
+        const migrateList = (list) => Array.isArray(list) ? list.map(it => ({ id:it.id||uid(), q:it.q||'', ts:it.ts||Date.now(), pf:!!it.pf, lf:!!it.lf })) : [];
+
+        // 履歴（同一 q/pf/lf は 新規追加せず ts を更新して先頭へ）
+        const recordHistory = (q, pf, lf) => {
+            if (!q || loadSecret()) return;
+            const now = Date.now();
+            // ★ 2秒→3秒に拡大して二重記録抑制
+            if (lastHistory.q === q && lastHistory.pf === pf && lastHistory.lf === lf && (now - lastHistory.ts) < 3000) return;
+            lastHistory.q = q; lastHistory.pf = pf; lastHistory.lf = lf; lastHistory.ts = now;
+
+            const listRaw = loadJSON(HISTORY_KEY, []);
+            const list = migrateList(listRaw);
+            const idx = list.findIndex(it => it.q === q && !!it.pf === !!pf && !!it.lf === !!lf);
+            if (idx === 0) {
+                list[0].ts = now;
+            } else if (idx > 0) {
+                const [item] = list.splice(idx, 1);
+                item.ts = now;
+                list.unshift(item);
+            } else {
+                list.unshift({ id: uid(), q, pf: !!pf, lf: !!lf, ts: now });
+                if (list.length > 50) list.length = 50;
+            }
+            saveJSON(HISTORY_KEY, list);
+            renderHistory();
+        };
+
+        const deleteHistory = (id) => {
+            const listRaw = loadJSON(HISTORY_KEY, []);
+            const list = migrateList(listRaw);
+            const next = list.filter(it => it.id !== id);
+            saveJSON(HISTORY_KEY, next);
+            renderHistory();
+            showToast(i18n.t('toastDeleted'));
+        };
+
+        const clearAllHistory = () => {
+            if (!confirm(i18n.t('confirmClearHistory'))) return;
+            saveJSON(HISTORY_KEY, []);
+            renderHistory();
+            showToast(i18n.t('toastDeleted'));
+        };
+
+        // 保存（q+pf+lf 単位で一意）
+        const addSaved = (q, pf, lf) => {
+            const listRaw = loadJSON(SAVED_KEY, []);
+            const list = migrateList(listRaw);
+            if (list.some(it => it.q === q && !!it.pf === !!pf && !!it.lf === !!lf)) {
+                updateSaveButtonState();
+                return;
+            }
+            const item = { id: uid(), q, pf: !!pf, lf: !!lf, ts: Date.now() };
+            list.push(item);
+            saveJSON(SAVED_KEY, list);
+            renderSaved();
+            showToast(i18n.t('toastSaved'));
+            updateSaveButtonState();
+        };
+
+        const deleteSaved = (id) => {
+            const listRaw = loadJSON(SAVED_KEY, []);
+            const list = migrateList(listRaw);
+            const next = list.filter(it => it.id !== id);
+            saveJSON(SAVED_KEY, next);
+            renderSaved();
+            showToast(i18n.t('toastDeleted'));
+            updateSaveButtonState();
+        };
+
+        const fmtTime = (ts) => { try { return new Date(ts).toLocaleString(); } catch { return ''; } };
+
+        // 現在の q/pf/lf が保存済みかをチェックして保存ボタンの状態を更新
+        const updateSaveButtonState = () => {
+            const q = buildQueryStringFromModal().trim();
+            const {pf, lf} = readScopesFromControls();
+            const saved = migrateList(loadJSON(SAVED_KEY, []));
+            const exists = !!q && saved.some(it => it.q === q && !!it.pf === !!pf && !!it.lf === !!lf);
+            saveButton.disabled = !q || exists;
+            saveButton.textContent = i18n.t(exists ? 'buttonSaved' : 'buttonSave');
+            saveButton.setAttribute('aria-disabled', saveButton.disabled ? 'true' : 'false');
+        };
+
+        const activateTab = (name) => {
+            tabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+            [tabSearch, tabHistory, tabSaved].forEach((el) => el.classList.toggle('active', el.id === `adv-tab-${name}`));
+            // 検索タブのときのみフッター表示
+            footerEl.style.display = (name === 'search') ? '' : 'none';
+            if (name === 'history') renderHistory();
+            if (name === 'saved') renderSaved();
+            if (name === 'search') updateSaveButtonState();
+        };
+        tabButtons.forEach(btn => btn.addEventListener('click', (e)=> { e.preventDefault(); activateTab(btn.dataset.tab); }));
+
+        const scopeChipsHTML = (pf, lf) => {
+            const chips = [];
+            if (pf) chips.push(`<span class="adv-chip scope" role="note">${i18n.t('chipFollowing')}</span>`);
+            if (lf) chips.push(`<span class="adv-chip scope" role="note">${i18n.t('chipNearby')}</span>`);
+            return chips.join('');
+        };
+
+        // 履歴レンダリング
+        const historyEmptyEl = document.getElementById('adv-history-empty');
+        const historyListEl = document.getElementById('adv-history-list');
+        const renderHistory = () => {
+            const list = migrateList(loadJSON(HISTORY_KEY, []));
+            historyListEl.innerHTML = '';
+            historyEmptyEl.textContent = list.length ? '' : i18n.t('emptyHistory');
+            list.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'adv-item';
+                row.innerHTML = `
+                    <div class="adv-item-main">
+                        <div class="adv-item-title">${escapeHTML(item.q)}</div>
+                        <div class="adv-item-sub">
+                            <span>${fmtTime(item.ts)}</span>
+                            ${scopeChipsHTML(!!item.pf, !!item.lf)}
+                        </div>
+                    </div>
+                    <div class="adv-item-actions">
+                        <button class="adv-chip primary" data-action="run">${i18n.t('run')}</button>
+                        <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
+                    </div>
+                `;
+                row.querySelector('[data-action="run"]').addEventListener('click', ()=>{
+                    parseQueryAndApplyToModal(item.q);
+                    applyScopesToControls({pf:!!item.pf, lf:!!item.lf});
+                    activateTab('search');
+                    executeSearch({pf:item.pf, lf:item.lf});
+                });
+                row.querySelector('[data-action="delete"]').addEventListener('click', ()=> deleteHistory(item.id));
+                historyListEl.appendChild(row);
+            });
+        };
+        historyClearAllBtn.addEventListener('click', clearAllHistory);
+
+        // 保存レンダリング（ドラッグ並べ替え維持）
+        const savedEmptyEl = document.getElementById('adv-saved-empty');
+        const savedListEl = document.getElementById('adv-saved-list');
+        const renderSaved = () => {
+            const list = migrateList(loadJSON(SAVED_KEY, []));
+            savedListEl.innerHTML = '';
+            savedEmptyEl.textContent = list.length ? '' : i18n.t('emptySaved');
+
+            list.forEach((item) => {
+                const row = document.createElement('div');
+                row.className = 'adv-item';
+                row.draggable = true;
+                row.dataset.id = item.id;
+                row.innerHTML = `
+                    <div class="adv-item-handle" title="Drag">≡</div>
+                    <div class="adv-item-main">
+                        <div class="adv-item-title">${escapeHTML(item.q)}</div>
+                        <div class="adv-item-sub">
+                            <span>${fmtTime(item.ts)}</span>
+                            ${scopeChipsHTML(!!item.pf, !!item.lf)}
+                        </div>
+                    </div>
+                    <div class="adv-item-actions">
+                        <button class="adv-chip primary" data-action="run">${i18n.t('run')}</button>
+                        <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
+                    </div>
+                `;
+                row.querySelector('[data-action="run"]').addEventListener('click', ()=>{
+                    parseQueryAndApplyToModal(item.q);
+                    applyScopesToControls({pf:!!item.pf, lf:!!item.lf});
+                    activateTab('search');
+                    executeSearch({pf:item.pf, lf:item.lf});
+                });
+                row.querySelector('[data-action="delete"]').addEventListener('click', ()=> deleteSaved(item.id));
+
+                row.addEventListener('dragstart', (ev) => {
+                    row.classList.add('dragging');
+                    ev.dataTransfer.setData('text/plain', item.id);
+                    ev.dataTransfer.effectAllowed = 'move';
+                });
+                row.addEventListener('dragend', () => row.classList.remove('dragging'));
+                row.addEventListener('dragover', (ev) => {
+                    ev.preventDefault();
+                    const dragging = savedListEl.querySelector('.dragging');
+                    if (!dragging) return;
+                    const after = getDragAfterElement(savedListEl, ev.clientY);
+                    if (after == null) savedListEl.appendChild(dragging);
+                    else savedListEl.insertBefore(dragging, after);
+                });
+
+                savedListEl.appendChild(row);
+            });
+            updateSaveButtonState();
+        };
+
+        const getDragAfterElement = (container, y) => {
+            const els = [...container.querySelectorAll('.adv-item:not(.dragging)')];
+            let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+            for (const el of els) {
+                const box = el.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    closest = { offset, element: el };
+                }
+            }
+            return closest.element;
+        };
+
+        savedListEl.addEventListener('drop', () => {
+            const orderIds = [...savedListEl.querySelectorAll('.adv-item')].map(el=>el.dataset.id);
+            const list = migrateList(loadJSON(SAVED_KEY, []));
+            const idToItem = Object.fromEntries(list.map(x=>[x.id, x]));
+            const reordered = orderIds.map(id => idToItem[id]).filter(Boolean);
+            saveJSON(SAVED_KEY, reordered);
+            showToast(i18n.t('toastReordered'));
+            updateSaveButtonState();
+        });
+
+        function escapeHTML(s) {
+            return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        // --- 検索実行 ---
+        const executeSearch = async (scopesOverride) => {
             const finalQuery = buildQueryStringFromModal().trim();
             if (!finalQuery) return;
+            const scopes = scopesOverride || readScopesFromControls();
+            const params = new URLSearchParams({ q: finalQuery, src: 'typed_query' });
+            if (scopes.pf) params.set('pf','on');
+            if (scopes.lf) params.set('lf','on');
 
             const si = getActiveSearchInput();
-            const targetURL = `https://x.com/search?q=${encodeURIComponent(finalQuery)}&src=typed_query`;
             const before = location.href;
 
             if (si) {
-                // 値の反映と input 送出
+                // 値の反映 + 本物寄りの InputEvent
                 si.value = finalQuery;
                 try {
                     si.dispatchEvent(new InputEvent('input', { bubbles:true, cancelable:true, inputType:'insertReplacementText', data:finalQuery }));
@@ -714,36 +1278,64 @@
                     si.dispatchEvent(new Event('input', { bubbles:true }));
                 }
 
-                // Enter を投下（X 側のキー依存ロジックを確実に踏む）
-                const ev = { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true };
+                // Enter を疑似投下（keydown→keyup）
+                const ev = { key:'Enter', code:'Enter', keyCode:13, which:13, bubbles:true, cancelable:true };
                 si.dispatchEvent(new KeyboardEvent('keydown', ev));
                 si.dispatchEvent(new KeyboardEvent('keyup', ev));
 
-                // 念のためフォーム submit も併用（実装差分の吸収）
+                // 保険として submit
                 const formEl = si.closest('form');
-                if (formEl?.requestSubmit) {
-                    try { formEl.requestSubmit(); } catch(_) {}
+                if (formEl?.requestSubmit) { try { formEl.requestSubmit(); } catch(_) {} }
+
+                // SPA URL 変化を待機
+                const didSpa = await waitForUrlChange(before, 1500);
+
+                if (didSpa) {
+                    // pf/lf を静かに付け直し（履歴増殖・リロードなし）
+                    try {
+                        const u = new URL(location.href);
+                        scopes.pf ? u.searchParams.set('pf','on') : u.searchParams.delete('pf');
+                        scopes.lf ? u.searchParams.set('lf','on') : u.searchParams.delete('lf');
+                        if (u.toString() !== location.href) {
+                            history.replaceState(history.state, '', u.toString());
+                        }
+                    } catch(_) {}
+                    recordHistory(finalQuery, scopes.pf, scopes.lf);
+                    try { si.blur(); } catch(_) {}
+                    return;
                 }
-
-                // URL 変化を十分待つ（1.8s）
-                const didSpa = await waitForUrlChange(before, 1800);
-
-                // ナビゲーション開始/完了後にサジェストを畳む（Enter フローを殺さないため遅延）
-                try { si.blur(); } catch(_) {}
-
-                if (didSpa) return;
             }
 
-            // SPA が動かなかった場合のみハード遷移
-            location.assign(targetURL);
+            // SPA が動かなかった場合のみ最終フォールバック
+            recordHistory(finalQuery, scopes.pf, scopes.lf);
+            window.location.href = `https://x.com/search?${params.toString()}`;
         };
 
-        // モーダルドラッグ
+        // --- スコープ変更時は即URLへ反映＆実行（※要望により従来のハード遷移のまま） ---
+        const onScopeChange = () => {
+            const q = (()=> {
+                const si = getActiveSearchInput();
+                if (si && si.value && si.value.trim()) return si.value.trim();
+                return buildQueryStringFromModal().trim();
+            })();
+            const { pf, lf } = readScopesFromControls();
+            const params = new URLSearchParams();
+            if (q) params.set('q', q);
+            params.set('src','typed_query');
+            if (pf) params.set('pf','on');
+            if (lf) params.set('lf','on');
+            recordHistory(q, pf, lf);
+            window.location.href = `https://x.com/search?${params.toString()}`;
+        };
+        accountScopeSel.addEventListener('change', onScopeChange);
+        locationScopeSel.addEventListener('change', onScopeChange);
+
+        // モーダルドラッグ（そのまま）
         const setupModalDrag = () => {
             const header = modal.querySelector('.adv-modal-header');
             let dragging=false, offset={x:0,y:0};
             header.addEventListener('mousedown', e=>{
-                if (e.target.matches('button,a')) return;
+                if (e.target.matches('button,a') && !e.target.classList.contains('adv-secret-btn')) return;
                 dragging=true;
                 const rect = modal.getBoundingClientRect();
                 modal.style.right=modal.style.bottom='auto';
@@ -763,53 +1355,54 @@
             });
         };
 
-        // ===== UI一元調停（モーダル＋トリガー） =====
+        // UI調停（そのまま＋pf/lfのフォーム反映を追加）
         const reconcileUI = () => {
-            const stored = (()=>{ try { return JSON.parse(localStorage.getItem(MODAL_STATE_KEY)||'{}'); } catch{ return {}; } })();
+            const stored = (()=>{ try { return JSON.parse(kv.get(MODAL_STATE_KEY,'{}')); } catch{ return {}; } })();
             const desiredVisible = !!stored.visible;
             const media = isMediaViewPath(location.pathname);
 
-            // 1) トリガー可視性
             if (media) {
                 trigger.style.display = 'none';
             } else {
-                trigger.style.display = ''; // CSSの display:flex を有効化
+                trigger.style.display = '';
                 applyTriggerStoredPosition();
                 requestAnimationFrame(keepTriggerInViewport);
             }
 
-            // 2) モーダル可視性
             const shouldShow = (!media) && (desiredVisible || manualOverrideOpen);
             const wasShown = (modal.style.display === 'flex');
             modal.style.display = shouldShow ? 'flex' : 'none';
             if (shouldShow) {
                 applyModalStoredPosition();
                 requestAnimationFrame(keepModalInViewport);
-                // 非表示→表示の遷移時に同期
                 if (!wasShown) {
                     syncFromSearchBoxToModal();
+                    // URL から pf/lf を反映
+                    applyScopesToControls(readScopesFromURL());
+                    updateSaveButtonState();
                 }
             }
         };
 
-        // クリックで開閉
+        // 開閉
         trigger.addEventListener('click', () => {
             if (trigger.style.display === 'none') return;
             const isVisibleNow = modal.style.display === 'flex';
             if (isVisibleNow) {
                 manualOverrideOpen = false;
                 modal.style.display = 'none';
-                saveModalRelativeState(); // 手動閉じ＝保存 visible=false
+                saveModalRelativeState();
             } else {
                 manualOverrideOpen = true;
                 modal.style.display = 'flex';
-                // 開いた瞬間にハイドレート
                 syncFromSearchBoxToModal();
+                // URL -> pf/lf
+                applyScopesToControls(readScopesFromURL());
                 applyModalStoredPosition();
                 requestAnimationFrame(keepModalInViewport);
-                // 開いた直後にズームを適用
                 applyZoom();
-                saveModalRelativeState(); // 手動開き＝保存 visible=true
+                saveModalRelativeState();
+                updateSaveButtonState();
             }
         });
 
@@ -820,7 +1413,17 @@
         });
 
         clearButton.addEventListener('click', () => { form.reset(); syncFromModalToSearchBox(); });
-        applyButton.addEventListener('click', executeSearch);
+        applyButton.addEventListener('click', () => executeSearch());
+
+        // 保存（q+pf+lf）
+        saveButton.addEventListener('click', () => {
+            const q = buildQueryStringFromModal().trim();
+            if (!q) return;
+            const {pf, lf} = readScopesFromControls();
+            addSaved(q, pf, lf);
+            activateTab('saved'); // 保存後、保存タブへ
+        });
+
         form.addEventListener('input', syncFromModalToSearchBox);
         form.addEventListener('keydown', e => {
             if (e.key === 'Enter' && (e.target.matches('input[type="text"], input[type="number"]'))) {
@@ -829,20 +1432,31 @@
             }
         });
 
-        // --- SPA遷移フック ---
+        // === SPA遷移フック & 直接検索の履歴記録（pf/lf対応） ===
         const installNavigationHooks = (onRouteChange) => {
             let lastHref = location.href;
-            // NEW: 体感レスポンス改善（120-150ms → 60ms）
             const _debounce = (fn, wait=60) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); }; };
             const fireIfChanged = _debounce(() => {
                 const now = location.href;
-                if (now !== lastHref) { lastHref = now; onRouteChange(); }
+                if (now !== lastHref) {
+                    lastHref = now;
+                    // ルートが検索ページならURLから q/pf/lf を拾って履歴に記録
+                    try {
+                        const u = new URL(now, location.origin);
+                        if (u.pathname.startsWith('/search')) {
+                            const q = u.searchParams.get('q') || '';
+                            const pf = (u.searchParams.get('pf') || '') === 'on';
+                            const lf = (u.searchParams.get('lf') || '') === 'on';
+                            if (q) recordHistory(decodeURIComponent(q), pf, lf);
+                        }
+                    } catch(_) {}
+                    onRouteChange();
+                }
             }, 60);
 
             const wrapHistory = (m) => {
                 const orig = history[m];
                 history[m] = function(...args){
-                    // NEW: pushState/replaceState の第3引数（URL）がメディアなら先に隠す
                     try {
                         const href = args && args[2];
                         if (href) {
@@ -867,13 +1481,11 @@
                 try {
                     const u = new URL(a.href, location.href);
                     if (u.origin === location.origin) {
-                        // NEW: 事前非表示（同一タブ遷移のみ。新規タブ/新規ウィンドウは除外）
                         const sameTab = !(e.metaKey || e.ctrlKey || e.shiftKey || a.target === '_blank' || e.button === 1);
                         if (sameTab && isMediaViewPath(u.pathname)) {
                             hideUIImmediately(document.getElementById('advanced-search-modal'),
                                               document.getElementById('advanced-search-trigger'));
                         }
-                        // 既存の SPA 変更検知はゼロ遅延でスケジュール
                         setTimeout(fireIfChanged, 0);
                     }
                 } catch(_) {}
@@ -881,7 +1493,6 @@
 
             const mo = new MutationObserver(fireIfChanged);
             mo.observe(document.documentElement, { childList:true, subtree:true });
-            // NEW: 最悪待ち時間の短縮（1500ms → 300ms）
             const pollId = setInterval(fireIfChanged, 300);
             return () => { mo.disconnect(); clearInterval(pollId); };
         };
@@ -903,20 +1514,32 @@
                     if (!input.dataset.advSearchAttached) {
                         input.dataset.advSearchAttached='true';
                         input.addEventListener('input', () => { if (input === getActiveSearchInput()) { syncFromSearchBoxToModal(); } });
+                        // 直接検索対策：フォームsubmitで履歴を記録（pf/lfはURLに合わせる：submit後に遷移で拾えるが念のため）
+                        const f = input.closest('form');
+                        if (f && !f.dataset.advSearchSubmitAttached) {
+                            f.dataset.advSearchSubmitAttached = 'true';
+                            f.addEventListener('submit', () => {
+                                const val = (input.value || '').trim();
+                                const {pf, lf} = readScopesFromControls();
+                                if (val) recordHistory(val, pf, lf);
+                            }, true);
+                        }
                     }
                 });
             });
             observer.observe(document.body, { childList:true, subtree:true });
 
             installNavigationHooks(() => {
-                console.log('[X Adv Search] Route changed, re-syncing...');
-                manualOverrideOpen = false;   // ルート遷移時は手動オーバーライド解除
-                reconcileUI();                // トリガー＆モーダルの表示を再評価
-                syncFromSearchBoxToModal();   // 同期
+                // ルート変更時
+                manualOverrideOpen = false;
+                reconcileUI();
+                syncFromSearchBoxToModal();
+                // URL -> pf/lf
+                applyScopesToControls(readScopesFromURL());
+                updateSaveButtonState();
             });
         };
 
-        // リサイズ
         window.addEventListener('resize', debounce(()=>{
             if (modal.style.display === 'flex') { applyModalStoredPosition(); requestAnimationFrame(keepModalInViewport); }
             if (trigger.style.display !== 'none') { applyTriggerStoredPosition(); requestAnimationFrame(keepTriggerInViewport); }
@@ -924,13 +1547,22 @@
 
         // 初期処理
         loadModalState();
-        reconcileUI();     // 初回にトリガー＆モーダル表示を決定（メディアURLなら両方隠す）
+        reconcileUI();
         setupModalDrag();
         setupObservers();
 
+        renderHistory();
+        renderSaved();
+        activateTab('search'); // 初期は検索タブ
+
         (async () => {
             const input = await waitForElement(searchInputSelectors.join(','), 7000);
-            if (input) syncFromSearchBoxToModal();
+            if (input) {
+                syncFromSearchBoxToModal();
+                // URLのpf/lfを反映
+                applyScopesToControls(readScopesFromURL());
+                updateSaveButtonState();
+            }
         })();
     };
 
