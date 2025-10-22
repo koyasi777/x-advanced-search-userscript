@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.1.0
+// @version      4.2.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -124,7 +124,7 @@
                 chipFollowing: "Following",
                 chipNearby: "Nearby",
 
-                // --- added: search target (NEW) ---
+                // --- search target ---
                 labelSearchTarget: "Search target",
                 labelHitName: "Exclude hits in display name",
                 labelHitHandle: "Exclude hits in username (@handle)",
@@ -209,7 +209,7 @@
                 chipFollowing: "フォロー中",
                 chipNearby: "近く",
 
-                // --- added: search target (NEW) ---
+                // --- search target ---
                 labelSearchTarget: "検索対象",
                 labelHitName: "表示名（名前）でのヒットは除外",
                 labelHitHandle: "ユーザー名（@）でのヒットは除外",
@@ -375,7 +375,7 @@
         :root { --modal-primary-color:#1d9bf0; --modal-primary-color-hover:#1a8cd8; --modal-primary-text-color:#fff; }
         #advanced-search-trigger { position:fixed; top:18px; right:20px; z-index:9999; background-color:var(--modal-primary-color); color:var(--modal-primary-text-color); border:none; border-radius:50%; width:50px; height:50px; font-size:24px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; transition:transform .2s, background-color .2s; }
         #advanced-search-trigger:hover { transform:scale(1.1); background-color:var(--modal-primary-color-hover); }
-        #advanced-search-modal { position:fixed; z-index:10000; width:380px; max-height:80vh; display:none; flex-direction:column; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background-color:var(--modal-bg, #000); color:var(--modal-text-primary, #e7e9ea); border:1px solid var(--modal-border, #333); border-radius:16px; box-shadow:0 8px 24px rgba(29,155,240,.2); transition:background-color .2s,color .2s,border-color .2s; }
+        #advanced-search-modal { position:fixed; z-index:10000; width:380px; display:none; flex-direction:column; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background-color:var(--modal-bg, #000); color:var(--modal-text-primary, #e7e9ea); border:1px solid var(--modal-border, #333); border-radius:16px; box-shadow:0 8px 24px rgba(29,155,240,.2); transition:background-color .2s,color .2s,border-color .2s; }
         .adv-modal-header{padding:12px 16px;border-bottom:1px solid var(--modal-border,#333);cursor:move;display:flex;justify-content:space-between;align-items:center}
         .adv-modal-header h2{margin:0;font-size:18px;font-weight:700}
         .adv-modal-close{background:0 0;border:none;color:var(--modal-close-color,#e7e9ea);font-size:24px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background-color .2s}
@@ -474,6 +474,21 @@
         article[data-adv-hidden] {
           display: none !important;
         }
+
+        /* === resizable handles === */
+        #advanced-search-modal { max-height: none; }
+        .adv-resizer { position:absolute; z-index:10002; background:transparent; }
+        .adv-resizer.e, .adv-resizer.w { top:-3px; bottom:-3px; width:8px; }
+        .adv-resizer.e { right:-3px; cursor: ew-resize; }
+        .adv-resizer.w { left:-3px;  cursor: ew-resize; }
+        .adv-resizer.n, .adv-resizer.s { left:-3px; right:-3px; height:8px; }
+        .adv-resizer.n { top:-3px;    cursor: ns-resize; }
+        .adv-resizer.s { bottom:-3px; cursor: ns-resize; }
+        .adv-resizer.se, .adv-resizer.ne, .adv-resizer.sw, .adv-resizer.nw { width:12px; height:12px; }
+        .adv-resizer.se { right:-4px;  bottom:-4px; cursor:nwse-resize; }
+        .adv-resizer.ne { right:-4px;  top:-4px;    cursor:nesw-resize; }
+        .adv-resizer.sw { left:-4px;   bottom:-4px; cursor:nesw-resize; }
+        .adv-resizer.nw { left:-4px;   top:-4px;    cursor:nwse-resize; }
     `);
 
     // --- 6. HTML ---
@@ -622,7 +637,7 @@
     const initialize = async () => {
         i18n.init();
 
-        // --- KV (Tampermonkey storage) wrapper --- ＊追加
+        // --- KV (Tampermonkey storage) wrapper ---
         const kv = {
             get(key, def) { try { return GM_getValue(key, def); } catch (_) { return def; } },
             set(key, val) { try { GM_setValue(key, val); } catch (_) {} },
@@ -673,7 +688,15 @@
         const accountScopeSel = document.getElementById('adv-account-scope');
         const locationScopeSel = document.getElementById('adv-location-scope');
 
-        // --- NEW: 除外チェック要素と永続化 ---
+        // === リサイズ用ハンドル生成（HTML構造は触らず、動的に付与） ===
+        ['n','e','s','w','ne','nw','se','sw'].forEach(dir => {
+            const h = document.createElement('div');
+            h.className = `adv-resizer ${dir}`;
+            h.dataset.dir = dir;
+            modal.appendChild(h);
+        });
+
+        // --- 除外チェック要素と永続化 ---
         const EXC_NAME_KEY   = 'advExcludeHitName_v1';
         const EXC_HANDLE_KEY = 'advExcludeHitHandle_v1';
         const excNameEl   = document.getElementById('adv-exclude-hit-name');
@@ -798,7 +821,8 @@
             const h_value  = h_anchor === 'left' ? rect.left : fromRight;
             const v_anchor = rect.top  < fromBottom ? 'top'  : 'bottom';
             const v_value  = v_anchor === 'top' ? rect.top : fromBottom;
-            const state = { h_anchor, h_value, v_anchor, v_value, visible: true };
+            const state = { h_anchor, h_value, v_anchor, v_value, visible: true,
+                            w: Math.round(rect.width), h: Math.round(rect.height) }; // w/h を保存
             kv.set(MODAL_STATE_KEY, JSON.stringify(state));
         };
         const applyModalStoredPosition = () => {
@@ -811,16 +835,34 @@
                 modal.style.left = modal.style.right = modal.style.top = modal.style.bottom = 'auto';
                 if (h_anchor === 'right') modal.style.right = `${h_value}px`; else modal.style.left = `${h_value}px`;
                 if (v_anchor === 'bottom') modal.style.bottom = `${v_value}px`; else modal.style.top = `${v_value}px`;
+
+                // サイズ復元
+                const minW = 300, minH = 240;
+                if (s.w) modal.style.width  = `${Math.max(minW, Math.min(s.w, window.innerWidth  - 20))}px`;
+                else     modal.style.width  = '380px';
+                if (s.h) modal.style.height = `${Math.max(minH, Math.min(s.h, window.innerHeight - 20))}px`;
+                else     modal.style.height = '';
             } catch(e) { console.error('Failed to apply modal position:', e); }
         };
         const keepModalInViewport = () => {
             if (modal.style.display === 'none') return;
             const rect = modal.getBoundingClientRect();
             const winW = window.innerWidth, winH = window.innerHeight, m = 10;
+
+            // サイズのクランプ
+            const minW = 300, minH = 240;
+            const maxW = Math.max(minW, winW - 2*m);
+            const maxH = Math.max(minH, winH - 2*m);
+            const w = Math.min(Math.max(rect.width,  minW), maxW);
+            const h = Math.min(Math.max(rect.height, minH), maxH);
+            if (Math.round(w) !== Math.round(rect.width))  modal.style.width  = `${w}px`;
+            if (Math.round(h) !== Math.round(rect.height)) modal.style.height = `${h}px`;
+
+            // 位置のクランプ（サイズクランプ後の値で）
             let x = rect.left, y = rect.top;
             if (x < m) x = m; if (y < m) y = m;
-            if (x + rect.width > winW - m) x = winW - rect.width - m;
-            if (y + rect.height > winH - m) y = winH - rect.height - m;
+            if (x + w > winW - m) x = winW - w - m;
+            if (y + h > winH - m) y = winH - h - m;
             if (Math.round(x) !== Math.round(rect.left) || Math.round(y) !== Math.round(rect.top)) {
                 modal.style.left = `${x}px`; modal.style.top = `${y}px`;
                 modal.style.right = 'auto'; modal.style.bottom = 'auto';
@@ -1341,7 +1383,7 @@
             return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         }
 
-        // --- NEW: クエリ解析とツイート可視性判定 ---
+        // --- クエリ解析とツイート可視性判定 ---
         function parseSearchTokens(queryOrURL) {
             let q = '';
             try {
@@ -1418,7 +1460,7 @@
             return { body, disp, handle, replyHandles };
         }
 
-        // 追加: article から対応する cellInnerDiv を取る
+        // article から対応する cellInnerDiv を取る
         function getTweetCell(article) {
           return article.closest('[data-testid="cellInnerDiv"]') || article;
         }
@@ -1455,8 +1497,7 @@
                     const t = term.replace(/^@/, '').toLowerCase();
                     if (!t) continue;
                     if (opUsers.has(t)) continue;
-                    // shouldHideTweetByNameHandle 内
-                    // 完全一致 or 部分一致（例: term 'cornix' が 'wing_cornix' に含まれる）
+                    // 完全一致 or 部分一致
                     if ([...allHandles].some(h => h === t || h.includes(t))) return true;
                 }
             }
@@ -1476,11 +1517,11 @@
             const list = document.querySelectorAll('article[data-testid="tweet"]');
 
             for (const art of list) {
-              const cell = getTweetCell(art);                     // ★ article → 親セルへ
+              const cell = getTweetCell(art);
               const hide = shouldHideTweetByNameHandle(art, flags, tokens);
 
               if (hide) {
-                cell.setAttribute('data-adv-hidden', 'name_handle_only'); // ★ 属性で制御
+                cell.setAttribute('data-adv-hidden', 'name_handle_only');
               } else {
                 cell.removeAttribute('data-adv-hidden');
               }
@@ -1584,6 +1625,90 @@
             document.addEventListener('mouseup', ()=>{
                 if(dragging){ dragging=false; document.body.classList.remove('adv-dragging'); saveModalRelativeState(); }
             });
+        };
+
+        // === モーダルの8方向リサイズ ===
+        const setupModalResize = () => {
+            const MIN_W = 300, MIN_H = 240;
+            const MARGIN = 10;
+            let resizing = null; // {dir, startX, startY, startLeft, startTop, startW, startH}
+
+            const onPointerDown = (e) => {
+                const h = e.target.closest('.adv-resizer');
+                if (!h) return;
+                e.preventDefault();
+                const dir = h.dataset.dir;
+                const r = modal.getBoundingClientRect();
+
+                // left/top で絶対配置に正規化
+                modal.style.right = 'auto';
+                modal.style.bottom= 'auto';
+                modal.style.left  = `${r.left}px`;
+                modal.style.top   = `${r.top}px`;
+
+                resizing = {
+                    dir,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    startLeft: r.left,
+                    startTop:  r.top,
+                    startW: r.width,
+                    startH: r.height
+                };
+                try { h.setPointerCapture(e.pointerId); } catch(_) {}
+                document.body.classList.add('adv-dragging');
+            };
+
+            const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+
+            const onPointerMove = (e) => {
+                if (!resizing) return;
+
+                const dx = e.clientX - resizing.startX;
+                const dy = e.clientY - resizing.startY;
+
+                let newLeft = resizing.startLeft;
+                let newTop  = resizing.startTop;
+                let newW    = resizing.startW;
+                let newH    = resizing.startH;
+
+                const dir = resizing.dir;
+
+                // 横方向
+                if (dir.includes('e')) newW = resizing.startW + dx;
+                if (dir.includes('w')) { newW = resizing.startW - dx; newLeft = resizing.startLeft + dx; }
+
+                // 縦方向
+                if (dir.includes('s')) newH = resizing.startH + dy;
+                if (dir.includes('n')) { newH = resizing.startH - dy; newTop = resizing.startTop + dy; }
+
+                // ビューポート制約
+                const maxW = window.innerWidth  - 2*MARGIN;
+                const maxH = window.innerHeight - 2*MARGIN;
+
+                newW = clamp(newW, MIN_W, maxW);
+                newH = clamp(newH, MIN_H, maxH);
+                newLeft = clamp(newLeft, MARGIN, Math.max(MARGIN, window.innerWidth  - newW - MARGIN));
+                newTop  = clamp(newTop,  MARGIN, Math.max(MARGIN, window.innerHeight - newH - MARGIN));
+
+                modal.style.left   = `${Math.round(newLeft)}px`;
+                modal.style.top    = `${Math.round(newTop)}px`;
+                modal.style.width  = `${Math.round(newW)}px`;
+                modal.style.height = `${Math.round(newH)}px`;
+            };
+
+            const onPointerUp = (e) => {
+                if (!resizing) return;
+                document.body.classList.remove('adv-dragging');
+                try { e.target.releasePointerCapture?.(e.pointerId); } catch(_) {}
+                resizing = null;
+                saveModalRelativeState(); // 新しい位置とサイズを保存
+            };
+
+            modal.addEventListener('pointerdown', onPointerDown);
+            window.addEventListener('pointermove', onPointerMove);
+            window.addEventListener('pointerup',   onPointerUp);
+            window.addEventListener('pointercancel', onPointerUp);
         };
 
         // UI調停（そのまま＋pf/lfのフォーム反映を追加）
@@ -1758,7 +1883,7 @@
                         }
                     }
                 });
-                // NEW: DOM変化（ツイート流入）時は都度フィルタ適用
+                // DOM変化（ツイート流入）時は都度フィルタ適用
                 scanAndFilterTweets();
             });
             observer.observe(document.body, { childList:true, subtree:true });
@@ -1770,7 +1895,7 @@
                 syncFromSearchBoxToModal();
                 applyScopesToControls(readScopesFromURL());
                 updateSaveButtonState();
-                // NEW: ルート変更後に再評価
+                // ルート変更後に再評価
                 scanAndFilterTweets();
             });
         };
@@ -1784,6 +1909,7 @@
         loadModalState();
         reconcileUI();
         setupModalDrag();
+        setupModalResize(); // リサイズ有効化
         setupObservers();
 
         renderHistory();
@@ -1796,7 +1922,7 @@
                 syncFromSearchBoxToModal();
                 applyScopesToControls(readScopesFromURL());
                 updateSaveButtonState();
-                // NEW: 初期同期後に一度フィルタ実行
+                // 初期同期後に一度フィルタ実行
                 scanAndFilterTweets();
             }
         })();
