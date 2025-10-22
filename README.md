@@ -4,7 +4,7 @@
 
 <p align="left">
   <a href="https://greasyfork.org/" target="_blank"><img alt="userscript" src="https://img.shields.io/badge/userscript-Tampermonkey%2FViolentmonkey-blue"></a>
-  <img alt="version" src="https://img.shields.io/badge/version-4.3.2-informational">
+  <img alt="version" src="https://img.shields.io/badge/version-4.3.5-informational">
   <img alt="license" src="https://img.shields.io/badge/license-MIT-green">
 </p>
 
