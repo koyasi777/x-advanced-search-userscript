@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.3.0
+// @version      4.3.1
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -482,11 +482,31 @@
         .adv-mute-item { border:1px solid var(--modal-input-border,#38444d); background:var(--modal-input-bg,#202327); border-radius:8px; padding:8px; display:flex; justify-content:space-between; align-items:center; }
         .adv-mute-word { font-weight:700; color:var(--modal-text-primary,#e7e9ea); word-break:break-word; }
         .adv-mute-actions { display:flex; gap:6px; align-items:center; }
-        .adv-toggle { display:flex; gap:6px; align-items:center; font-size:12px; color:var(--modal-text-secondary,#8b98a5); }
 
-        /* ▶ 「ミュート語句」見出しの右側に CS トグルを配置＆小さく */
+        .adv-toggle {
+          display: inline-flex;
+          gap: 6px;
+          align-items: center;
+          color: var(--modal-text-secondary,#8b98a5);
+          line-height: 1;
+          margin-bottom:0!important;
+        }
+
+        .adv-toggle input[type="checkbox"] {
+          width: 14px;
+          height: 14px;
+          margin: 0;
+          flex: 0 0 auto;
+          vertical-align: middle;
+        }
+
+        .adv-toggle span {
+          font-size: 11px;
+          line-height: 1;
+        }
+
         .adv-mute-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
-        .adv-mute-header .adv-toggle { font-size:11px; }
+
     `);
 
     const modalHTML = `
