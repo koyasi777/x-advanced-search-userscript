@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.4.1
+// @version      4.5.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -141,11 +141,18 @@
 
                 /* Accounts tab */
                 tabAccounts: "Accounts",
-                emptyAccounts: "No accounts yet.",
+                emptyAccounts: "No accounts yet. Open a profile and click the Add button to save it.",
                 buttonAddAccount: "Add account",
                 toastAccountAdded: "Account added.",
                 toastAccountExists: "Already added.",
                 buttonConfirm: "Confirm",
+
+                /* Lists tab */
+                tabLists: "Lists",
+                emptyLists: "No lists yet. Open a List and click the + button in the top-right to add it.",
+                buttonAddList: "Add list",
+                toastListAdded: "List added.",
+                toastListExists: "Already added.",
             },
             'ja': {
                 modalTitle: "高度な検索",
@@ -243,11 +250,18 @@
 
                 /* Accounts tab */
                 tabAccounts: "アカウント",
-                emptyAccounts: "アカウントはまだありません。",
+                emptyAccounts: "アカウントはまだありません。アカウントページの追加ボタンから追加してください。",
                 buttonAddAccount: "アカウントを追加",
                 toastAccountAdded: "アカウントを追加しました。",
                 toastAccountExists: "すでに追加済みです。",
                 buttonConfirm: "確認",
+
+                /* Lists tab */
+                tabLists: "リスト",
+                emptyLists: "リストはまだありません。リストを開き右上の+ボタンから追加してください。",
+                buttonAddList: "リストを追加",
+                toastListAdded: "リストを追加しました。",
+                toastListExists: "すでに追加済みです。",
             },
             'zh-CN': {},
             'ko': {},
@@ -446,7 +460,7 @@
         :root { --modal-primary-color:#1d9bf0; --modal-primary-color-hover:#1a8cd8; --modal-primary-text-color:#fff; }
         #advanced-search-trigger { position:fixed; top:18px; right:20px; z-index:9999; background-color:var(--modal-primary-color); color:var(--modal-primary-text-color); border:none; border-radius:50%; width:50px; height:50px; font-size:24px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; transition:transform .2s, background-color .2s; }
         #advanced-search-trigger:hover { transform:scale(1.1); background-color:var(--modal-primary-color-hover); }
-        #advanced-search-modal { position:fixed; z-index:10000; width:402px; display:none; flex-direction:column; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background-color:var(--modal-bg, #000); color:var(--modal-text-primary, #e7e9ea); border:1px solid var(--modal-border, #333); border-radius:16px; box-shadow:0 8px 24px rgba(29,155,240,.2); transition:background-color .2s,color .2s,border-color .2s; }
+        #advanced-search-modal { position:fixed; z-index:10000; width:420px; display:none; flex-direction:column; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background-color:var(--modal-bg, #000); color:var(--modal-text-primary, #e7e9ea); border:1px solid var(--modal-border, #333); border-radius:16px; box-shadow:0 8px 24px rgba(29,155,240,.2); transition:background-color .2s,color .2s,border-color .2s; }
         .adv-modal-header{padding:12px 16px;border-bottom:1px solid var(--modal-border,#333);cursor:move;display:flex;justify-content:space-between;align-items:center}
         .adv-modal-header h2{margin:0;font-size:18px;font-weight:700}
         .adv-modal-close{background:0 0;border:none;color:var(--modal-close-color,#e7e9ea);font-size:24px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background-color .2s}
@@ -486,7 +500,7 @@
         @media (max-width: 480px) { .adv-form-row.two-cols { grid-template-columns:1fr; } }
 
         .adv-tabs { display:flex; border-bottom:1px solid var(--modal-border,#333); padding:0 8px; gap:6px; align-items:stretch; }
-        .adv-tab-btn { appearance:none; border:none; background:transparent; color:var(--modal-text-secondary,#8b98a5); padding:10px 12px; cursor:pointer; font-weight:700; border-radius:8px 8px 0 0; }
+        .adv-tab-btn { appearance:none; border:none; background:transparent; color:var(--modal-text-secondary,#8b98a5); padding:10px 12px; cursor:pointer; font-weight:700; border-radius:8px 8px 0 0; font-size:12.5px; }
         .adv-tab-btn.active { color:var(--modal-text-primary,#e7e9ea); background-color:var(--modal-input-bg,#202327); border:1px solid var(--modal-input-border,#38444d); border-bottom:none; }
         .adv-tab-content { display:none; }
         .adv-tab-content.active { display:block; }
@@ -545,8 +559,6 @@
         .adv-mute-add { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
         .adv-mute-add input[type=text]{ flex:1; }
         .adv-mute-list { display:flex; flex-direction:column; gap:8px; }
-        .adv-mute-word { font-weight:700; color:var(--modal-text-primary,#e7e9ea); word-break:break-word; }
-        /* 親を wrap 可能にして自然に折り返す */
         .adv-mute-item {
           border:1px solid var(--modal-input-border,#38444d);
           background:var(--modal-input-bg,#202327);
@@ -557,11 +569,7 @@
           gap:8px;
           align-items:flex-start;
         }
-        .adv-mute-word {
-          flex: 1 1 auto;
-          min-width: 0;
-          word-break: break-word;
-        }
+        .adv-mute-word { font-weight:700; color:var(--modal-text-primary,#e7e9ea); word-break:break-word; }
         .adv-mute-actions {
           display:flex;
           gap:6px;
@@ -593,6 +601,11 @@
           line-height: 1;
         }
         .adv-mute-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+
+        #adv-accounts-empty:not(:empty),
+        #adv-lists-empty:not(:empty) {
+          padding: 12px;
+        }
     `);
 
     const modalHTML = `
@@ -614,6 +627,7 @@
                     <button class="adv-tab-btn" data-tab="history" data-i18n="tabHistory"></button>
                     <button class="adv-tab-btn" data-tab="saved" data-i18n="tabSaved"></button>
                     <button class="adv-tab-btn" data-tab="mute" data-i18n="tabMute"></button>
+                    <button class="adv-tab-btn" data-tab="lists" data-i18n="tabLists"></button>
                     <button class="adv-tab-btn" data-tab="accounts" data-i18n="tabAccounts"></button>
                 </div>
 
@@ -722,6 +736,11 @@
                 <div class="adv-tab-content" id="adv-tab-saved">
                     <div id="adv-saved-empty" class="adv-item-sub"></div>
                     <div id="adv-saved-list" class="adv-list"></div>
+                </div>
+
+                <div class="adv-tab-content" id="adv-tab-lists">
+                    <div id="adv-lists-empty" class="adv-item-sub"></div>
+                    <div id="adv-lists-list" class="adv-list"></div>
                 </div>
 
                 <div class="adv-tab-content" id="adv-tab-accounts">
@@ -952,6 +971,7 @@
         const tabSearch = document.getElementById('adv-tab-search');
         const tabHistory = document.getElementById('adv-tab-history');
         const tabSaved = document.getElementById('adv-tab-saved');
+        const tabLists = document.getElementById('adv-tab-lists');
         const tabAccounts = document.getElementById('adv-tab-accounts');
         const tabMute = document.getElementById('adv-tab-mute');
 
@@ -990,7 +1010,7 @@
 
                 const minW = 300, minH = 240;
                 if (s.w) modal.style.width  = `${Math.max(minW, Math.min(s.w, window.innerWidth  - 20))}px`;
-                else     modal.style.width  = '402px';
+                else     modal.style.width  = '420px';
                 if (s.h) modal.style.height = `${Math.max(minH, Math.min(s.h, window.innerHeight - 20))}px`;
                 else     modal.style.height = '';
             } catch(e) { console.error('Failed to apply modal position:', e); }
@@ -1384,10 +1404,12 @@
 
         const activateTab = (name) => {
             tabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-            [tabSearch, tabHistory, tabSaved, tabAccounts, tabMute].forEach((el) => el.classList.toggle('active', el.id === `adv-tab-${name}`));
+            [tabSearch, tabHistory, tabSaved, tabLists, tabAccounts, tabMute]
+              .forEach((el) => el.classList.toggle('active', el.id === `adv-tab-${name}`));
             footerEl.style.display = (name === 'search') ? '' : 'none';
             if (name === 'history') renderHistory();
             if (name === 'saved') renderSaved();
+            if (name === 'lists') renderLists();
             if (name === 'accounts') renderAccounts();
             if (name === 'mute') renderMuted();
             if (name === 'search') updateSaveButtonState();
@@ -2153,6 +2175,256 @@
 
         }
 
+        /* ========= Lists storage & UI ========= */
+        const LISTS_KEY = 'advLists_v1';
+
+        const migrateLists = (list) =>
+          Array.isArray(list)
+            ? list
+                .map(it => ({
+                  id: it.id || uid(),
+                  name: (it.name || '').trim(),
+                  url: (it.url || '').trim(),
+                  ts: it.ts || Date.now(),
+                }))
+                .filter(it => it.name && it.url)
+            : [];
+
+        const loadLists  = () => migrateLists(loadJSON(LISTS_KEY, []));
+        const saveLists  = (arr) => saveJSON(LISTS_KEY, migrateLists(arr));
+
+        const addList = ({ name, url }) => {
+          const nm = (name || '').trim();
+          let u = (url || '').trim();
+          if (!nm || !u) return 'empty';
+          try {
+            const parsed = new URL(u, location.origin);
+            if (parsed.origin === location.origin) u = parsed.pathname + parsed.search + parsed.hash;
+          } catch {}
+          const list = loadLists();
+          if (list.some(x => x.url === u)) return 'exists';
+          list.unshift({ id: uid(), name: nm, url: u, ts: Date.now() });
+          saveLists(list);
+          renderLists();
+          return 'ok';
+        };
+
+        const deleteList = (id) => {
+          const next = loadLists().filter(x => x.id !== id);
+          saveLists(next);
+          renderLists();
+          showToast(i18n.t('toastDeleted'));
+        };
+
+        const advListsEmptyEl = document.getElementById('adv-lists-empty');
+        const advListsListEl  = document.getElementById('adv-lists-list');
+
+        function renderLists() {
+          const list = loadLists();
+          advListsListEl.innerHTML = '';
+          advListsEmptyEl.textContent = list.length ? '' : i18n.t('emptyLists');
+
+          list.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'adv-item';
+            row.draggable = true;
+            row.dataset.id = item.id;
+
+            const title = escapeHTML(item.name);
+            const sub   = escapeHTML(item.url);
+
+            row.innerHTML = `
+              <div class="adv-item-handle" title="Drag">≡</div>
+              <div class="adv-item-main">
+                <div class="adv-item-title">
+                  <a class="adv-link" href="${escapeAttr(item.url)}">${title}</a>
+                </div>
+                <div class="adv-item-sub">
+                  <a class="adv-link" href="${escapeAttr(item.url)}">${sub}</a>
+                  <span>${fmtTime(item.ts)}</span>
+                </div>
+              </div>
+              <div class="adv-item-actions">
+                <button class="adv-chip primary" data-action="confirm">${i18n.t('buttonConfirm')}</button>
+                <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
+              </div>
+            `;
+
+            row.querySelector('[data-action="confirm"]').addEventListener('click', (e) => {
+              spaNavigate(item.url, { ctrlMeta: e.ctrlKey || e.metaKey });
+            });
+
+            row.querySelectorAll('a.adv-link').forEach(a => {
+              a.addEventListener('click', (ev) => {
+                if (ev.defaultPrevented || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
+                ev.preventDefault();
+                const href = a.getAttribute('href') || item.url;
+                spaNavigate(href, { ctrlMeta: false });
+              });
+            });
+
+            row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteList(item.id));
+
+            row.addEventListener('dragstart', (ev) => {
+              row.classList.add('dragging');
+              ev.dataTransfer.setData('text/plain', item.id);
+              ev.dataTransfer.effectAllowed = 'move';
+            });
+            row.addEventListener('dragend', () => row.classList.remove('dragging'));
+            row.addEventListener('dragover', (ev) => {
+              ev.preventDefault();
+              const dragging = advListsListEl.querySelector('.dragging');
+              if (!dragging) return;
+              const after = getDragAfterElement(advListsListEl, ev.clientY);
+              if (after == null) advListsListEl.appendChild(dragging);
+              else advListsListEl.insertBefore(dragging, after);
+            });
+
+            advListsListEl.appendChild(row);
+          });
+        }
+
+        advListsListEl?.addEventListener('drop', () => {
+          const orderIds = [...advListsListEl.querySelectorAll('.adv-item')].map(el => el.dataset.id);
+          const list = loadLists();
+          const map = Object.fromEntries(list.map(x => [x.id, x]));
+          const reordered = orderIds.map(id => map[id]).filter(Boolean);
+          saveLists(reordered);
+          showToast(i18n.t('toastReordered'));
+        });
+
+        const isListPath = (pathname = location.pathname) => /^\/i\/lists\/\d+\/?$/.test(pathname);
+
+        function getListMeta() {
+          // 1) <title> から取り出し（最優先）
+          let rawTitle = '';
+          try { rawTitle = (document.title || '').trim(); } catch (_) {}
+
+          // 末尾の " / X" または " / Twitter" を削る
+          let baseTitle = rawTitle.replace(/\s*\/\s*(X|Twitter)\s*$/i, '').trim();
+
+          let name = '';
+          let m;
+
+          // パターンA: "@owner/リスト名"
+          m = baseTitle.match(/^\s*@([A-Za-z0-9_]{1,50})\/\s*(.+)\s*$/);
+          if (m) {
+            name = (m[2] || '').trim();
+          }
+
+          // パターンB: "リスト名 (@owner)"
+          if (!name) {
+            m = baseTitle.match(/^\s*(.+?)\s*\(@[A-Za-z0-9_]{1,50}\)\s*$/);
+            if (m) {
+              name = (m[1] || '').trim();
+            }
+          }
+
+          // 余分な引用符 “ ” " ' に対応
+          if (name) {
+            name = name.replace(/^[“"'](.+)[”"']$/, '$1').trim();
+          }
+
+          // 2) タイトルで取れない/怪しい時は見出しから拾う（@を含む/長文/ヘルプ文は除外）
+          if (!name) {
+            try {
+              const headingRoot =
+                document.querySelector('[data-testid="ScrollSnap-ListHeader"]') ||
+                document.querySelector('[data-testid="primaryColumn"]') ||
+                document;
+
+              const candidates = Array.from(
+                headingRoot.querySelectorAll('h1[role="heading"], h2[role="heading"], h3[role="heading"]')
+              )
+                .flatMap(h => Array.from(h.querySelectorAll('span, div[dir="ltr"], div[dir="auto"]'))
+                  .map(el => (el.textContent || '').trim()))
+                .filter(Boolean)
+                // 「@…」はオーナー表記なので除外
+                .filter(txt => !/^@/.test(txt))
+                // 長文やヘルプ文（キーボードショートカット系）を弾く
+                .filter(txt => {
+                  const t = txt.replace(/\s+/g, ' ');
+                  if (t.length > 80) return false;
+                  const NG = ['キーボードショートカット', 'keyboard', 'help', 'ショートカット', 'press', '?'];
+                  return !NG.some(ng => t.toLowerCase().includes(ng.toLowerCase()));
+                });
+
+              if (candidates.length) {
+                // 一番短い候補（＝装飾の少ないタイトルの可能性が高い）
+                name = candidates.sort((a, b) => a.length - b.length)[0].trim();
+              }
+            } catch (_) {}
+          }
+
+          // 3) 最終フォールバック
+          if (!name) name = '';
+
+          // URL は現ページ（SPA対応でクエリ/ハッシュも保持）
+          const url = location.pathname + location.search + location.hash;
+          return { name, url };
+        }
+
+        let listButtonInstalledAt = '';
+        function ensureListAddButton(force = false) {
+          if (!isListPath()) return;
+          if (!force && listButtonInstalledAt === location.pathname) return;
+
+          const shareBtn = document.querySelector('button[data-testid="share-button"]');
+          if (!shareBtn) return;
+
+          if (shareBtn.parentElement?.querySelector?.('#adv-add-list-btn')) {
+            listButtonInstalledAt = location.pathname;
+            return;
+          }
+
+          const btn = document.createElement('button');
+          btn.id = 'adv-add-list-btn';
+          btn.type = 'button';
+
+          const syncVisual = (dst, src) => {
+            dst.className = src.className;
+            const st = src.getAttribute('style');
+            if (st !== null) dst.setAttribute('style', st);
+            dst.style.color ||= 'inherit';
+          };
+          syncVisual(btn, shareBtn);
+
+          const visMo = new MutationObserver(() => syncVisual(btn, shareBtn));
+          visMo.observe(shareBtn, { attributes: true, attributeFilter: ['class', 'style'] });
+
+          btn.setAttribute('aria-label', i18n.t('buttonAddList'));
+          btn.title = i18n.t('buttonAddList');
+
+          const innerDiv   = shareBtn.querySelector('div[dir="ltr"]') || shareBtn.querySelector('div');
+          const innerCls   = innerDiv?.getAttribute('class') || innerDiv?.classList?.value || '';
+          const innerStyle = innerDiv?.getAttribute('style') || '';
+          const svgEl      = innerDiv?.querySelector('svg') || shareBtn.querySelector('svg');
+          const svgCls     = svgEl?.getAttribute('class') || svgEl?.classList?.value || '';
+          const spanEl     = innerDiv?.querySelector('span') || shareBtn.querySelector('span');
+          const spanCls    = spanEl?.getAttribute('class') || spanEl?.classList?.value || '';
+
+          btn.innerHTML = `
+            <div dir="ltr" class="${innerCls}" style="${innerStyle}">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="${svgCls}" fill="currentColor">
+                <g><path d="M12 5c.55 0 1 .45 1 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H6a1 1 0 110-2h5V6c0-.55.45-1 1-1z"></path></g>
+              </svg>
+              <span class="${spanCls}"></span>
+            </div>
+          `;
+
+          btn.addEventListener('click', () => {
+            const { name, url } = getListMeta();
+            const ret = addList({ name, url });
+            if (ret === 'ok') showToast(i18n.t('toastListAdded'));
+            else if (ret === 'exists') showToast(i18n.t('toastListExists'));
+          });
+
+          // 左隣に設置
+          shareBtn.parentElement?.insertBefore(btn, shareBtn);
+
+          listButtonInstalledAt = location.pathname;
+        }
+
         const reconcileUI = () => {
             const stored = (()=>{ try { return JSON.parse(kv.get(MODAL_STATE_KEY,'{}')); } catch{ return {}; } })();
             const desiredVisible = !!stored.visible;
@@ -2363,6 +2635,7 @@
                 });
                 scanAndFilterTweets();
                 ensureProfileAddButton();
+                ensureListAddButton();
             });
             observer.observe(document.body, { childList:true, subtree:true });
 
@@ -2374,6 +2647,7 @@
                 updateSaveButtonState();
                 scanAndFilterTweets();
                 ensureProfileAddButton(true);
+                ensureListAddButton(true);
             });
         };
 
@@ -2402,6 +2676,7 @@
                 updateSaveButtonState();
                 scanAndFilterTweets();
                 ensureProfileAddButton(true);
+                ensureListAddButton(true);
             }
         })();
     };
