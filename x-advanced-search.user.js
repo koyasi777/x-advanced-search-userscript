@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.3.5
+// @version      4.4.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -138,6 +138,14 @@
                 muteHit: "Mute hits in body",
                 buttonImport: "Import",
                 buttonExport: "Export",
+
+                /* Accounts tab */
+                tabAccounts: "Accounts",
+                emptyAccounts: "No accounts yet.",
+                buttonAddAccount: "Add account",
+                toastAccountAdded: "Account added.",
+                toastAccountExists: "Already added.",
+                buttonConfirm: "Confirm",
             },
             'ja': {
                 modalTitle: "高度な検索",
@@ -232,6 +240,14 @@
                 muteHit: "本文でのヒットをミュート",
                 buttonImport: "インポート",
                 buttonExport: "エクスポート",
+
+                /* Accounts tab */
+                tabAccounts: "アカウント",
+                emptyAccounts: "アカウントはまだありません。",
+                buttonAddAccount: "アカウントを追加",
+                toastAccountAdded: "アカウントを追加しました。",
+                toastAccountExists: "すでに追加済みです。",
+                buttonConfirm: "確認",
             },
             'zh-CN': {},
             'ko': {},
@@ -372,6 +388,49 @@
         });
     }
 
+    // ▼ ルート適用を軽く検証（URL一致 + プロフィール系DOMが現れたか）
+    function waitForRouteApply(path, timeoutMs = 1200) {
+      const goal = new URL(path, location.origin).pathname;
+      const probes = [
+        '[data-testid="UserName"]',
+        'div[data-testid="UserProfileHeader_Items"]',
+        'div[data-testid="UserDescription"]',
+        'a[href^="/"][role="link"] time'
+      ];
+      return new Promise(resolve => {
+        const t0 = performance.now();
+        (function tick() {
+          const elapsed = performance.now() - t0;
+          const urlOk = location.pathname === goal;
+          const domOk = probes.some(sel => document.querySelector(sel));
+          if (urlOk && domOk) return resolve(true);
+          if (elapsed >= timeoutMs) return resolve(false);
+          // 立ち上がりは速く、以後はやや疎にポーリング
+          setTimeout(tick, elapsed < 300 ? 60 : elapsed < 700 ? 120 : 180);
+        })();
+      });
+    }
+
+    // ▼ SPA 遷移の核。pushState → 合成 popstate → DOM適用待ち → 失敗ならフォールバック
+    async function spaNavigate(path, { ctrlMeta = false, timeoutMs = 1200 } = {}) {
+      try {
+        const to = new URL(path, location.origin);
+        if (to.origin !== location.origin) throw new Error('cross-origin');
+
+        history.pushState(history.state, '', to.pathname + to.search + to.hash);
+        // X のルーターは popstate を購読している想定
+        window.dispatchEvent(new PopStateEvent('popstate', { state: history.state }));
+
+        const ok = await waitForRouteApply(to.pathname, timeoutMs);
+        if (ok) return; // 成功
+      } catch (e) {
+        // fall through to fallback
+      }
+      // フォールバック：修飾キーありなら新規タブ、なければ通常遷移
+      if (ctrlMeta) window.open(path, '_blank', 'noopener');
+      else location.assign(path);
+    }
+
     const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 
     let isUpdating = false;
@@ -386,7 +445,7 @@
         :root { --modal-primary-color:#1d9bf0; --modal-primary-color-hover:#1a8cd8; --modal-primary-text-color:#fff; }
         #advanced-search-trigger { position:fixed; top:18px; right:20px; z-index:9999; background-color:var(--modal-primary-color); color:var(--modal-primary-text-color); border:none; border-radius:50%; width:50px; height:50px; font-size:24px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; transition:transform .2s, background-color .2s; }
         #advanced-search-trigger:hover { transform:scale(1.1); background-color:var(--modal-primary-color-hover); }
-        #advanced-search-modal { position:fixed; z-index:10000; width:380px; display:none; flex-direction:column; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background-color:var(--modal-bg, #000); color:var(--modal-text-primary, #e7e9ea); border:1px solid var(--modal-border, #333); border-radius:16px; box-shadow:0 8px 24px rgba(29,155,240,.2); transition:background-color .2s,color .2s,border-color .2s; }
+        #advanced-search-modal { position:fixed; z-index:10000; width:402px; display:none; flex-direction:column; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background-color:var(--modal-bg, #000); color:var(--modal-text-primary, #e7e9ea); border:1px solid var(--modal-border, #333); border-radius:16px; box-shadow:0 8px 24px rgba(29,155,240,.2); transition:background-color .2s,color .2s,border-color .2s; }
         .adv-modal-header{padding:12px 16px;border-bottom:1px solid var(--modal-border,#333);cursor:move;display:flex;justify-content:space-between;align-items:center}
         .adv-modal-header h2{margin:0;font-size:18px;font-weight:700}
         .adv-modal-close{background:0 0;border:none;color:var(--modal-close-color,#e7e9ea);font-size:24px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background-color .2s}
@@ -443,10 +502,14 @@
         .adv-item { border:1px solid var(--modal-input-border,#38444d); background:var(--modal-input-bg,#202327); border-radius:8px; padding:8px; display:flex; gap:8px; align-items:flex-start; }
         .adv-item.dragging { opacity:.6; }
         .adv-item-handle { cursor:grab; user-select:none; padding:4px 6px; border-radius:6px; border:1px dashed var(--modal-border,#333); }
+        .adv-item-avatar { width:36px; height:36px; border-radius:9999px; object-fit:cover; flex:0 0 auto; background:var(--modal-border,#333); }
+        a.adv-link { color: inherit; text-decoration: none; }
+        a.adv-link:hover { text-decoration: underline; cursor: pointer; }
+        .adv-item-avatar-link { display:inline-block; border-radius:9999px; }
         .adv-item-main { flex:1; min-width:0; }
         .adv-item-title { font-size:14px; font-weight:700; color:var(--modal-text-primary,#e7e9ea); word-break:break-word; }
         .adv-item-sub { font-size:12px; color:var(--modal-text-secondary,#8b98a5); margin-top:2px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
-        .adv-item-actions { display:flex; gap:6px; }
+        .adv-item-actions { display:flex; gap:6px; align-items:center; align-self:center; }
         .adv-chip { border:1px solid var(--modal-input-border,#38444d); background:transparent; color:var(--modal-text-primary,#e7e9ea); padding:4px 8px; border-radius:9999px; font-size:12px; cursor:pointer; }
         .adv-chip.danger { border-color:#8b0000; color:#ffb3b3; }
         .adv-chip.primary { background-color:var(--modal-primary-color); border-color:var(--modal-primary-color); color:var(--modal-primary-text-color); }
@@ -550,6 +613,7 @@
                     <button class="adv-tab-btn" data-tab="history" data-i18n="tabHistory"></button>
                     <button class="adv-tab-btn" data-tab="saved" data-i18n="tabSaved"></button>
                     <button class="adv-tab-btn" data-tab="mute" data-i18n="tabMute"></button>
+                    <button class="adv-tab-btn" data-tab="accounts" data-i18n="tabAccounts"></button>
                 </div>
 
                 <div class="adv-tab-content active" id="adv-tab-search">
@@ -659,7 +723,12 @@
                     <div id="adv-saved-list" class="adv-list"></div>
                 </div>
 
-                <!-- ▶ Mute タブ：CSトグルを見出しの右側に移動＆小さく -->
+                <div class="adv-tab-content" id="adv-tab-accounts">
+                    <div id="adv-accounts-empty" class="adv-item-sub"></div>
+                    <div id="adv-accounts-list" class="adv-list"></div>
+                </div>
+
+                <!-- ▶ Mute タブ -->
                 <div class="adv-tab-content" id="adv-tab-mute">
                   <div style="padding:12px 16px;">
                     <div class="adv-form-group">
@@ -882,6 +951,7 @@
         const tabSearch = document.getElementById('adv-tab-search');
         const tabHistory = document.getElementById('adv-tab-history');
         const tabSaved = document.getElementById('adv-tab-saved');
+        const tabAccounts = document.getElementById('adv-tab-accounts');
         const tabMute = document.getElementById('adv-tab-mute');
 
         const saveModalRelativeState = () => {
@@ -919,7 +989,7 @@
 
                 const minW = 300, minH = 240;
                 if (s.w) modal.style.width  = `${Math.max(minW, Math.min(s.w, window.innerWidth  - 20))}px`;
-                else     modal.style.width  = '380px';
+                else     modal.style.width  = '402px';
                 if (s.h) modal.style.height = `${Math.max(minH, Math.min(s.h, window.innerHeight - 20))}px`;
                 else     modal.style.height = '';
             } catch(e) { console.error('Failed to apply modal position:', e); }
@@ -1313,10 +1383,11 @@
 
         const activateTab = (name) => {
             tabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-            [tabSearch, tabHistory, tabSaved, tabMute].forEach((el) => el.classList.toggle('active', el.id === `adv-tab-${name}`));
+            [tabSearch, tabHistory, tabSaved, tabAccounts, tabMute].forEach((el) => el.classList.toggle('active', el.id === `adv-tab-${name}`));
             footerEl.style.display = (name === 'search') ? '' : 'none';
             if (name === 'history') renderHistory();
             if (name === 'saved') renderSaved();
+            if (name === 'accounts') renderAccounts();
             if (name === 'mute') renderMuted();
             if (name === 'search') updateSaveButtonState();
         };
@@ -1442,6 +1513,12 @@
 
         function escapeHTML(s) {
             return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function escapeAttr(s) {
+          return String(s).replace(/[&<>"']/g, c => (
+            {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+          ));
         }
 
         function parseSearchTokens(queryOrURL) {
@@ -1782,6 +1859,299 @@
             window.addEventListener('pointercancel', onPointerUp);
         };
 
+        /* ========= Accounts storage & UI ========= */
+
+        const ACCOUNTS_KEY = 'advAccounts_v1';
+        const migrateAccounts = (list) =>
+          Array.isArray(list)
+            ? list
+                .map(it => ({
+                  id: it.id || uid(),
+                  handle: (it.handle || '').replace(/^@/, '').trim(),
+                  name: (it.name || '').trim(),
+                  avatar: it.avatar || '',
+                  ts: it.ts || Date.now(),
+                }))
+                .filter(it => it.handle)
+            : [];
+        const loadAccounts = () => migrateAccounts(loadJSON(ACCOUNTS_KEY, []));
+        const saveAccounts = (arr) => saveJSON(ACCOUNTS_KEY, migrateAccounts(arr));
+        // 追加 or 更新（既存があれば name / avatar 差分のみ更新）
+        const addAccount = ({ handle, name='', avatar='' }) => {
+          const h = (handle || '').replace(/^@/, '').trim();
+          if (!h) return 'empty';
+          const list = loadAccounts();
+          const ix = list.findIndex(x => x.handle.toLowerCase() === h.toLowerCase());
+          if (ix >= 0) {
+            let changed = false;
+            if (name && name !== list[ix].name) { list[ix].name = name; changed = true; }
+            if (avatar && avatar !== list[ix].avatar) { list[ix].avatar = avatar; changed = true; }
+            if (changed) {
+              list[ix].ts = Date.now();
+              saveAccounts(list);
+              renderAccounts();
+              return 'updated';
+            }
+            return 'exists';
+          }
+          list.unshift({ id: uid(), handle: h, name, avatar, ts: Date.now() });
+          saveAccounts(list);
+          renderAccounts();
+          return 'ok';
+        };
+        // 既存アカウントがある場合だけ name / avatar を更新（未登録なら何もしない）
+        const updateAccountIfExists = ({ handle, name='', avatar='' }) => {
+          const h = (handle || '').replace(/^@/, '').trim();
+          if (!h) return 'empty';
+          const list = loadAccounts();
+          const ix = list.findIndex(x => x.handle.toLowerCase() === h.toLowerCase());
+          if (ix < 0) return 'not_found';
+          let changed = false;
+          if (name && name !== list[ix].name)   { list[ix].name   = name;   changed = true; }
+          if (avatar && avatar !== list[ix].avatar) { list[ix].avatar = avatar; changed = true; }
+          if (changed) {
+            list[ix].ts = Date.now();
+            saveAccounts(list);
+            renderAccounts();
+            return 'updated';
+          }
+          return 'unchanged';
+        };
+        const deleteAccount = (id) => {
+          const next = loadAccounts().filter(x => x.id !== id);
+          saveAccounts(next);
+          renderAccounts();
+          showToast(i18n.t('toastDeleted'));
+        };
+
+        const accountsEmptyEl = document.getElementById('adv-accounts-empty');
+        const accountsListEl  = document.getElementById('adv-accounts-list');
+
+        function renderAccounts() {
+          const list = loadAccounts();
+          accountsListEl.innerHTML = '';
+          accountsEmptyEl.textContent = list.length ? '' : i18n.t('emptyAccounts');
+
+          list.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'adv-item';
+            row.draggable = true;
+            row.dataset.id = item.id;
+
+            const title = escapeHTML(item.name || `@${item.handle}`);
+            const sub   = escapeHTML(`@${item.handle}`);
+
+            row.innerHTML = `
+              <div class="adv-item-handle" title="Drag">≡</div>
+              ${
+                item.avatar
+                  ? `<a class="adv-item-avatar-link adv-link" href="/${escapeAttr(item.handle)}" title="@${escapeAttr(item.handle)}">
+                       <img class="adv-item-avatar" src="${escapeAttr(item.avatar)}" alt="@${escapeAttr(item.handle)}">
+                     </a>`
+                  : `<a class="adv-item-avatar-link adv-link" href="/${escapeAttr(item.handle)}" title="@${escapeAttr(item.handle)}">
+                       <div class="adv-item-avatar" aria-hidden="true"></div>
+                     </a>`
+              }
+              <div class="adv-item-main">
+                <div class="adv-item-title">
+                  <a class="adv-link" href="/${escapeAttr(item.handle)}" title="@${escapeAttr(item.handle)}">${title}</a>
+                </div>
+                <div class="adv-item-sub">
+                  <a class="adv-link" href="/${escapeAttr(item.handle)}">@${escapeHTML(item.handle)}</a>
+                  <span>${fmtTime(item.ts)}</span>
+                </div>
+              </div>
+              <div class="adv-item-actions">
+                <button class="adv-chip primary" data-action="confirm">${i18n.t('buttonConfirm')}</button>
+                <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
+              </div>
+            `;
+
+            row.querySelector('[data-action="confirm"]').addEventListener('click', (e) => {
+              // 相対パスで SPA 遷移（Ctrl/⌘ なら新規タブを尊重）
+              spaNavigate(`/${item.handle}`, { ctrlMeta: e.ctrlKey || e.metaKey });
+            });
+
+            /* アイコン / 表示名 / @handle の <a> を SPA 対応 */
+            row.querySelectorAll('a.adv-link').forEach(a => {
+              a.addEventListener('click', (ev) => {
+                // 修飾あり or 中クリック はデフォルト動作（新規タブ等）
+                if (ev.defaultPrevented || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
+                ev.preventDefault();
+                const href = a.getAttribute('href') || `/${item.handle}`;
+                spaNavigate(href, { ctrlMeta: false });
+              });
+            });
+
+            row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteAccount(item.id));
+
+            row.addEventListener('dragstart', (ev) => {
+              row.classList.add('dragging');
+              ev.dataTransfer.setData('text/plain', item.id);
+              ev.dataTransfer.effectAllowed = 'move';
+            });
+            row.addEventListener('dragend', () => row.classList.remove('dragging'));
+            row.addEventListener('dragover', (ev) => {
+              ev.preventDefault();
+              const dragging = accountsListEl.querySelector('.dragging');
+              if (!dragging) return;
+              const after = getDragAfterElement(accountsListEl, ev.clientY);
+              if (after == null) accountsListEl.appendChild(dragging);
+              else accountsListEl.insertBefore(dragging, after);
+            });
+
+            accountsListEl.appendChild(row);
+          });
+        }
+
+        accountsListEl?.addEventListener('drop', () => {
+          const orderIds = [...accountsListEl.querySelectorAll('.adv-item')].map(el => el.dataset.id);
+          const list = loadAccounts();
+          const map = Object.fromEntries(list.map(x => [x.id, x]));
+          const reordered = orderIds.map(id => map[id]).filter(Boolean);
+          saveAccounts(reordered);
+          showToast(i18n.t('toastReordered'));
+        });
+
+        function getProfileHandleFromURL(href = location.href) {
+          try {
+            const u = new URL(href, location.origin);
+            const m = u.pathname.match(/^\/([A-Za-z0-9_]{1,50})\/?$/);
+            return m ? m[1] : '';
+          } catch { return ''; }
+        }
+
+        // 指定ハンドルのプロフィール領域だけをスコープにして name / avatar を取得
+        function collectProfileMeta(handle) {
+          let name = '';
+          let avatar = '';
+          try {
+            const h = String(handle || '').replace(/^@/, '').trim();
+
+            // 1) プロフィール領域（表示名）
+            //    ※ グローバルヘッダの自分の名前を拾わないように、最初に [data-testid="UserName"] を基準に限定
+            const profileRoot =
+              document.querySelector('[data-testid="UserName"]') ||
+              document.querySelector('[data-testid="User-Name"]');
+
+            if (profileRoot) {
+              const texts = Array.from(profileRoot.querySelectorAll('span, div[dir="auto"]'))
+                .map(el => (el.textContent || '').trim())
+                .filter(Boolean);
+              // 例: ["みみる@米国株投資", "@mimiru_usstock", ...]
+              name = texts.find(t => !t.startsWith('@')) || '';
+            }
+
+            // 2) アバター領域をハンドルで限定
+            //    DOM例: <div data-testid="UserAvatar-Container-mimiru_usstock"> ... </div>
+            let avatarScope = null;
+            if (h) {
+              avatarScope = document.querySelector(`[data-testid="UserAvatar-Container-${CSS.escape(h)}"]`);
+            }
+            // フォールバック（ハンドル付き data-testid が無い古い/差分レイアウト）
+            if (!avatarScope) {
+              // プロフィールのヘッダ右側の塊に限定
+              avatarScope = profileRoot?.closest('[data-testid="UserProfileHeader_Items"]')?.parentElement
+                         || profileRoot?.parentElement
+                         || document;
+            }
+
+            // 2-1) まず <img> 優先
+            const img = avatarScope.querySelector('img[src*="profile_images"]');
+            if (img?.src) {
+              avatar = img.src;
+            } else {
+              // 2-2) 背景画像 style="background-image:url(...)" から抽出
+              //     提示DOMの:
+              //     <div class="... r-1wyyakw ..." style="background-image:url('...')"></div>
+              const bg = avatarScope.querySelector('[style*="background-image"]');
+              if (bg) {
+                const m = String(bg.getAttribute('style') || '').match(/background-image:\s*url\((["']?)(.*?)\1\)/i);
+                if (m && m[2]) avatar = m[2];
+              }
+            }
+
+            // バナー(header_photo) を誤検出しないように、ヘッダバナー領域を除外
+            // （banner は /header_photo へのリンク配下; avatarScope 内に入らない設計だが保険）
+            if (avatar && /profile_banners\//.test(avatar)) {
+              avatar = '';
+            }
+
+          } catch {}
+          return { name, avatar };
+        }
+
+        let profileButtonInstalledFor = '';
+        function ensureProfileAddButton(force = false) {
+          const handle = getProfileHandleFromURL();
+          if (!handle) return;
+          if (!force && profileButtonInstalledFor === handle) return;
+
+          const moreBtn = document.querySelector('button[data-testid="userActions"]');
+          if (!moreBtn) return;
+
+          if (moreBtn.parentElement?.querySelector?.('#adv-add-account-btn')) {
+            profileButtonInstalledFor = handle;
+            return;
+          }
+
+          const btn = document.createElement('button');
+          btn.id = 'adv-add-account-btn';
+          btn.type = 'button';
+          // 見た目を完全同期（class も style もコピー）
+          const syncVisual = (dst, src) => {
+            dst.className = src.className;
+            const st = src.getAttribute('style');
+            if (st !== null) dst.setAttribute('style', st);
+            // 念のため currentColor 継承
+            dst.style.color ||= 'inherit';
+          };
+          syncVisual(btn, moreBtn);
+
+          // 将来のテーマ切替／hover などで X が style/class を書き換えたら追従
+          const visMo = new MutationObserver(() => syncVisual(btn, moreBtn));
+          visMo.observe(moreBtn, { attributes: true, attributeFilter: ['class', 'style'] });
+          btn.setAttribute('aria-label', i18n.t('buttonAddAccount'));
+          btn.title = i18n.t('buttonAddAccount');
+          // ▼ 内側の div / svg / span から「class と inline style」を抽出
+          const innerDiv   = moreBtn.querySelector('div[dir="ltr"]') || moreBtn.querySelector('div');
+          const innerCls   = innerDiv?.getAttribute('class') || innerDiv?.classList?.value || '';
+          const innerStyle = innerDiv?.getAttribute('style') || '';
+          const svgEl      = innerDiv?.querySelector('svg') || moreBtn.querySelector('svg');
+          const svgCls     = svgEl?.getAttribute('class') || svgEl?.classList?.value || '';
+          const spanEl     = innerDiv?.querySelector('span') || moreBtn.querySelector('span');
+          const spanCls    = spanEl?.getAttribute('class') || spanEl?.classList?.value || '';
+          btn.innerHTML = `
+            <div dir="ltr" class="${innerCls}" style="${innerStyle}">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="${svgCls}" fill="currentColor">
+                <g><path d="M12 2a5 5 0 110 10 5 5 0 010-10zm-7 18a7 7 0 0114 0v2H5v-2zm14-8h2v2h-2v2h-2v-2h-2v-2h2V8h2v2z"></path></g>
+              </svg>
+              <span class="${spanCls}"></span>
+            </div>
+          `;
+
+          btn.addEventListener('click', () => {
+            const { name, avatar } = collectProfileMeta(handle);
+            const ret = addAccount({ handle, name, avatar });
+            if (ret === 'ok') showToast(i18n.t('toastAccountAdded'));
+            else if (ret === 'updated') showToast(i18n.t('updated'));
+            else if (ret === 'exists') showToast(i18n.t('toastAccountExists'));
+          });
+
+          moreBtn.parentElement?.insertBefore(btn, moreBtn);
+          profileButtonInstalledFor = handle;
+
+          // プロフィールに来たタイミングで自動同期
+          // 未登録は追加しない。既存時のみ差分更新。
+          try {
+            const { name, avatar } = collectProfileMeta(handle);
+            const status = updateAccountIfExists({ handle, name, avatar });
+            if (status === 'updated') showToast(i18n.t('updated'));
+            // 'not_found' / 'unchanged' は無通知でOK
+          } catch {}
+
+        }
+
         const reconcileUI = () => {
             const stored = (()=>{ try { return JSON.parse(kv.get(MODAL_STATE_KEY,'{}')); } catch{ return {}; } })();
             const desiredVisible = !!stored.visible;
@@ -1991,6 +2361,7 @@
                     }
                 });
                 scanAndFilterTweets();
+                ensureProfileAddButton();
             });
             observer.observe(document.body, { childList:true, subtree:true });
 
@@ -2001,6 +2372,7 @@
                 applyScopesToControls(readScopesFromURL());
                 updateSaveButtonState();
                 scanAndFilterTweets();
+                ensureProfileAddButton(true);
             });
         };
 
@@ -2017,6 +2389,7 @@
 
         renderHistory();
         renderSaved();
+        renderAccounts();
         renderMuted();
         activateTab('search');
 
@@ -2027,6 +2400,7 @@
                 applyScopesToControls(readScopesFromURL());
                 updateSaveButtonState();
                 scanAndFilterTweets();
+                ensureProfileAddButton(true);
             }
         })();
     };
