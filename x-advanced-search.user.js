@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.5.0
+// @version      4.5.5
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -132,9 +132,12 @@
                 labelMuteWord: "Add mute word",
                 placeholderMuteWord: "e.g., spoiler",
                 labelCaseSensitive: "Case sensitive",
+                labelEnabled: "Enabled",
+                labelEnableAll: "Enable all",
                 buttonAdd: "Add",
                 emptyMuted: "No muted words.",
                 mutedListTitle: "Muted words",
+                mutedListHeading: "Muted items",
                 muteHit: "Mute hits in body",
                 buttonImport: "Import",
                 buttonExport: "Export",
@@ -241,9 +244,12 @@
                 labelMuteWord: "ミュート語句の追加",
                 placeholderMuteWord: "例: ネタバレ",
                 labelCaseSensitive: "大文字小文字を区別",
+                labelEnabled: "有効",
+                labelEnableAll: "すべて有効",
                 buttonAdd: "追加",
                 emptyMuted: "ミュート語句はまだありません。",
                 mutedListTitle: "ミュート語句",
+                mutedListHeading: "ミュート一覧",
                 muteHit: "本文でのヒットをミュート",
                 buttonImport: "インポート",
                 buttonExport: "エクスポート",
@@ -559,6 +565,14 @@
         .adv-mute-add { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
         .adv-mute-add input[type=text]{ flex:1; }
         .adv-mute-list { display:flex; flex-direction:column; gap:8px; }
+
+        /* ▼ グローバル無効（マスターOFF）のとき：リスト全体を淡く */
+        .adv-mute-list.disabled {
+          opacity: .6;
+          filter: grayscale(35%);
+        }
+
+        /* ▼ 個別無効（enabled=false）の行だけ淡く＋打ち消し等の視覚 */
         .adv-mute-item {
           border:1px solid var(--modal-input-border,#38444d);
           background:var(--modal-input-bg,#202327);
@@ -568,8 +582,24 @@
           flex-wrap: wrap;
           gap:8px;
           align-items:flex-start;
+          transition: opacity .15s ease, filter .15s ease, border-color .15s ease;
         }
-        .adv-mute-word { font-weight:700; color:var(--modal-text-primary,#e7e9ea); word-break:break-word; }
+        .adv-mute-item.disabled {
+          opacity: .55;
+          filter: grayscale(25%);
+          border-color: color-mix(in oklab, var(--modal-input-border,#38444d), transparent 20%);
+        }
+        .adv-mute-item.disabled .adv-mute-word {
+          color: var(--modal-text-secondary,#8b98a5);
+          text-decoration: line-through;
+        }
+
+        .adv-mute-word {
+          font-weight:700;
+          color:var(--modal-text-primary,#e7e9ea);
+          word-break:break-word;
+        }
+
         .adv-mute-actions {
           display:flex;
           gap:6px;
@@ -600,11 +630,24 @@
           font-size: 11px;
           line-height: 1;
         }
-        .adv-mute-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+        .adv-mute-header { display:flex; justify-content:space-between; align-items:center; margin:12px 0 6px; }
+        .adv-mute-title  { font-weight:700; color: var(--modal-text-primary,#e7e9ea); }
 
+        /* マスター切替の一瞬だけ付けるガードクラス */
+        .adv-no-anim, .adv-no-anim * {
+          transition: none !important;
+        }
         #adv-accounts-empty:not(:empty),
         #adv-lists-empty:not(:empty) {
           padding: 12px;
+        }
+
+        /* ▼ マスターOFF中は、個別無効の“さらに薄く”を抑制（親の薄さのみ適用） */
+        .adv-mute-list.disabled .adv-mute-item.disabled {
+          opacity: 1;    /* 子の追加の薄さを無効化（親のopacityのみが効く） */
+          filter: none;  /* 子の追加グレースケールも無効化（親側のfilterのみ適用） */
+          /* 任意：ボーダーだけ通常色に戻したい場合 */
+          /* border-color: var(--modal-input-border,#38444d); */
         }
     `);
 
@@ -752,22 +795,31 @@
                 <div class="adv-tab-content" id="adv-tab-mute">
                   <div style="padding:12px 16px;">
                     <div class="adv-form-group">
-                      <div class="adv-mute-header">
-                        <label data-i18n="mutedListTitle"></label>
-                        <label class="adv-toggle">
+                      <!-- 追加する並び：まず“追加”UI -->
+                      <div class="adv-mute-add">
+                        <input type="text" id="adv-mute-input" data-i18n-placeholder="placeholderMuteWord">
+                        <button id="adv-mute-add" class="adv-modal-button" data-i18n="buttonAdd"></button>
+                        <label class="adv-toggle" title="">
                           <input type="checkbox" id="adv-mute-cs">
                           <span data-i18n="labelCaseSensitive"></span>
                         </label>
                       </div>
-                      <div class="adv-mute-add">
-                        <input type="text" id="adv-mute-input" data-i18n-placeholder="placeholderMuteWord">
-                        <button id="adv-mute-add" class="adv-modal-button" data-i18n="buttonAdd"></button>
+
+                      <!-- ▼ 新しい見出しブロック（ミュート一覧 + すべて有効/無効） -->
+                      <div class="adv-mute-header" style="margin-top:12px;">
+                        <div class="adv-mute-title" data-i18n="mutedListHeading"></div>
+                        <label class="adv-toggle">
+                          <input type="checkbox" id="adv-mute-enable-all" checked>
+                          <span data-i18n="labelEnableAll"></span>
+                        </label>
                       </div>
+
                       <div id="adv-mute-empty" class="adv-item-sub"></div>
                       <div id="adv-mute-list" class="adv-mute-list"></div>
                     </div>
                   </div>
                 </div>
+
             </div>
             <div class="adv-modal-footer">
                 <button id="adv-save-button" class="adv-modal-button" data-i18n="buttonSave"></button>
@@ -936,7 +988,13 @@
         const migrateMuted = (list) =>
           Array.isArray(list)
             ? list
-                .map(it => ({ id: it.id || uid(), word: (it.word||'').trim(), cs: !!it.cs, ts: it.ts || Date.now() }))
+                .map(it => ({
+                  id: it.id || uid(),
+                  word: (it.word||'').trim(),
+                  cs: !!it.cs,
+                  enabled: it.enabled !== false,
+                  ts: it.ts || Date.now()
+                }))
                 .filter(it => it.word)
             : [];
         const loadMuted = () => migrateMuted(loadJSON(MUTE_KEY, []));
@@ -947,7 +1005,7 @@
           if (!w) return;
           const list = loadMuted();
           if (list.some(it => it.word === w && !!it.cs === !!cs)) return;
-          list.unshift({ id: uid(), word: w, cs: !!cs, ts: Date.now() });
+          list.unshift({ id: uid(), word: w, cs: !!cs, enabled: true, ts: Date.now() });
           saveMuted(list);
           renderMuted();
           scanAndFilterTweets();
@@ -966,6 +1024,18 @@
           renderMuted();
           scanAndFilterTweets();
         };
+
+        const toggleMutedEnabled = (id) => {
+          const list = loadMuted().map(it => it.id === id ? { ...it, enabled: !it.enabled, ts: Date.now() } : it);
+          saveMuted(list);
+          renderMuted();
+          scanAndFilterTweets();
+        };
+
+        // マスターON/OFF（全体の適用を止めるだけ。各エントリの enabled は保持）
+        const MUTE_MASTER_KEY = 'advMuteMasterEnabled_v1';
+        const loadMuteMaster = () => { try { return kv.get(MUTE_MASTER_KEY, '1') === '1'; } catch(_) { return true; } };
+        const saveMuteMaster = (on) => { try { kv.set(MUTE_MASTER_KEY, on ? '1' : '0'); } catch(_) {} };
 
         const tabButtons = Array.from(document.querySelectorAll('.adv-tab-btn'));
         const tabSearch = document.getElementById('adv-tab-search');
@@ -1426,35 +1496,44 @@
         const historyEmptyEl = document.getElementById('adv-history-empty');
         const historyListEl = document.getElementById('adv-history-list');
         const renderHistory = () => {
-            const list = migrateList(loadJSON(HISTORY_KEY, []));
-            historyListEl.innerHTML = '';
-            historyEmptyEl.textContent = list.length ? '' : i18n.t('emptyHistory');
-            list.forEach(item => {
-                const row = document.createElement('div');
-                row.className = 'adv-item';
-                row.innerHTML = `
-                    <div class="adv-item-main">
-                        <div class="adv-item-title">${escapeHTML(item.q)}</div>
-                        <div class="adv-item-sub">
-                            <span>${fmtTime(item.ts)}</span>
-                            ${scopeChipsHTML(!!item.pf, !!item.lf)}
-                        </div>
-                    </div>
-                    <div class="adv-item-actions">
-                        <button class="adv-chip primary" data-action="run">${i18n.t('run')}</button>
-                        <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
-                    </div>
-                `;
-                row.querySelector('[data-action="run"]').addEventListener('click', ()=>{
-                    parseQueryAndApplyToModal(item.q);
-                    applyScopesToControls({pf:!!item.pf, lf:!!item.lf});
-                    activateTab('search');
-                    executeSearch({pf:item.pf, lf:item.lf});
-                });
-                row.querySelector('[data-action="delete"]').addEventListener('click', ()=> deleteHistory(item.id));
-                historyListEl.appendChild(row);
+          const list = migrateList(loadJSON(HISTORY_KEY, []));
+          historyListEl.innerHTML = '';
+          historyEmptyEl.textContent = list.length ? '' : i18n.t('emptyHistory');
+
+          list.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'adv-item';
+            row.dataset.id = item.id;
+
+            row.innerHTML = `
+              <div class="adv-item-main">
+                <div class="adv-item-title">${escapeHTML(item.q)}</div>
+                <div class="adv-item-sub">
+                  <span>${fmtTime(item.ts)}</span>
+                  ${scopeChipsHTML(!!item.pf, !!item.lf)}
+                </div>
+              </div>
+              <div class="adv-item-actions">
+                <button class="adv-chip primary" data-action="run">${i18n.t('run')}</button>
+                <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
+              </div>
+            `;
+
+            row.querySelector('[data-action="run"]').addEventListener('click', () => {
+              parseQueryAndApplyToModal(item.q);
+              applyScopesToControls({ pf: !!item.pf, lf: !!item.lf });
+              activateTab('search');
+              executeSearch({ pf: item.pf, lf: item.lf });
             });
+
+            row.querySelector('[data-action="delete"]').addEventListener('click', () => {
+              deleteHistory(item.id);
+            });
+
+            historyListEl.appendChild(row);
+          });
         };
+
         historyClearAllBtn.addEventListener('click', clearAllHistory);
 
         const savedEmptyEl = document.getElementById('adv-saved-empty');
@@ -1666,10 +1745,12 @@
               handle: document.getElementById('adv-exclude-hit-handle')?.checked ?? true,
             };
 
+            const masterOn = loadMuteMaster();
             const muted = loadMuted();
-            const hasMute = muted.length > 0;
-            const muteCI = hasMute ? new Set(muted.filter(m => !m.cs).map(m => m.word.toLowerCase())) : new Set();
-            const muteCS = hasMute ? muted.filter(m => m.cs).map(m => m.word) : [];
+            const hasMute = masterOn && muted.length > 0;                       // ← masterOn を噛ませる
+            const enabledMuted = hasMute ? muted.filter(m => m.enabled !== false) : [];
+            const muteCI = enabledMuted.length ? new Set(enabledMuted.filter(m => !m.cs).map(m => m.word.toLowerCase())) : new Set();
+            const muteCS = enabledMuted.length ? enabledMuted.filter(m => m.cs).map(m => m.word) : [];
 
             if (!flags.name && !flags.handle && !hasMute) return;
 
@@ -2513,9 +2594,14 @@
           list.forEach(item => {
             const row = document.createElement('div');
             row.className = 'adv-mute-item';
+            if (!item.enabled) row.classList.add('disabled');
             row.innerHTML = `
               <div class="adv-mute-word">${escapeHTML(item.word)}</div>
               <div class="adv-mute-actions">
+                <label class="adv-toggle">
+                  <input type="checkbox" ${item.enabled ? 'checked' : ''} data-action="toggle-enabled">
+                  <span data-i18n="labelEnabled">${i18n.t('labelEnabled')}</span>
+                </label>
                 <label class="adv-toggle">
                   <input type="checkbox" ${item.cs ? 'checked' : ''} data-action="toggle-cs">
                   <span data-i18n="labelCaseSensitive">${i18n.t('labelCaseSensitive')}</span>
@@ -2523,11 +2609,28 @@
                 <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
               </div>
             `;
+            row.querySelector('[data-action="toggle-enabled"]').addEventListener('change', () => toggleMutedEnabled(item.id));
             row.querySelector('[data-action="toggle-cs"]').addEventListener('change', () => toggleMutedCS(item.id));
             row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteMuted(item.id));
             muteListEl.appendChild(row);
           });
         };
+
+        function applyMuteVisualState() {
+          const listEl = document.getElementById('adv-mute-list');
+          if (!listEl) return;
+          const masterOn = loadMuteMaster();
+
+          // ▼ 切替の瞬間だけトランジション全停止
+          listEl.classList.add('adv-no-anim');
+          // 強制リフローでスタイル確定
+          void listEl.offsetHeight;
+          listEl.classList.toggle('disabled', !masterOn);
+          // 次フレームで解除（描画を跨がせるのがポイント）
+          requestAnimationFrame(() => {
+            listEl.classList.remove('adv-no-anim');
+          });
+        }
 
         muteAddBtn.addEventListener('click', () => {
           addMuted(muteInputEl.value, !!muteCsEl.checked);
@@ -2537,6 +2640,23 @@
         muteInputEl.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') { e.preventDefault(); muteAddBtn.click(); }
         });
+
+        const muteEnableAllEl = document.getElementById('adv-mute-enable-all');
+        if (muteEnableAllEl && !muteEnableAllEl._advBound) {
+          muteEnableAllEl._advBound = true;
+          // 初期状態はマスター値をそのまま反映
+          try {
+            muteEnableAllEl.checked = loadMuteMaster();
+          } catch {}
+          applyMuteVisualState();    // 初期描画でリスト外観を整える
+
+          muteEnableAllEl.addEventListener('change', () => {
+            saveMuteMaster(!!muteEnableAllEl.checked);
+            applyMuteVisualState();   // 視覚の即時反映（リスト半透明/通常）
+            scanAndFilterTweets();    // 機能面の反映（既存）
+          });
+
+        }
 
         const installNavigationHooks = (onRouteChange) => {
             let lastHref = location.href;
