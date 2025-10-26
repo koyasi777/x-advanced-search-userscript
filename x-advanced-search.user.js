@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.5.5
+// @version      4.6.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -1795,51 +1795,81 @@
         }
 
         const executeSearch = async (scopesOverride) => {
-            const finalQuery = buildQueryStringFromModal().trim();
-            if (!finalQuery) return;
-            const scopes = scopesOverride || readScopesFromControls();
-            const params = new URLSearchParams({ q: finalQuery, src: 'typed_query' });
-            if (scopes.pf) params.set('pf','on');
-            if (scopes.lf) params.set('lf','on');
+          const finalQuery = buildQueryStringFromModal().trim();
+          if (!finalQuery) return;
 
-            const si = getActiveSearchInput();
-            const before = location.href;
+          const scopes = scopesOverride || readScopesFromControls();
+          const params = new URLSearchParams({ q: finalQuery, src: 'typed_query' });
+          if (scopes.pf) params.set('pf', 'on');
+          if (scopes.lf) params.set('lf', 'on');
 
-            if (si) {
-                si.value = finalQuery;
-                try {
-                    si.dispatchEvent(new InputEvent('input', { bubbles:true, cancelable:true, inputType:'insertReplacementText', data:finalQuery }));
-                } catch {
-                    si.dispatchEvent(new Event('input', { bubbles:true }));
-                }
+          const targetPath = `/search?${params.toString()}`;
+          const onSearchRoute = location.pathname.startsWith('/search');
+          const si = getActiveSearchInput();
+          const before = location.href;
 
-                const ev = { key:'Enter', code:'Enter', keyCode:13, which:13, bubbles:true, cancelable:true };
-                si.dispatchEvent(new KeyboardEvent('keydown', ev));
-                si.dispatchEvent(new KeyboardEvent('keyup', ev));
+          // 1) /search 以外（例: /i/lists/...）では、直接 SPA 遷移
+          if (!onSearchRoute) {
+            recordHistory(finalQuery, scopes.pf, scopes.lf);
+            await spaNavigate(targetPath).catch(() => {
+              // 最終フォールバック
+              location.assign(targetPath);
+            });
+            return;
+          }
 
-                const formEl = si.closest('form');
-                if (formEl?.requestSubmit) { try { formEl.requestSubmit(); } catch(_) {} }
-
-                const didSpa = await waitForUrlChange(before, 1500);
-
-                if (didSpa) {
-                    try {
-                        const u = new URL(location.href);
-                        scopes.pf ? u.searchParams.set('pf','on') : u.searchParams.delete('pf');
-                        scopes.lf ? u.searchParams.set('lf','on') : u.searchParams.delete('lf');
-                        const next = u.toString();
-                        if (next && next !== location.href) {
-                            try { history.replaceState(history.state, '', next); } catch {}
-                        }
-                    } catch {}
-                    recordHistory(finalQuery, scopes.pf, scopes.lf);
-                    try { si.blur(); } catch {}
-                    return;
-                }
+          // 2) /search 上では、検索窓と双方向同期を維持するために従来手順をまず試す
+          if (si) {
+            si.value = finalQuery;
+            try {
+              si.dispatchEvent(new InputEvent('input', {
+                bubbles: true,
+                cancelable: true,
+                inputType: 'insertReplacementText',
+                data: finalQuery
+              }));
+            } catch {
+              si.dispatchEvent(new Event('input', { bubbles: true }));
             }
 
+            const ev = { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true };
+            si.dispatchEvent(new KeyboardEvent('keydown', ev));
+            si.dispatchEvent(new KeyboardEvent('keyup', ev));
+
+            const formEl = si.closest('form');
+            if (formEl?.requestSubmit) { try { formEl.requestSubmit(); } catch (_) {} }
+
+            const didSpa = await waitForUrlChange(before, 1500);
+
+            if (didSpa) {
+              // pf/lf をURLに揃える（Twitter 側が付けないことがあるため）
+              try {
+                const u = new URL(location.href);
+                scopes.pf ? u.searchParams.set('pf', 'on') : u.searchParams.delete('pf');
+                scopes.lf ? u.searchParams.set('lf', 'on') : u.searchParams.delete('lf');
+                const next = u.toString();
+                if (next && next !== location.href) {
+                  try { history.replaceState(history.state, '', next); } catch {}
+                }
+              } catch {}
+              recordHistory(finalQuery, scopes.pf, scopes.lf);
+              try { si.blur(); } catch {}
+              return;
+            }
+
+            // 3) もし /search 上でも SPA にならなかったら、spaNavigate にフォールバック
             recordHistory(finalQuery, scopes.pf, scopes.lf);
-            window.location.href = `https://x.com/search?${params.toString()}`;
+            await spaNavigate(targetPath).catch(() => {
+              location.assign(targetPath);
+            });
+            return;
+          }
+
+          // 4) 検索入力が拾えなかったときも、安全に SPA 遷移
+          recordHistory(finalQuery, scopes.pf, scopes.lf);
+          await spaNavigate(targetPath).catch(() => {
+            location.assign(targetPath);
+          });
         };
 
         const onScopeChange = () => {
