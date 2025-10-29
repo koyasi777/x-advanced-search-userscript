@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.6.0
+// @version      4.6.5
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -978,6 +978,22 @@
             return (fallback && fallback.offsetParent !== null) ? fallback : null;
         };
 
+        // React controlled input を確実に同期させる共通関数
+        const syncControlledInput = (el, nextVal) => {
+          try {
+            const proto = Object.getPrototypeOf(el) || HTMLInputElement.prototype;
+            const desc = Object.getOwnPropertyDescriptor(proto, 'value');
+            if (desc && desc.set) {
+              desc.set.call(el, nextVal); // React の setter を叩く
+            } else {
+              el.value = nextVal;
+            }
+            el.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+          } catch {
+            try { el.value = nextVal; el.dispatchEvent(new Event('input', { bubbles: true })); } catch {}
+          }
+        };
+
         const MODAL_STATE_KEY   = 'advSearchModalState_v3.2';
         const TRIGGER_STATE_KEY = 'advSearchTriggerState_v1.0';
         const HISTORY_KEY = 'advSearchHistory_v2';
@@ -1230,7 +1246,7 @@
                 isUpdating = true;
                 const finalQuery = buildQueryStringFromModal();
                 const si = getActiveSearchInput();
-                if (si) { si.value = finalQuery; si.dispatchEvent(new Event('input',{bubbles:true})); }
+                if (si) { syncControlledInput(si, finalQuery); }
                 isUpdating = false;
                 updateSaveButtonState();
             }
@@ -1364,7 +1380,7 @@
             if (isUpdating) return; isUpdating=true;
             const finalQuery = buildQueryStringFromModal();
             const si = getActiveSearchInput();
-            if (si){ si.value = finalQuery; si.dispatchEvent(new Event('input',{bubbles:true})); }
+            if (si){ syncControlledInput(si, finalQuery); }
             isUpdating=false;
             updateSaveButtonState();
         };
@@ -1804,88 +1820,55 @@
           if (scopes.lf) params.set('lf', 'on');
 
           const targetPath = `/search?${params.toString()}`;
-          const onSearchRoute = location.pathname.startsWith('/search');
-          const si = getActiveSearchInput();
-          const before = location.href;
 
-          // 1) /search 以外（例: /i/lists/...）では、直接 SPA 遷移
-          if (!onSearchRoute) {
-            recordHistory(finalQuery, scopes.pf, scopes.lf);
-            await spaNavigate(targetPath).catch(() => {
-              // 最終フォールバック
-              location.assign(targetPath);
-            });
-            return;
-          }
-
-          // 2) /search 上では、検索窓と双方向同期を維持するために従来手順をまず試す
+          // 1) まず検索ボックスが見つかれば React state を更新して見た目と中身を同調
+          const si = getActiveSearchInput?.();
           if (si) {
-            si.value = finalQuery;
-            try {
-              si.dispatchEvent(new InputEvent('input', {
-                bubbles: true,
-                cancelable: true,
-                inputType: 'insertReplacementText',
-                data: finalQuery
-              }));
-            } catch {
-              si.dispatchEvent(new Event('input', { bubbles: true }));
-            }
+            syncControlledInput(si, finalQuery);
+          }
 
-            const ev = { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true };
-            si.dispatchEvent(new KeyboardEvent('keydown', ev));
-            si.dispatchEvent(new KeyboardEvent('keyup', ev));
-
-            const formEl = si.closest('form');
-            if (formEl?.requestSubmit) { try { formEl.requestSubmit(); } catch (_) {} }
-
-            const didSpa = await waitForUrlChange(before, 1500);
-
-            if (didSpa) {
-              // pf/lf をURLに揃える（Twitter 側が付けないことがあるため）
-              try {
-                const u = new URL(location.href);
-                scopes.pf ? u.searchParams.set('pf', 'on') : u.searchParams.delete('pf');
-                scopes.lf ? u.searchParams.set('lf', 'on') : u.searchParams.delete('lf');
-                const next = u.toString();
-                if (next && next !== location.href) {
-                  try { history.replaceState(history.state, '', next); } catch {}
-                }
-              } catch {}
-              recordHistory(finalQuery, scopes.pf, scopes.lf);
-              try { si.blur(); } catch {}
-              return;
-            }
-
-            // 3) もし /search 上でも SPA にならなかったら、spaNavigate にフォールバック
-            recordHistory(finalQuery, scopes.pf, scopes.lf);
-            await spaNavigate(targetPath).catch(() => {
-              location.assign(targetPath);
-            });
+          // 2) ルートに関わらず常に SPA 遷移で検索を確定
+          recordHistory(finalQuery, scopes.pf, scopes.lf);
+          const before = location.href;
+          try {
+            await spaNavigate(targetPath);
+          } catch {
+            // SPA 失敗時のフォールバック
+            location.assign(`https://x.com${targetPath}`);
             return;
           }
 
-          // 4) 検索入力が拾えなかったときも、安全に SPA 遷移
-          recordHistory(finalQuery, scopes.pf, scopes.lf);
-          await spaNavigate(targetPath).catch(() => {
-            location.assign(targetPath);
-          });
+          // 3) 遷移が成功したら余計な replaceState はしない（URL とルーター state の乖離を避ける）
+          //    もしフォーカスが残っていたら外す
+          try { si && si.blur(); } catch {}
+
+          // 4) 念のため遷移確認
+          try { await waitForUrlChange(before, 1500); } catch {}
         };
 
-        const onScopeChange = () => {
-            const q = (()=> {
-                const si = getActiveSearchInput();
-                if (si && si.value && si.value.trim()) return si.value.trim();
-                return buildQueryStringFromModal().trim();
-            })();
-            const { pf, lf } = readScopesFromControls();
-            const params = new URLSearchParams();
-            if (q) params.set('q', q);
-            params.set('src','typed_query');
-            if (pf) params.set('pf','on');
-            if (lf) params.set('lf','on');
-            recordHistory(q, pf, lf);
-            window.location.href = `https://x.com/search?${params.toString()}`;
+        const onScopeChange = async () => {
+          const si = getActiveSearchInput();
+          const q = (() => {
+            if (si && si.value && si.value.trim()) return si.value.trim();
+            return buildQueryStringFromModal().trim();
+          })();
+
+          const { pf, lf } = readScopesFromControls();
+          const params = new URLSearchParams({ src: 'typed_query' });
+          if (q) params.set('q', q);
+          if (pf) params.set('pf', 'on');
+          if (lf) params.set('lf', 'on');
+
+          // 入力側を先に最新化
+          if (si) syncControlledInput(si, q);
+
+          recordHistory(q, pf, lf);
+          const path = `/search?${params.toString()}`;
+          try {
+            await spaNavigate(path);
+          } catch {
+            location.assign(`https://x.com${path}`);
+          }
         };
         accountScopeSel.addEventListener('change', onScopeChange);
         locationScopeSel.addEventListener('change', onScopeChange);
