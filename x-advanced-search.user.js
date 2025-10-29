@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.6.6
+// @version      4.6.7
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -64,6 +64,18 @@
                 optLangDefault: "Any language",
                 optLangJa: "Japanese (ja)",
                 optLangEn: "English (en)",
+                optLangId: "Indonesian (id)",
+                optLangHi: "Hindi (hi)",
+                optLangDe: "German (de)",
+                optLangTr: "Turkish (tr)",
+                optLangEs: "Spanish (es)",
+                optLangPt: "Portuguese (pt)",
+                optLangAr: "Arabic (ar)",
+                optLangFr: "French (fr)",
+                optLangKo: "Korean (ko)",
+                optLangRu: "Russian (ru)",
+                optLangZhHans: "Chinese Simplified (zh-cn)",
+                optLangZhHant: "Chinese Traditional (zh-tw)",
                 hrSeparator: " ",
                 labelFilters: "Filters",
                 labelVerified: "Verified accounts",
@@ -176,6 +188,18 @@
                 optLangDefault: "指定しない",
                 optLangJa: "日本語 (ja)",
                 optLangEn: "英語 (en)",
+                optLangId: "インドネシア語 (id)",
+                optLangHi: "ヒンディー語 (hi)",
+                optLangDe: "ドイツ語 (de)",
+                optLangTr: "トルコ語 (tr)",
+                optLangEs: "スペイン語 (es)",
+                optLangPt: "ポルトガル語 (pt)",
+                optLangAr: "アラビア語 (ar)",
+                optLangFr: "フランス語 (fr)",
+                optLangKo: "韓国語 (ko)",
+                optLangRu: "ロシア語 (ru)",
+                optLangZhHans: "中国語（簡体字）(zh-cn)",
+                optLangZhHant: "中国語（繁体字）(zh-tw)",
                 hrSeparator: " ",
                 labelFilters: "フィルター",
                 labelVerified: "認証済みアカウント",
@@ -684,7 +708,26 @@
                         <div class="adv-form-group"><label for="adv-any-words" data-i18n="labelAnyWords"></label><input type="text" id="adv-any-words" data-i18n-placeholder="placeholderAnyWords"></div>
                         <div class="adv-form-group"><label for="adv-not-words" data-i18n="labelNotWords"></label><input type="text" id="adv-not-words" data-i18n-placeholder="placeholderNotWords"></div>
                         <div class="adv-form-group"><label for="adv-hashtag" data-i18n="labelHashtag"></label><input type="text" id="adv-hashtag" data-i18n-placeholder="placeholderHashtag"></div>
-                        <div class="adv-form-group"><label for="adv-lang" data-i18n="labelLang"></label><select id="adv-lang"><option value="" data-i18n="optLangDefault"></option><option value="ja" data-i18n="optLangJa"></option><option value="en" data-i18n="optLangEn"></option></select></div>
+                        <div class="adv-form-group">
+                          <label for="adv-lang" data-i18n="labelLang"></label>
+                          <select id="adv-lang">
+                            <option value="" data-i18n="optLangDefault"></option>
+                            <option value="ja" data-i18n="optLangJa"></option>
+                            <option value="en" data-i18n="optLangEn"></option>
+                            <option value="id" data-i18n="optLangId"></option>     <!-- インドネシア -->
+                            <option value="hi" data-i18n="optLangHi"></option>     <!-- ヒンディー（インド） -->
+                            <option value="de" data-i18n="optLangDe"></option>     <!-- ドイツ -->
+                            <option value="tr" data-i18n="optLangTr"></option>     <!-- トルコ -->
+                            <option value="es" data-i18n="optLangEs"></option>     <!-- スペイン語（メキシコ含む） -->
+                            <option value="pt" data-i18n="optLangPt"></option>     <!-- ポルトガル語（ブラジル）-->
+                            <option value="ar" data-i18n="optLangAr"></option>     <!-- アラビア語（サウジ等） -->
+                            <option value="fr" data-i18n="optLangFr"></option>
+                            <option value="ko" data-i18n="optLangKo"></option>
+                            <option value="ru" data-i18n="optLangRu"></option>
+                            <option value="zh-cn" data-i18n="optLangZhHans"></option> <!-- 簡体中文 -->
+                            <option value="zh-tw" data-i18n="optLangZhHant"></option> <!-- 繁體中文 -->
+                          </select>
+                        </div>
                         <hr class="adv-separator">
                         <div class="adv-form-group">
                             <label data-i18n="labelFilters"></label>
