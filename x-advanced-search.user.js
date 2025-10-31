@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.7.0
+// @version      4.7.1
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -320,6 +320,13 @@
         }
     };
 
+    const SEARCH_SVG = `
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"></circle>
+      <line x1="16.65" y1="16.65" x2="22" y2="22"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+    </svg>`;
+
     const themeManager = {
         colors: {
             light: {
@@ -341,21 +348,25 @@
                 '--modal-close-hover-bg': 'rgba(231, 233, 234, 0.1)', '--hr-color': '#2f3336',
             }
         },
-        applyTheme: function(modalElement) {
+        applyTheme: function(modalElement, triggerEl) {
             if (!modalElement) return;
             const bodyBg = getComputedStyle(document.body).backgroundColor;
             let theme = 'dark';
             if (bodyBg === 'rgb(21, 32, 43)') theme = 'dim';
             else if (bodyBg === 'rgb(255, 255, 255)') theme = 'light';
             const themeColors = this.colors[theme] || this.colors.dark;
-            for (const [key, value] of Object.entries(themeColors)) {
-                modalElement.style.setProperty(key, value);
+            const targets = [modalElement, document.documentElement];
+            if (triggerEl) targets.push(triggerEl);
+            for (const t of targets) {
+             for (const [key, value] of Object.entries(themeColors)) {
+               t.style.setProperty(key, value);
+             }
             }
         },
-        observeChanges: function(modalElement) {
-            const observer = new MutationObserver(() => this.applyTheme(modalElement));
+        observeChanges: function(modalElement, triggerEl) {
+            const observer = new MutationObserver(() => this.applyTheme(modalElement, triggerEl));
             observer.observe(document.body, { attributes: true, attributeFilter: ['style'] });
-            this.applyTheme(modalElement);
+            this.applyTheme(modalElement, triggerEl);
         }
     };
 
@@ -751,6 +762,44 @@
           /* 任意：ボーダーだけ通常色に戻したい場合 */
           /* border-color: var(--modal-input-border,#38444d); */
         }
+
+        /* === Trigger: モーダルと同質の見た目に合わせる === */
+        #advanced-search-trigger.adv-trigger-search {
+          width: 49px; height: 49px;
+          border-radius: 9999px;
+          background-color: var(--modal-bg, #000);
+          color: var(--modal-text-primary, #e7e9ea);
+          border: 2px solid var(--modal-border, #2f3336);          /* ← モーダルと同じ枠色 */
+          box-shadow: 0 8px 24px rgba(29,155,240,.2);              /* ← モーダルと同じshadow */
+          display:flex; align-items:center; justify-content:center;
+          transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+        }
+
+        #advanced-search-trigger.adv-trigger-search:hover {
+          /* 背景は変えず、浮かせる表現だけ強化 */
+          transform: translateZ(0) scale(1.04);
+          box-shadow: 0 12px 36px rgba(29,155,240,.28);
+          border-color: var(--modal-border, #2f3336);
+        }
+
+        #advanced-search-trigger.adv-trigger-search:active {
+          transform: translateZ(0) scale(0.98);
+          box-shadow: 0 6px 18px rgba(29,155,240,.22);
+        }
+
+        #advanced-search-trigger.adv-trigger-search:focus-visible {
+          outline: none;
+          box-shadow:
+            0 8px 24px rgba(29,155,240,.2),
+            0 0 0 3px color-mix(in oklab, var(--modal-primary-color, #1d9bf0) 45%, transparent);
+        }
+
+        #advanced-search-trigger.adv-trigger-search svg {
+          width: 22px; height: 22px;
+          display:block;
+          /* 検索アイコンは stroke="currentColor" を使っているので配色は自動追従 */
+        }
+
     `);
 
     const modalHTML = `
@@ -973,8 +1022,8 @@
         const trigger = document.createElement('button');
         trigger.id = 'advanced-search-trigger';
         trigger.type = 'button';
-        trigger.innerHTML = '🔍';
-        trigger.title = i18n.t('tooltipTrigger');
+        trigger.innerHTML = SEARCH_SVG;
+        trigger.classList.add('adv-trigger-search');
         trigger.setAttribute('aria-label', i18n.t('tooltipTrigger'));
         trigger.setAttribute('aria-haspopup', 'dialog');
         trigger.setAttribute('aria-expanded', 'false');
@@ -1034,7 +1083,7 @@
             });
         });
 
-        themeManager.observeChanges(modal);
+        themeManager.observeChanges(modal, trigger);
 
         const ZOOM_STATE_KEY = 'advSearchZoom_v1';
         let zoom = 1.0;
