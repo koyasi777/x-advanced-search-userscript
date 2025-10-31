@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.7.1
+// @version      4.7.2
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -516,14 +516,32 @@
     }
 
     // ▼ ルート適用を軽く検証（URL一致 + プロフィール系DOMが現れたか）
-    function waitForRouteApply(path, timeoutMs = 1200) {
+    function waitForRouteApply(path, timeoutMs = 2000) {
       const goal = new URL(path, location.origin).pathname;
-      const probes = [
-        '[data-testid="UserName"]',
-        'div[data-testid="UserProfileHeader_Items"]',
-        'div[data-testid="UserDescription"]',
-        'a[href^="/"][role="link"] time'
+      // ルート毎の判定を用意（必要に応じて拡張）
+      const perRouteProbes = [
+       // 検索ページ：検索結果タイムライン or 検索ボックス or 何かしらのツイート
+       { test: p => p.startsWith('/search'),
+         sels: [
+           '[aria-label*="Search results"], [aria-label*="検索結果"]',
+           'div[data-testid="primaryColumn"] input[data-testid="SearchBox_Search_Input"]',
+           'div[data-testid="primaryColumn"] article[data-testid="tweet"]'
+         ] },
+       // プロフィール
+       { test: p => /^\/[A-Za-z0-9_]{1,50}\/?$/.test(p),
+         sels: [
+           '[data-testid="UserName"]',
+           'div[data-testid="UserProfileHeader_Items"]',
+           'div[data-testid="UserDescription"]'
+         ] },
+       // デフォルト（保険）：主要カラムに何かレンダされたらOK
+       { test: _ => true,
+         sels: [
+           'div[data-testid="primaryColumn"]',
+           'main[role="main"]'
+         ] }
       ];
+      const probes = (perRouteProbes.find(x => x.test(goal)) || perRouteProbes.at(-1)).sels;
       return new Promise(resolve => {
         const t0 = performance.now();
         (function tick() {
