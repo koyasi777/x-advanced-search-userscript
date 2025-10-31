@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.6.7
+// @version      4.6.8
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -482,6 +482,12 @@
     let isUpdating = false;
     let manualOverrideOpen = false;
     const lastHistory = { q: null, pf: null, lf: null, ts: 0 };
+
+    // ▼ 入力中ガード（IME合成を含めてカバー）
+    let __typingGuardUntil = 0;
+    const TYPING_GRACE_MS = 600; // 入力終了からこのmsはスキャン停止
+    const markTyping = () => { __typingGuardUntil = Date.now() + TYPING_GRACE_MS; };
+    const isTyping = () => Date.now() < __typingGuardUntil;
 
     const isMediaViewPath = (pathname) => /\/status\/\d+\/(?:photo|video|media|analytics)(?:\/\d+)?\/?$/.test(pathname);
     const isComposePath = (pathname) => /^\/compose\/post(?:\/|$)/.test(pathname);
@@ -2631,11 +2637,12 @@
         });
 
         form.addEventListener('input', syncFromModalToSearchBox);
-        form.addEventListener('input', scanAndFilterTweets);
         form.addEventListener('keydown', e => {
             if (e.key === 'Enter' && (e.target.matches('input[type="text"], input[type="number"]'))) {
                 e.preventDefault();
-                executeSearch();
+                // 検索確定 → ルーティング反映待ち → スキャン
+                Promise.resolve(executeSearch())
+                  .finally(() => setTimeout(scanAndFilterTweets, 800));
             }
         });
 
@@ -2799,7 +2806,17 @@
                 document.querySelectorAll('input[data-testid="SearchBox_Search_Input"]').forEach(input=>{
                     if (!input.dataset.advSearchAttached) {
                         input.dataset.advSearchAttached='true';
-                        input.addEventListener('input', () => { if (input === getActiveSearchInput()) { syncFromSearchBoxToModal(); } });
+
+                        // ▼ 入力系イベントはすべて「入力中」と見なしてガード更新（IME対応）
+                        const typingEvents = ['input','keydown','keyup','compositionstart','compositionupdate','compositionend'];
+                        typingEvents.forEach(ev => input.addEventListener(ev, markTyping, { passive: true }));
+
+                        input.addEventListener('input', () => {
+                            if (input === getActiveSearchInput()) {
+                                syncFromSearchBoxToModal();
+                            }
+                        });
+
                         const f = input.closest('form');
                         if (f && !f.dataset.advSearchSubmitAttached) {
                             f.dataset.advSearchSubmitAttached = 'true';
@@ -2811,7 +2828,24 @@
                         }
                     }
                 });
-                scanAndFilterTweets();
+
+                // ▼ ツイート要素が増減したかを検出（無関係なUI変化では走らせない）
+                const hasTweetMut = mutations.some(m => {
+                    const added = Array.from(m.addedNodes || []);
+                    const removed = Array.from(m.removedNodes || []);
+                    const hit = (n) => n.nodeType === Node.ELEMENT_NODE && (
+                        n.matches?.('article[data-testid="tweet"], [data-testid="cellInnerDiv"]') ||
+                        n.querySelector?.('article[data-testid="tweet"], [data-testid="cellInnerDiv"]')
+                    );
+                    return added.some(hit) || removed.some(hit);
+                });
+
+                // ▼ 入力中は絶対に走らせない。かつ、検索ボックス由来の変化では走らせない。
+                //    さらに、ツイート変化があった時だけ実行。
+                if (!isTyping() && !searchBoxChanged && hasTweetMut) {
+                    scanAndFilterTweets();
+                }
+
                 ensureProfileAddButton();
                 ensureListAddButton();
             });
