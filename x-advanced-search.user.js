@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.6.8
+// @version      4.7.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -359,6 +359,27 @@
         }
     };
 
+    function decodeURIComponentSafe(s) {
+      try { return decodeURIComponent(s); } catch { return s; }
+    }
+
+    // “ ” 『』などのスマート引用を ASCII の " に寄せる
+    function normalizeQuotes(s) {
+      return String(s).replace(/[\u201C\u201D\u300C\u300D\uFF02]/g, '"');
+    }
+
+    // 解析前に軽く正規化（URL から来る %22..., 連続空白など）
+    function normalizeForParse(s) {
+      if (!s) return '';
+      let out = String(s);
+      // URL っぽいエンコードだけ軽く剥がす（%22 等）
+      if (/%[0-9A-Fa-f]{2}/.test(out)) out = decodeURIComponentSafe(out);
+      out = normalizeQuotes(out);
+      // 制御文字を潰し、空白を整形
+      out = out.replace(/\s+/g, ' ').trim();
+      return out;
+    }
+
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -369,6 +390,55 @@
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
         };
+    }
+
+    // ── OR/引用のための簡易トークナイザ
+    function tokenizeQuotedWords(s) {
+      const out = [];
+      let cur = '';
+      let inQ = false;
+      for (let i = 0; i < s.length; i++) {
+        const c = s[i];
+        if (c === '"') { inQ = !inQ; cur += c; continue; }
+        if (!inQ && /\s/.test(c)) { if (cur) { out.push(cur); cur=''; } }
+        else { cur += c; }
+      }
+      if (cur) out.push(cur);
+      return out.filter(Boolean);
+    }
+
+    // トップレベルの OR で文字列を分割（引用/括弧を考慮）
+    function splitTopLevelOR(str) {
+      const parts = [];
+      let cur = '';
+      let inQ = false, depth = 0;
+      for (let i = 0; i < str.length; ) {
+        const c = str[i];
+        if (c === '"') { inQ = !inQ; cur += c; i++; continue; }
+        if (!inQ && (c === '(' || c === ')')) { depth += (c === '(' ? 1 : -1); cur += c; i++; continue; }
+        if (!inQ && depth === 0) {
+          // 単語境界の "or" / "OR"
+          if ((str.slice(i, i+2).toLowerCase() === 'or') &&
+              (i === 0 || /\s|\(/.test(str[i-1] || '')) &&
+              (i+2 >= str.length || /\s|\)/.test(str[i+2] || ''))) {
+            parts.push(cur.trim());
+            cur = '';
+            i += 2;
+            continue;
+          }
+        }
+        cur += c; i++;
+      }
+      if (cur.trim()) parts.push(cur.trim());
+      return parts.length > 1 ? parts : null;
+    }
+
+    // OR 専用判定（演算子/否定/括弧が無い素の OR 群なら true）
+    function isPureORQuery(q) {
+      const hasOps = /(?:^|\s)(?:from:|to:|lang:|filter:|is:|min_replies:|min_faves:|min_retweets:|since:|until:)\b/i.test(q);
+      const hasNeg = /(^|\s)-\S/.test(q);
+      const hasPar = /[()]/.test(q);
+      return !hasOps && !hasNeg && !hasPar;
     }
 
     function waitForElement(selector, timeout = 10000, checkProperty = null) {
@@ -1321,7 +1391,18 @@
             };
             if (fields.all) q.push(fields.all);
             if (fields.exact) q.push(`"${fields.exact.replace(/"/g,'')}"`);
-            if (fields.any) q.push(`(${fields.any.split(/\s+/).filter(Boolean).join(' OR ')})`);
+
+            // 引用で 1 語として扱い、OR 連結を生成
+            if (fields.any) {
+              const tokens = tokenizeQuotedWords(fields.any).map(t => {
+                // 既に "…": そのまま。未引用で空白を含む → 引用を付ける
+                if (/^".*"$/.test(t)) return t;
+                if (/\s/.test(t)) return `"${t.replace(/"/g,'')}"`;
+                return t;
+              });
+              if (tokens.length) q.push(`(${tokens.join(' OR ')})`);
+            }
+
             if (fields.not) q.push(...fields.not.split(/\s+/).filter(Boolean).map(w=>`-${w}`));
             if (fields.hash) q.push(...fields.hash.split(/\s+/).filter(Boolean).map(h=>`#${h.replace(/^#/,'')}`));
             if (fields.lang) q.push(`lang:${fields.lang}`);
@@ -1374,57 +1455,151 @@
               if (nameEl)   { nameEl.checked = nameEl.defaultChecked = !!st.name; }
               if (handleEl) { handleEl.checked = handleEl.defaultChecked = !!st.handle; }
             } catch (_) {}
-            let q = ` ${query} `;
+
+            // クエリを正規化（スマート引用・%xx・空白）
+            const rawNorm = normalizeForParse(query || '');
+
+            // トップレベル OR を先に見る（純粋 OR / ハイブリッド OR の切り分け）
+            const orParts = splitTopLevelOR(rawNorm);
+            if (orParts && isPureORQuery(rawNorm)) {
+              // 引用を 1 語として数えるトークナイザ
+              const tokenize = (s) => tokenizeQuotedWords(s).filter(Boolean);
+              const tokenized = orParts.map(p => tokenize(p));
+
+              const allAreSingle = tokenized.every(ts => ts.length === 1);
+              if (allAreSingle) {
+                // ① 純粋 OR：全部 any に入れる（exact/all は空）→ 早期 return
+                document.getElementById('adv-any-words').value = orParts.join(' ');
+                isUpdating = false;
+                return;
+              }
+
+              const head = tokenized[0];
+              const rest = tokenized.slice(1);
+              const restAllSingle = rest.every(ts => ts.length === 1);
+
+              if (head.length >= 2 && restAllSingle) {
+                // ② ハイブリッド OR：
+                //    - 先頭片の「最後のトークン」→ OR 集合
+                //    - 先頭片の「それ以外」      → all（必須語）
+                //    - 後続片（単一トークン）   → OR 集合
+                const required = head.slice(0, -1);
+                const orTokens = [head[head.length - 1], ...rest.map(ts => ts[0])];
+
+                document.getElementById('adv-all-words').value = required.join(' ');
+                document.getElementById('adv-any-words').value = orTokens.join(' ');
+                // exact は空のまま（引用は any 側へ）
+                isUpdating = false;
+                return;
+              }
+              // それ以外（レア）は通常パースにフォールバック
+            }
+
+            // ここから通常パース（rawNorm をベース）
+            let q = ` ${rawNorm} `;
+
+            // 言語や演算子は先に抜く（引用の前後どちらでもOKだが、先にやると視覚的に期待通り）
+            const extract = (regex, cb) => {
+              let m;
+              while ((m = regex.exec(q)) !== null) {
+                cb(m[1].trim());
+                q = q.replace(m[0], ' ');
+                regex.lastIndex = 0;
+              }
+            };
+
+            // 言語
+            extract(/\blang:([^\s()"]+)/gi, v => { document.getElementById('adv-lang').value = v.toLowerCase(); });
+
+            // ハッシュタグ
+            extract(/\s#([^\s)"]+)/g, v => {
+              const el = document.getElementById('adv-hashtag');
+              el.value = (el.value + ' ' + v).trim();
+            });
+
+            // 最小エンゲージメント・期間
+            extract(/\bmin_replies:(\d+)\b/gi, v => document.getElementById('adv-min-replies').value = v);
+            extract(/\bmin_faves:(\d+)\b/gi,   v => document.getElementById('adv-min-faves').value   = v);
+            extract(/\bmin_retweets:(\d+)\b/gi,v => document.getElementById('adv-min-retweets').value= v);
+            extract(/\bsince:(\d{4}-\d{2}-\d{2})\b/gi, v => document.getElementById('adv-since').value = v);
+            extract(/\buntil:(\d{4}-\d{2}-\d{2})\b/gi, v => document.getElementById('adv-until').value = v);
+
+            // フィルタ
+            const filterMap = { 'is:verified':'verified', 'filter:links':'links', 'filter:images':'images', 'filter:videos':'videos' };
+            Object.entries(filterMap).forEach(([op,id])=>{
+              const r = new RegExp(`\\s(-?)${op.replace(':','\\:')}\\b`, 'gi');
+              q = q.replace(r, (m, neg) => {
+                document.getElementById(`adv-filter-${id}-${neg ? 'exclude' : 'include'}`).checked = true;
+                return ' ';
+              });
+            });
+
+            // 返信
+            if (/\binclude:replies\b/i.test(q)) { document.getElementById('adv-replies').value='include'; q=q.replace(/\binclude:replies\b/ig,' '); }
+            else if (/\bfilter:replies\b/i.test(q)) { document.getElementById('adv-replies').value='only'; q=q.replace(/\bfilter:replies\b/ig,' '); }
+            else if (/\b-filter:replies\b/i.test(q)) { document.getElementById('adv-replies').value='exclude'; q=q.replace(/\b-filter:replies\b/ig,' '); }
+
+            // アカウント演算子
             const parseAccountField = (inputId, operator) => {
-                const exclOperator = `-${operator}`;
-                const values = [];
-                const exclRegex = new RegExp(`\\s(${exclOperator.replace(/[-:]/g,'\\$&')}[^\\s()]+)`,'g');
-                [...q.matchAll(exclRegex)].forEach(m=>{ values.push(m[1].substring(exclOperator.length)); q=q.replace(m[0],' '); });
-                if (values.length>0){ document.getElementById(inputId).value = values.join(' '); document.getElementById(`${inputId}-exclude`).checked=true; return; }
-                const inclGroupRegex = new RegExp(`\\((${operator.replace(':','\\:')}[^)]+)\\)`,'g');
-                [...q.matchAll(inclGroupRegex)].forEach(m=>{
-                    m[1].split(/\s+OR\s+/).forEach(t=>values.push(t.substring(operator.length)));
-                    q=q.replace(m[0],' ');
-                });
-                const inclSingleRegex = new RegExp(`\\s(?!-)(${operator.replace(':','\\:')}[^\\s()]+)`,'g');
-                [...q.matchAll(inclSingleRegex)].forEach(m=>{ values.push(m[1].substring(operator.length)); q=q.replace(m[0],' '); });
-                if (values.length>0){ document.getElementById(inputId).value=[...new Set(values)].join(' '); document.getElementById(`${inputId}-exclude`).checked=false; }
+              const exclOp = `-${operator}`;
+              const values = [];
+              // 除外
+              const reEx = new RegExp(`\\s${exclOp.replace(/[-:]/g,'\\$&')}([^\\s()"]+)`, 'gi');
+              q = q.replace(reEx, (m, u) => { values.push(u); document.getElementById(`${inputId}-exclude`).checked = true; return ' '; });
+              // 包含（括弧 OR グループ）
+              const reGroup = new RegExp(`\\((?:${operator.replace(':','\\:')}([^\\s()"]+))(?:\\s+OR\\s+${operator.replace(':','\\:')}([^\\s()"]+))*\\)`, 'gi');
+              q = q.replace(reGroup, (m) => {
+                m.replace(new RegExp(`${operator.replace(':','\\:')}([^\\s()"]+)`, 'gi'), (_m, u) => { values.push(u); return _m; });
+                return ' ';
+              });
+              // 単体
+              const reIn = new RegExp(`\\s(?!-)${operator.replace(':','\\:')}([^\\s()"]+)`, 'gi');
+              q = q.replace(reIn, (m, u) => { values.push(u); return ' '; });
+              if (values.length) document.getElementById(inputId).value = [...new Set(values)].join(' ');
             };
             parseAccountField('adv-from-user','from:');
             parseAccountField('adv-to-user','to:');
             parseAccountField('adv-mentioning','@');
 
-            const extract = (regex, cb) => { let m; while((m=regex.exec(q))!==null){ cb(m[1].trim()); q=q.replace(m[0],' '); regex.lastIndex=0; } };
-            extract(/"([^"]+)"/g, v=>document.getElementById('adv-exact-phrase').value=v);
-            extract(/lang:([^\s]+)/g, v=>document.getElementById('adv-lang').value=v);
-            extract(/#([^\s]+)/g, v=>document.getElementById('adv-hashtag').value=(document.getElementById('adv-hashtag').value+' '+v).trim());
-            extract(/min_replies:(\d+)/g, v=>document.getElementById('adv-min-replies').value=v);
-            extract(/min_faves:(\d+)/g, v=>document.getElementById('adv-min-faves').value=v);
-            extract(/min_retweets:(\d+)/g, v=>document.getElementById('adv-min-retweets').value=v);
-            extract(/since:(\d{4}-\d{2}-\d{2})/g, v=>document.getElementById('adv-since').value=v);
-            extract(/until:(\d{4}-\d{2}-\d{2})/g, v=>document.getElementById('adv-until').value=v);
-
-            const filterMap = { 'is:verified':'verified', 'filter:links':'links', 'filter:images':'images', 'filter:videos':'videos' };
-            Object.entries(filterMap).forEach(([op,id])=>{
-                const r = new RegExp(`\\s(-?)${op.replace(':','\\:')}\\s`,'g');
-                q=q.replace(r,(m,prefix)=>{ document.getElementById(`adv-filter-${id}-${prefix? 'exclude':'include'}`).checked=true; return ' '; });
-            });
-
-            if (/\sinclude:replies\s/.test(q)) { document.getElementById('adv-replies').value='include'; q=q.replace(/\sinclude:replies\s/,' '); }
-            else if (/\sfilter:replies\s/.test(q)) { document.getElementById('adv-replies').value='only'; q=q.replace(/\sfilter:replies\s/,' '); }
-            else if (/\s-filter:replies\s/.test(q)) { document.getElementById('adv-replies').value='exclude'; q=q.replace(/\s-filter:replies\s/,' '); }
-
-            const orGroups = q.match(/\(([^)]+)\)/g);
-            if (orGroups) {
-                const anyWords = orGroups.map(g=>g.replace(/[()]/g,'').replace(/\s+OR\s+/g, ' ')).join(' ');
-                document.getElementById('adv-any-words').value = anyWords.trim();
-                q=q.replace(/\(([^)]+)\)/g,' ');
+            // ▼ 括弧内 OR は any へ（**先にやる**。引用は壊さない、グループ丸ごと除去）
+            {
+              const groups = q.match(/\((?:[^()"]+|"[^"]*")+\)/g); // 引用対応の簡易版
+              if (groups) {
+                const tokens = groups
+                  .map(g => g.slice(1, -1))                      // (...) → 中身
+                  .flatMap(s => s.split(/\s+OR\s+/i))
+                  .map(s => s.trim())
+                  .filter(Boolean);
+                if (tokens.length) {
+                  const el = document.getElementById('adv-any-words');
+                  el.value = (el.value ? el.value + ' ' : '') + tokens.join(' ');
+                }
+                // グループは丸ごと削る：以後の引用抽出に巻き込ませない
+                q = q.replace(/\((?:[^()"]+|"[^"]*")+\)/g, ' ');
+              }
             }
 
-            document.getElementById('adv-not-words').value = (q.match(/\s-\S+/g)||[]).map(w=>w.trim().substring(1)).join(' ');
-            q=q.replace(/\s-\S+/g,' ');
-            document.getElementById('adv-all-words').value = q.trim().split(/\s+/).filter(Boolean).join(' ');
-            isUpdating=false;
+            // ▼ 引用フレーズ（括弧の外だけが残っている）。exact は最初の1件のみ
+            {
+              let exactSet = false;
+              q = q.replace(/"([^"]+)"/g, (_m, p1) => {
+                if (!exactSet) {
+                  document.getElementById('adv-exact-phrase').value = p1.trim();
+                  exactSet = true;
+                }
+                return ' ';
+              });
+            }
+
+            // 除外語
+            const nots = (q.match(/\s-\S+/g) || []).map(w => w.trim().slice(1));
+            if (nots.length) document.getElementById('adv-not-words').value = nots.join(' ');
+            q = q.replace(/\s-\S+/g,' ');
+
+            document.getElementById('adv-all-words').value =
+              q.trim().split(/\s+/).filter(Boolean).join(' ');
+
+            isUpdating = false;
         };
 
         const syncFromModalToSearchBox = () => {
