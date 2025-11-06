@@ -7,17 +7,17 @@
 // @name:ko      X.com (Twitter) 고급 검색 モ달 🔍
 // @name:fr      X.com (Twitter) : Modal de recherche avancée 🔍
 // @name:es      Modal de búsqueda avanzada para X.com (Twitter) 🔍
-// @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
+// @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.7.7
+// @version      4.8.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
 // @description:zh-CN 为X.com（Twitter）添加高级搜索浮动模态框，支持与搜索框双向同步并记住位置与显示状态。右上角的搜索图标可拖动，并会记住位置。
 // @description:zh-TW 為 X.com（Twitter）增加高級搜尋模態框，支援與搜尋框雙向同步並記住位置與顯示狀態。右上角搜尋圖示可拖曳，位置會被保存。
-// @description:ko   X.com(Twitter)에 고급 검색 모달을 추가합니다. 검색창과 양방향 동기화하며 위치와 표시 상태를 기억합니다. 우상단 검색 아이콘은 드래그 이동 및 위치 저장이 가능합니다。
-// @description:fr   Ajoute une fenêtre modale de recherche avancée à X.com (Twitter), synchronisée avec la barre de recherche et mémoire de l’état d’affichage. L’icône de recherche en haut à droite est déplaçable.
+// @description:ko   X.com(Twitter)에 고급 검색 모달을 추가합니다. 검색창과 양방향 동기화하며 위치와 표시 상태를 기억합니다. 우상단 검색 아이콘은 드래그 이동 및 위치 저장이 가능합니다.
+// @description:fr   Ajoute une fenêtre modale de recherche avancée à X.com (Twitter), synchronisée avec la barre de recherche et mémorise de l’état d’affichage. L’icône de recherche en haut à droite est déplaçable.
 // @description:es   Agrega un modal flotante de búsqueda avanzada en X.com (Twitter), sincronizado con la caja de búsqueda y con estado persistente.
 // @description:de   Fügt X.com (Twitter) ein modales Fenster für erweiterte Suche hinzu, synchronisiert mit der Suchleiste und speichert Position/Zustand. Das Suchsymbol oben rechts ist per Drag & Drop verschiebbar und bleibt gespeichert.
 // @description:pt-BR Adiciona um modal de busca avançada flutuante no X.com (Twitter), sincronizado com a caixa de busca e com estado salvo. O ícone de busca no canto superior direito é arrastável com posição persistente.
@@ -327,6 +327,41 @@
             stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
     </svg>`;
 
+    const FOLDER_TOGGLE_OPEN_SVG = `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+    const FOLDER_TOGGLE_CLOSED_SVG = `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+
+    // トグルボタンの小ユーティリティ
+    function renderFolderToggleButton(collapsed) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'adv-folder-toggle-btn';
+      btn.setAttribute('aria-label', collapsed ? 'Expand' : 'Collapse');
+      btn.setAttribute('title', collapsed ? 'Expand' : 'Collapse');
+      btn.setAttribute('aria-expanded', (!collapsed).toString());
+      btn.style.cssText = `
+        appearance:none;border:none;background:transparent;cursor:pointer;
+        width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;
+        margin-right:8px;color:inherit;flex:0 0 auto;
+      `;
+      btn.innerHTML = collapsed ? FOLDER_TOGGLE_CLOSED_SVG : FOLDER_TOGGLE_OPEN_SVG;
+      return btn;
+    }
+    function updateFolderToggleButton(btn, collapsed) {
+      if (!btn) return;
+      btn.innerHTML = collapsed ? FOLDER_TOGGLE_CLOSED_SVG : FOLDER_TOGGLE_OPEN_SVG;
+      btn.setAttribute('aria-label', collapsed ? 'Expand' : 'Collapse');
+      btn.setAttribute('title', collapsed ? 'Expand' : 'Collapse');
+      btn.setAttribute('aria-expanded', (!collapsed).toString());
+    }
+
     const themeManager = {
         colors: {
             light: {
@@ -485,36 +520,6 @@
         if (trigger) trigger.style.display = 'none';
     }
 
-    function waitForUrlChange(oldURL, timeout = 1500) {
-        return new Promise((resolve) => {
-            let done = false;
-            const finish = (ok) => { if (!done) { done = true; cleanup(); resolve(ok); } };
-            const check = () => { if (location.href !== oldURL) finish(true); };
-
-            const origPush = history.pushState, origReplace = history.replaceState;
-            history.pushState = function(...a){ const r = origPush.apply(this, a); queueMicrotask(check); return r; };
-            history.replaceState = function(...a){ const r = origReplace.apply(this, a); queueMicrotask(check); return r; };
-
-            const onPop = () => queueMicrotask(check);
-            window.addEventListener('popstate', onPop);
-
-            const mo = new MutationObserver(check);
-            mo.observe(document.body, { childList: true, subtree: true });
-
-            const to = setTimeout(() => finish(false), timeout);
-
-            function cleanup() {
-                history.pushState = origPush;
-                history.replaceState = origReplace;
-                window.removeEventListener('popstate', onPop);
-                mo.disconnect();
-                clearTimeout(to);
-            }
-
-            check();
-        });
-    }
-
     // ▼ ルート適用を軽く検証（URL一致 + プロフィール系DOMが現れたか）
     function waitForRouteApply(path, timeoutMs = 2000) {
       const goal = new URL(path, location.origin).pathname;
@@ -641,7 +646,7 @@
         .adv-tab-btn.active { color:var(--modal-text-primary,#e7e9ea); background-color:var(--modal-input-bg,#202327); border:1px solid var(--modal-input-border,#38444d); border-bottom:none; }
         .adv-tab-content { display:none; }
         .adv-tab-content.active { display:block; }
-        #adv-tab-history, #adv-tab-saved { padding:12px 16px; }
+        #adv-tab-history, #adv-tab-saved, #adv-tab-accounts, #adv-tab-lists { padding:12px 16px; }
 
         .adv-secret-wrap { display:flex; align-items:center; gap:8px; }
         .adv-secret-btn { cursor:pointer; border:1px solid var(--modal-input-border,#38444d); background:var(--modal-input-bg,#202327); color:var(--modal-text-primary,#e7e9ea); padding:4px 8px; border-radius:9999px; font-weight:700; user-select:none; display:flex; align-items:center; gap:6px; font-size:12px; }
@@ -818,6 +823,89 @@
           /* 検索アイコンは stroke="currentColor" を使っているので配色は自動追従 */
         }
 
+        /* === Folders === */
+        .adv-folder { border:1px solid var(--modal-input-border,#38444d); border-radius:10px; margin-bottom:10px; }
+        .adv-folder-header {
+          display:flex; justify-content:space-between; align-items:center;
+          padding:8px 10px; background:var(--modal-input-bg,#202327); border-bottom:1px solid var(--modal-input-border,#38444d);
+        }
+        .adv-folder-header[data-drop="1"] { outline:2px dashed var(--modal-primary-color); outline-offset:-4px; }
+        .adv-folder-title { display:flex; gap:8px; align-items:baseline; }
+        .adv-folder-actions { display:flex; gap:6px; }
+        .adv-folder-toolbar { display:flex; gap:8px; align-items:center; margin:0 0 12px; padding:0 2px; }
+        .adv-folder-toolbar input[type="text"] { flex:1; min-width:80px; }
+        .adv-select, .adv-input { background-color:var(--modal-input-bg,#202327); border:1px solid var(--modal-input-border,#38444d); border-radius:8px; padding:6px 10px; color:var(--modal-text-primary,#e7e9ea); }
+        .adv-folder-collapsed .adv-list { display:none; }
+
+        /* ▶ Folder headers: show grab cursor except on action buttons */
+        .adv-folder-header { cursor: grab; }
+        .adv-folder-header:active { cursor: grabbing; }
+
+        /* ボタン上では通常のポインタ（=ドラッグ開始させない見た目） */
+        .adv-folder-header .adv-folder-actions,
+        .adv-folder-header .adv-folder-actions * {
+          cursor: pointer;
+        }
+
+        /* ▼ トグルボタン（左端） */
+        .adv-folder-toggle {
+          appearance: none;
+          border: none;
+          background: transparent;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 28px;
+          height: 28px;
+          border-radius: 6px;
+          cursor: pointer;
+          margin-right: 6px;
+        }
+
+        .adv-folder-toggle:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 2px color-mix(in oklab, var(--modal-primary-color, #1d9bf0) 60%, transparent);
+        }
+
+        /* ▼ アイコン（chevron） */
+        .adv-folder-toggle svg {
+          width: 16px; height: 16px;
+          transition: transform .15s ease;
+        }
+
+        /* ▼ 開閉で向きを変える（右▶ → 下▼） */
+        .adv-folder:not(.adv-folder-collapsed) .adv-folder-toggle svg {
+          transform: rotate(90deg);
+        }
+
+        /* ▼ 開いているヘッダーはわずかに背景強調 */
+        .adv-folder:not(.adv-folder-collapsed) .adv-folder-header {
+          background: color-mix(in oklab, var(--modal-input-bg,#202327) 92%, var(--modal-primary-color,#1d9bf0));
+        }
+
+        /* ▼ ドラッグハンドルは“掴める”見た目を強調 */
+        .adv-folder-drag-handle {
+          cursor: grab;
+          user-select: none;
+          padding: 4px 6px;
+          border-radius: 6px;
+          border: 1px dashed var(--modal-border,#38444d);
+        }
+        .adv-folder-drag-handle:active { cursor: grabbing; }
+
+        /* ▼ Unassigned セクション（見出しなし・枠なし） */
+        .adv-unassigned {
+          margin-bottom: 10px;
+        }
+        .adv-unassigned .adv-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        /* フォルダー並び替え用のドラッグ時の視覚（Unassigned も対象） */
+        .adv-unassigned.dragging-folder {
+          opacity: .6;
+        }
     `);
 
     const modalHTML = `
@@ -1155,7 +1243,10 @@
 
         const searchInputSelectors = [
             'div[data-testid="primaryColumn"] input[data-testid="SearchBox_Search_Input"]',
-            'div[data-testid="sidebarColumn"] input[data-testid="SearchBox_Search_Input"]'
+            'div[data-testid="sidebarColumn"] input[data-testid="SearchBox_Search_Input"]',
+            'input[aria-label="Search query"]',
+            'input[placeholder*="Search"]',
+            'input[placeholder*="検索"]'
         ];
         const getActiveSearchInput = () => {
             for (const selector of searchInputSelectors) {
@@ -2327,8 +2418,6 @@
           //    もしフォーカスが残っていたら外す
           try { si && si.blur(); } catch {}
 
-          // 4) 念のため遷移確認
-          try { await waitForUrlChange(before, 1500); } catch {}
         };
 
         const onScopeChange = async () => {
@@ -2462,8 +2551,523 @@
         };
 
         /* ========= Accounts storage & UI ========= */
+        function renderAccountRow(item) {
+          const row = document.createElement('div');
+          row.className = 'adv-item';
+          row.draggable = true;
+          row.dataset.id = item.id;
+
+          const title = escapeHTML(item.name || `@${item.handle}`);
+          const sub   = escapeHTML(`@${item.handle}`);
+
+          row.innerHTML = `
+            <div class="adv-item-handle" title="Drag">≡</div>
+            ${
+              item.avatar
+                ? `<a class="adv-item-avatar-link adv-link" href="/${escapeAttr(item.handle)}" title="@${escapeAttr(item.handle)}">
+                     <img class="adv-item-avatar" src="${escapeAttr(item.avatar)}" alt="@${escapeAttr(item.handle)}">
+                   </a>`
+                : `<a class="adv-item-avatar-link adv-link" href="/${escapeAttr(item.handle)}" title="@${escapeAttr(item.handle)}">
+                     <div class="adv-item-avatar" aria-hidden="true"></div>
+                   </a>`
+            }
+            <div class="adv-item-main">
+              <div class="adv-item-title">
+                <a class="adv-link" href="/${escapeAttr(item.handle)}" title="@${escapeAttr(item.handle)}">${title}</a>
+              </div>
+              <div class="adv-item-sub">
+                <a class="adv-link" href="/${escapeAttr(item.handle)}">@${escapeHTML(item.handle)}</a>
+                <span>${fmtTime(item.ts)}</span>
+              </div>
+            </div>
+            <div class="adv-item-actions">
+              <button class="adv-chip primary" data-action="confirm">${i18n.t('buttonConfirm')}</button>
+              <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
+            </div>
+          `;
+
+          row.querySelector('[data-action="confirm"]').addEventListener('click', (e) => {
+            spaNavigate(`/${item.handle}`, { ctrlMeta: e.ctrlKey || e.metaKey });
+          });
+          row.querySelectorAll('a.adv-link').forEach(a => {
+            a.addEventListener('click', (ev) => {
+              if (ev.defaultPrevented || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
+              ev.preventDefault();
+              const href = a.getAttribute('href') || `/${item.handle}`;
+              spaNavigate(href, { ctrlMeta: false });
+            });
+          });
+          row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteAccount(item.id));
+
+          row.addEventListener('dragstart', (ev) => {
+            row.classList.add('dragging');
+            ev.dataTransfer.setData('text/plain', item.id);
+            ev.dataTransfer.effectAllowed = 'move';
+          });
+          row.addEventListener('dragend', () => row.classList.remove('dragging'));
+          row.addEventListener('dragover', (ev) => {
+            ev.preventDefault();
+            const container = row.parentElement;
+            const dragging = container?.querySelector('.dragging');
+            if (!dragging) return;
+            const after = getDragAfterElement(container, ev.clientY);
+            if (after == null) container.appendChild(dragging);
+            else container.insertBefore(dragging, after);
+          });
+
+          return row;
+        }
+
+        function loadSectionsOrder(key, folders) {
+          const saved = (()=>{
+            try { return JSON.parse(GM_getValue(key, 'null')); } catch(_) { return null; }
+          })();
+          const ids = ['__UNASSIGNED__', ...folders.map(f=>f.id)];
+          if (!Array.isArray(saved)) return ids;
+          const set = new Set(saved);
+          const ordered = saved.filter(id => ids.includes(id));
+         ids.forEach(id => { if (!set.has(id)) ordered.push(id); });
+          return ordered;
+        }
+        function saveSectionsOrder(key, order) {
+         try { GM_setValue(key, JSON.stringify(order)); } catch(_) {}
+        }
+
+        function renderAccounts() {
+          ensureFolderToolbars();
+
+          const items   = loadAccounts();
+          let   folders = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
+          const idToItem = Object.fromEntries(items.map(x => [x.id, x]));
+
+          // フォルダ order の死票を掃除
+          let needsSave = false;
+          for (const f of folders) {
+            const before = f.order.length;
+            f.order = f.order.filter(id => !!idToItem[id]);
+            if (f.order.length !== before) { needsSave = true; f.ts = Date.now(); }
+          }
+          if (needsSave) saveFolders(ACCOUNTS_FOLDERS_KEY, folders);
+
+          // 未所属（Unassigned）ID 群
+          const allIds     = new Set(items.map(x => x.id));
+          const inFolders  = new Set(folders.flatMap(f => f.order));
+          const unassignedIds = [...allIds].filter(id => !inFolders.has(id));
+
+          // フィルタUIや検索
+          const filterSel = document.getElementById('adv-accounts-folder-filter');
+          const searchEl  = document.getElementById('adv-accounts-search');
+          const newBtn    = document.getElementById('adv-accounts-new-folder');
+
+          // セレクト更新
+          if (filterSel) {
+            const prev = filterSel.value;
+            filterSel.innerHTML = '';
+            const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent='ALL'; filterSel.appendChild(optAll);
+            const optUn  = document.createElement('option'); optUn.value='__UNASSIGNED__'; optUn.textContent='Unassigned'; filterSel.appendChild(optUn);
+            folders.forEach(f=>{
+              const o = document.createElement('option'); o.value = f.id; o.textContent = f.name; filterSel.appendChild(o);
+            });
+            if ([...filterSel.options].some(o=>o.value===prev)) filterSel.value = prev; else filterSel.value='__ALL__';
+            filterSel.onchange = ()=> renderAccounts();
+          }
+          if (searchEl && !searchEl._advBound) {
+            searchEl._advBound = true;
+            searchEl.addEventListener('input', ()=>renderAccounts());
+          }
+          if (newBtn && !newBtn._advBound) {
+            newBtn._advBound = true;
+            newBtn.addEventListener('click', ()=>{
+              const nm = prompt('New folder name', '');
+              if (!nm || !nm.trim()) return;
+              const fs = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
+              fs.push({ id: uid(), name: nm.trim(), order: [], ts: Date.now() });
+              saveFolders(ACCOUNTS_FOLDERS_KEY, fs);
+              renderAccounts();
+            });
+          }
+
+          const filterFolder = filterSel?.value || '__ALL__';
+          const q = (searchEl?.value || '').toLowerCase().trim();
+          const matchItem = (it) => {
+            if (!q) return true;
+            const name = (it.name||'').toLowerCase();
+            const handle = (it.handle||'').toLowerCase();
+            return name.includes(q) || handle.includes(q) || (`@${handle}`).includes(q);
+          };
+
+          const host = document.getElementById('adv-accounts-list');
+          const emptyEl = document.getElementById('adv-accounts-empty');
+          host.innerHTML = '';
+          emptyEl.textContent = items.length ? '' : i18n.t('emptyAccounts');
+
+          // === 並び順：フォルダ列の間に Unassigned を挿入できるよう index を保存/復元 ===
+          const UNASSIGNED_INDEX_KEY = 'advAccountsUnassignedIndex_v1';
+          const getUnIdx = () => {
+            try { const v = GM_getValue(UNASSIGNED_INDEX_KEY, 0); return Math.max(0, Math.min(folders.length, +v||0)); } catch { return 0; }
+          };
+          const setUnIdx = (idx) => { try { GM_setValue(UNASSIGNED_INDEX_KEY, String(idx)); } catch {} };
+
+          // 表示対象フォルダの選定
+          const foldersToDraw =
+            filterFolder === '__ALL__'      ? [...folders] :
+            filterFolder === '__UNASSIGNED__' ? [] : // フォルダは描かない（後で unassigned だけ描く）
+            folders.filter(f => f.id === filterFolder);
+
+          // DOM 並び：foldersToDraw の間に Unassigned を差し込む（__ALL__ の時のみ）
+          const buildSectionsOrder = () => {
+            if (filterFolder !== '__ALL__') return foldersToDraw.map(f => f.id);
+            const idx = getUnIdx();
+            const arr = foldersToDraw.map(f => f.id);
+            arr.splice(Math.max(0, Math.min(arr.length, idx)), 0, '__UNASSIGNED__');
+            return arr;
+          };
+
+          const SECT_MIME = 'adv/folder'; // 既存のフォルダD&Dと同じMIMEを流用
+          const getSectionAfterElement = (container, y) => {
+            const els = [...container.querySelectorAll('.adv-folder:not(.dragging-folder), .adv-unassigned:not(.dragging-folder)')];
+            let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+            for (const el of els) {
+              const box = el.getBoundingClientRect();
+              const offset = y - box.top - box.height / 2;
+              if (offset < 0 && offset > closest.offset) {
+                closest = { offset, element: el };
+              }
+            }
+            return closest.element;
+          };
+          const persistSectionsFromDOM = () => {
+            const order = [...host.querySelectorAll('.adv-folder, .adv-unassigned')].map(sec => sec.dataset.folderId);
+            // フォルダ順保存
+            const newFolderOrderIds = order.filter(id => id !== '__UNASSIGNED__');
+            let fs = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
+            const map = Object.fromEntries(fs.map(f=>[f.id,f]));
+            const reordered = newFolderOrderIds.map(id=>map[id]).filter(Boolean);
+            // 未描画があれば末尾へ
+            fs.forEach(f => { if (!reordered.includes(f)) reordered.push(f); });
+            saveFolders(ACCOUNTS_FOLDERS_KEY, reordered);
+
+            // Unassigned の位置を保存
+            const unIdx = order.indexOf('__UNASSIGNED__');
+            if (unIdx >= 0) setUnIdx(unIdx);
+
+            showToast(i18n.t('toastReordered'));
+          };
+
+          // === Unassigned セクション（ヘッダー無し・枠無し） ===
+          const renderUnassignedSection = () => {
+            const sec = document.createElement('section');
+            sec.className = 'adv-unassigned';
+            sec.dataset.folderId = '__UNASSIGNED__';
+            sec.setAttribute('draggable', 'true'); // 並び替えのためにセクション自体をドラッグ可
+            const list = document.createElement('div');
+            list.className = 'adv-list';
+            const itemsUn = unassignedIds.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
+            // Unassigned のみの表示要求(__UNASSIGNED__)時は単独表示
+            if (filterFolder === '__UNASSIGNED__') {
+              // ここでは単に全件描画
+            }
+            itemsUn.forEach(it => list.appendChild(renderAccountRow(it)));
+            sec.appendChild(list);
+
+            // セクション D&D: ドラッグ開始/終了
+            sec.addEventListener('dragstart', (ev) => {
+              // アイテム行のドラッグと衝突しないよう、セクション枠が開始点の時のみ MIME を載せる
+              if (ev.target === sec) {
+                ev.dataTransfer.setData(SECT_MIME, '__UNASSIGNED__');
+                ev.dataTransfer.effectAllowed = 'move';
+                sec.classList.add('dragging-folder');
+              }
+            });
+            sec.addEventListener('dragend', () => {
+              sec.classList.remove('dragging-folder');
+            });
+
+            // セクション上を通過中：セクション間の並び替え
+            sec.addEventListener('dragover', (ev) => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
+                ev.preventDefault();
+                const dragging = host.querySelector('.dragging-folder');
+                if (!dragging || dragging === sec) return;
+                const after = getSectionAfterElement(host, ev.clientY);
+                if (after == null) host.appendChild(dragging);
+                else host.insertBefore(dragging, after);
+              }
+            });
+
+            // アイテム並び替え保存（Unassigned 内のアイテム順は全体順に反映）
+            list.addEventListener('drop', () => {
+              const orderIds = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
+              const cur = loadAccounts();
+              const byId = Object.fromEntries(cur.map(x=>[x.id,x]));
+              const reordered = orderIds.map(id => byId[id]).filter(Boolean);
+              // 先頭に来るように（unshift で入れているのでほぼ既定通り）
+              const others = cur.filter(x => !reordered.some(y=>y.id===x.id));
+              saveAccounts([...reordered, ...others]);
+              showToast(i18n.t('toastReordered'));
+            });
+
+            return sec;
+          };
+
+          // === フォルダ描画（既存に近いが、ヘッダーを DnD 起点にしてセクション入替に参加） ===
+          const renderFolderSection = (folder) => {
+            const section = document.createElement('section');
+            section.className = 'adv-folder';
+            section.dataset.folderId = folder.id;
+            if (folder.collapsed) section.classList.add('adv-folder-collapsed');
+
+            const header = document.createElement('div');
+            header.className = 'adv-folder-header';
+            header.setAttribute('draggable', 'true');
+
+            const toggleBtn = renderFolderToggleButton(!!folder.collapsed);
+            const titleWrap = document.createElement('div');
+            titleWrap.className = 'adv-folder-title';
+            titleWrap.appendChild(toggleBtn);
+            const nameEl = document.createElement('strong'); nameEl.textContent = folder.name; titleWrap.appendChild(nameEl);
+            const countEl = document.createElement('span'); countEl.className='adv-item-sub'; countEl.textContent = `(${folder.order.length})`;
+            titleWrap.appendChild(countEl);
+
+            const actions = document.createElement('div');
+            actions.className = 'adv-folder-actions';
+            actions.innerHTML = `
+              <button class="adv-chip" data-action="rename"  aria-label="Rename folder" title="Rename folder">Rename</button>
+              <button class="adv-chip danger" data-action="delete" aria-label="Delete folder" title="Delete folder">Delete</button>
+            `;
+            header.appendChild(titleWrap);
+            header.appendChild(actions);
+
+            // フォルダ DnD（セクション入替）
+            header.addEventListener('dragstart', (ev) => {
+              if (ev.target && (ev.target.closest('.adv-folder-actions') || ev.target.closest('.adv-folder-toggle-btn'))) {
+                ev.preventDefault(); return;
+              }
+              ev.dataTransfer.setData(SECT_MIME, folder.id);
+              ev.dataTransfer.effectAllowed = 'move';
+              section.classList.add('dragging-folder');
+            });
+            header.addEventListener('dragend', () => section.classList.remove('dragging-folder'));
+
+            section.addEventListener('dragover', (ev) => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
+                ev.preventDefault();
+                const dragging = host.querySelector('.dragging-folder');
+                if (!dragging || dragging === section) return;
+                const after = getSectionAfterElement(host, ev.clientY);
+                if (after == null) host.appendChild(dragging);
+                else host.insertBefore(dragging, after);
+              }
+            });
+
+            host.addEventListener('drop', (ev) => {
+              if (!(ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME))) return;
+              ev.preventDefault();
+              persistSectionsFromDOM();
+              renderAccounts();
+            }, { once:true });
+
+            // 折りたたみ
+            const collapseToggle = () => {
+              section.classList.toggle('adv-folder-collapsed');
+              const all = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
+              const f = all.find(x => x.id === folder.id);
+              if (f) { f.collapsed = section.classList.contains('adv-folder-collapsed'); f.ts = Date.now(); saveFolders(ACCOUNTS_FOLDERS_KEY, all); }
+              updateFolderToggleButton(toggleBtn, !!section.classList.contains('adv-folder-collapsed'));
+            };
+            toggleBtn.addEventListener('click', (e)=>{ e.stopPropagation(); collapseToggle(); });
+            toggleBtn.addEventListener('keydown', (e)=>{ if (e.key===' '||e.key==='Enter'){ e.preventDefault(); collapseToggle(); } });
+
+            // Rename / Delete
+            actions.querySelector('[data-action="rename"]').addEventListener('click', ()=>{
+              const nm = prompt('New folder name', folder.name);
+              if (!nm || !nm.trim()) return;
+              const fArr = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
+              const f = fArr.find(x=>x.id===folder.id); if (!f) return;
+              f.name = nm.trim(); f.ts = Date.now(); saveFolders(ACCOUNTS_FOLDERS_KEY, fArr);
+              renderAccounts(); showToast(i18n.t('updated'));
+            });
+            actions.querySelector('[data-action="delete"]').addEventListener('click', ()=>{
+              if (!confirm('Delete this folder? Items will become Unassigned.')) return;
+              let fArr = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
+              const idx = fArr.findIndex(x=>x.id===folder.id); if (idx<0) return;
+              fArr.splice(idx,1);
+              saveFolders(ACCOUNTS_FOLDERS_KEY, fArr);
+              renderAccounts(); showToast(i18n.t('toastDeleted'));
+            });
+
+            // ヘッダにドロップ（アカウント→このフォルダへ移動 / Unassigned へ移動は別処理）
+            header.addEventListener('dragover', ev => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return; // セクションD&D時は無視
+              ev.preventDefault(); header.dataset.drop='1';
+            });
+            header.addEventListener('dragleave', () => { delete header.dataset.drop; });
+            header.addEventListener('drop', ev => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
+              ev.preventDefault(); delete header.dataset.drop;
+              const draggedId = ev.dataTransfer.getData('text/plain');
+              if (!draggedId) return;
+              moveAccountToFolder(draggedId, folder.id);
+            });
+
+            const list = document.createElement('div');
+            list.className = 'adv-list';
+            const itemsInFolder = folder.order.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
+            itemsInFolder.forEach(it => list.appendChild(renderAccountRow(it)));
+
+            // フォルダ内の並び保存
+            list.addEventListener('drop', () => {
+              const newOrder = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
+              const fArr = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
+              const f = fArr.find(x=>x.id===folder.id);
+              if (f) { f.order = newOrder; f.ts = Date.now(); saveFolders(ACCOUNTS_FOLDERS_KEY, fArr); showToast(i18n.t('toastReordered')); }
+            });
+
+            section.appendChild(header);
+            section.appendChild(list);
+            return section;
+          };
+
+          // === 描画 ===
+          // 単一指定（特定フォルダ or Unassigned のみ）モード
+          if (filterFolder !== '__ALL__') {
+            if (filterFolder === '__UNASSIGNED__') {
+              host.appendChild(renderUnassignedSection());
+            } else {
+              const folder = folders.find(f => f.id === filterFolder);
+              if (folder) host.appendChild(renderFolderSection(folder));
+            }
+            return;
+          }
+
+          // __ALL__ モード：フォルダ列の間に Unassigned を混在表示
+          const order = buildSectionsOrder();
+          order.forEach(id => {
+            if (id === '__UNASSIGNED__') host.appendChild(renderUnassignedSection());
+            else {
+              const f = folders.find(x => x.id === id);
+              if (f) host.appendChild(renderFolderSection(f));
+            }
+          });
+        }
+
+        function renderListRow(item) {
+          const row = document.createElement('div');
+          row.className = 'adv-item';
+          row.draggable = true;
+          row.dataset.id = item.id;
+
+          const title = escapeHTML(item.name);
+          const sub   = escapeHTML(item.url);
+
+          row.innerHTML = `
+            <div class="adv-item-handle" title="Drag">≡</div>
+            <div class="adv-item-main">
+              <div class="adv-item-title">
+                <a class="adv-link" href="${escapeAttr(item.url)}">${title}</a>
+              </div>
+              <div class="adv-item-sub">
+                <a class="adv-link" href="${escapeAttr(item.url)}">${sub}</a>
+                <span>${fmtTime(item.ts)}</span>
+              </div>
+            </div>
+            <div class="adv-item-actions">
+              <button class="adv-chip primary" data-action="confirm">${i18n.t('buttonConfirm')}</button>
+              <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
+            </div>
+          `;
+
+          row.querySelector('[data-action="confirm"]').addEventListener('click', (e) => {
+            spaNavigate(item.url, { ctrlMeta: e.ctrlKey || e.metaKey });
+          });
+          row.querySelectorAll('a.adv-link').forEach(a => {
+            a.addEventListener('click', (ev) => {
+              if (ev.defaultPrevented || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
+              ev.preventDefault();
+              const href = a.getAttribute('href') || item.url;
+              spaNavigate(href, { ctrlMeta: false });
+            });
+          });
+          row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteList(item.id));
+
+          row.addEventListener('dragstart', (ev) => {
+            row.classList.add('dragging');
+            ev.dataTransfer.setData('text/plain', item.id);
+            ev.dataTransfer.effectAllowed = 'move';
+          });
+          row.addEventListener('dragend', () => row.classList.remove('dragging'));
+          row.addEventListener('dragover', (ev) => {
+            ev.preventDefault();
+            const container = row.parentElement;
+            const dragging = container?.querySelector('.dragging');
+            if (!dragging) return;
+            const after = getDragAfterElement(container, ev.clientY);
+            if (after == null) container.appendChild(dragging);
+            else container.insertBefore(dragging, after);
+          });
+
+          return row;
+        }
+
 
         const ACCOUNTS_KEY = 'advAccounts_v1';
+        const ACCOUNTS_FOLDERS_KEY = 'advAccountsFolders_v1';
+        const LISTS_FOLDERS_KEY    = 'advListsFolders_v1';
+        // ▼ セクション（フォルダー + Unassigned）の並び順を永続化するキー
+        const ACCOUNTS_SECTIONS_ORDER_KEY = 'advAccountsSectionsOrder_v1';
+        const LISTS_SECTIONS_ORDER_KEY    = 'advListsSectionsOrder_v1';
+
+        function loadFolders(key, _defaultName="") {
+          const raw = loadJSON(key, null);
+          if (raw && Array.isArray(raw.folders)) {
+            return raw.folders.map(f => ({
+              id: f.id,
+              name: f.name,
+              order: Array.isArray(f.order) ? f.order : [],
+              ts: f.ts || Date.now(),
+              collapsed: !!f.collapsed,
+            }));
+          }
+          // 初期は空配列（フォルダー0件の世界）
+          return [];
+        }
+
+        function saveFolders(key, folders) {
+          saveJSON(key, { folders: folders.map(f=>({
+            id:f.id, name:f.name, order:[...new Set(f.order)], ts:f.ts||Date.now(), collapsed: !!f.collapsed,
+          }))});
+        }
+        function ensureFolderToolbars() {
+          // Accounts tab
+          {
+            const host = document.getElementById('adv-accounts-list');
+            if (host && !host.previousElementSibling?.classList?.contains('adv-folder-toolbar')) {
+              const bar = document.createElement('div');
+              bar.className = 'adv-folder-toolbar';
+              bar.innerHTML = `
+                <select id="adv-accounts-folder-filter" class="adv-select"></select>
+                <input id="adv-accounts-search" class="adv-input" type="text" placeholder="Filter accounts (@, name)">
+                <button id="adv-accounts-new-folder" class="adv-chip">+Folder</button>
+              `;
+              host.parentElement.insertBefore(bar, host);
+            }
+          }
+          // Lists tab
+          {
+            const host = document.getElementById('adv-lists-list');
+            if (host && !host.previousElementSibling?.classList?.contains('adv-folder-toolbar')) {
+              const bar = document.createElement('div');
+              bar.className = 'adv-folder-toolbar';
+              bar.innerHTML = `
+                <select id="adv-lists-folder-filter" class="adv-select"></select>
+                <input id="adv-lists-search" class="adv-input" type="text" placeholder="Filter lists (name, url)">
+                <button id="adv-lists-new-folder" class="adv-chip">+Folder</button>
+              `;
+              host.parentElement.insertBefore(bar, host);
+            }
+          }
+        }
+
         const migrateAccounts = (list) =>
           Array.isArray(list)
             ? list
@@ -2496,8 +3100,16 @@
             }
             return 'exists';
           }
-          list.unshift({ id: uid(), handle: h, name, avatar, ts: Date.now() });
+          const id = uid();
+          list.unshift({ id, handle: h, name, avatar, ts: Date.now() });
           saveAccounts(list);
+          // フォルダーへは入れない（未所属のまま）
+          try {
+            const folders = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
+            // 念のため全フォルダーから重複を除去だけして保存（未所属を保持）
+            folders.forEach(f => { f.order = f.order.filter(x => x !== id); });
+            saveFolders(ACCOUNTS_FOLDERS_KEY, folders);
+          } catch(_) {}
           renderAccounts();
           return 'ok';
         };
@@ -2528,83 +3140,6 @@
 
         const accountsEmptyEl = document.getElementById('adv-accounts-empty');
         const accountsListEl  = document.getElementById('adv-accounts-list');
-
-        function renderAccounts() {
-          const list = loadAccounts();
-          accountsListEl.innerHTML = '';
-          accountsEmptyEl.textContent = list.length ? '' : i18n.t('emptyAccounts');
-
-          list.forEach(item => {
-            const row = document.createElement('div');
-            row.className = 'adv-item';
-            row.draggable = true;
-            row.dataset.id = item.id;
-
-            const title = escapeHTML(item.name || `@${item.handle}`);
-            const sub   = escapeHTML(`@${item.handle}`);
-
-            row.innerHTML = `
-              <div class="adv-item-handle" title="Drag">≡</div>
-              ${
-                item.avatar
-                  ? `<a class="adv-item-avatar-link adv-link" href="/${escapeAttr(item.handle)}" title="@${escapeAttr(item.handle)}">
-                       <img class="adv-item-avatar" src="${escapeAttr(item.avatar)}" alt="@${escapeAttr(item.handle)}">
-                     </a>`
-                  : `<a class="adv-item-avatar-link adv-link" href="/${escapeAttr(item.handle)}" title="@${escapeAttr(item.handle)}">
-                       <div class="adv-item-avatar" aria-hidden="true"></div>
-                     </a>`
-              }
-              <div class="adv-item-main">
-                <div class="adv-item-title">
-                  <a class="adv-link" href="/${escapeAttr(item.handle)}" title="@${escapeAttr(item.handle)}">${title}</a>
-                </div>
-                <div class="adv-item-sub">
-                  <a class="adv-link" href="/${escapeAttr(item.handle)}">@${escapeHTML(item.handle)}</a>
-                  <span>${fmtTime(item.ts)}</span>
-                </div>
-              </div>
-              <div class="adv-item-actions">
-                <button class="adv-chip primary" data-action="confirm">${i18n.t('buttonConfirm')}</button>
-                <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
-              </div>
-            `;
-
-            row.querySelector('[data-action="confirm"]').addEventListener('click', (e) => {
-              // 相対パスで SPA 遷移（Ctrl/⌘ なら新規タブを尊重）
-              spaNavigate(`/${item.handle}`, { ctrlMeta: e.ctrlKey || e.metaKey });
-            });
-
-            /* アイコン / 表示名 / @handle の <a> を SPA 対応 */
-            row.querySelectorAll('a.adv-link').forEach(a => {
-              a.addEventListener('click', (ev) => {
-                // 修飾あり or 中クリック はデフォルト動作（新規タブ等）
-                if (ev.defaultPrevented || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
-                ev.preventDefault();
-                const href = a.getAttribute('href') || `/${item.handle}`;
-                spaNavigate(href, { ctrlMeta: false });
-              });
-            });
-
-            row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteAccount(item.id));
-
-            row.addEventListener('dragstart', (ev) => {
-              row.classList.add('dragging');
-              ev.dataTransfer.setData('text/plain', item.id);
-              ev.dataTransfer.effectAllowed = 'move';
-            });
-            row.addEventListener('dragend', () => row.classList.remove('dragging'));
-            row.addEventListener('dragover', (ev) => {
-              ev.preventDefault();
-              const dragging = accountsListEl.querySelector('.dragging');
-              if (!dragging) return;
-              const after = getDragAfterElement(accountsListEl, ev.clientY);
-              if (after == null) accountsListEl.appendChild(dragging);
-              else accountsListEl.insertBefore(dragging, after);
-            });
-
-            accountsListEl.appendChild(row);
-          });
-        }
 
         accountsListEl?.addEventListener('drop', () => {
           const orderIds = [...accountsListEl.querySelectorAll('.adv-item')].map(el => el.dataset.id);
@@ -2782,8 +3317,15 @@
           } catch {}
           const list = loadLists();
           if (list.some(x => x.url === u)) return 'exists';
-          list.unshift({ id: uid(), name: nm, url: u, ts: Date.now() });
+          const id = uid();
+          list.unshift({ id, name: nm, url: u, ts: Date.now() });
           saveLists(list);
+          // フォルダーへは入れない（未所属のまま）
+          try {
+            const folders = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
+            folders.forEach(f => { f.order = f.order.filter(x => x !== id); });
+            saveFolders(LISTS_FOLDERS_KEY, folders);
+          } catch(_) {}
           renderLists();
           return 'ok';
         };
@@ -2798,69 +3340,401 @@
         const advListsEmptyEl = document.getElementById('adv-lists-empty');
         const advListsListEl  = document.getElementById('adv-lists-list');
 
+        // ===== FOLDER MIGRATION =====
+        (function migrateAccountsToFolders(){
+          // 既存フォルダーがあっても root 前提の自動作成/自動割当はしない。
+          // 古いデータで item.folderId === 'root' の痕跡があれば“未所属”に正規化。
+          try {
+            let items = loadAccounts();
+            let changed = false;
+            items = items.map(it => {
+              if (it.folderId === 'root') { delete it.folderId; changed = true; }
+              return it;
+            });
+            if (changed) saveAccounts(items);
+          } catch(_) {}
+        })();
+
+        (function migrateListsToFolders(){
+          // root 前提の自動作成/自動割当は行わない。
+          try {
+            let items = loadLists();
+            let changed = false;
+            items = items.map(it => {
+              if (it.folderId === 'root') { delete it.folderId; changed = true; }
+              return it;
+            });
+            if (changed) saveLists(items);
+          } catch(_) {}
+        })();
+
+        // UI toolbars
+        ensureFolderToolbars();
+
         function renderLists() {
-          const list = loadLists();
-          advListsListEl.innerHTML = '';
-          advListsEmptyEl.textContent = list.length ? '' : i18n.t('emptyLists');
+          ensureFolderToolbars();
 
-          list.forEach(item => {
-            const row = document.createElement('div');
-            row.className = 'adv-item';
-            row.draggable = true;
-            row.dataset.id = item.id;
+          const items   = loadLists();
+          let   folders = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
+          const idToItem = Object.fromEntries(items.map(x => [x.id, x]));
 
-            const title = escapeHTML(item.name);
-            const sub   = escapeHTML(item.url);
+          // フォルダ order の死票掃除
+          let needsSave = false;
+          for (const f of folders) {
+            const before = f.order.length;
+            f.order = f.order.filter(id => !!idToItem[id]);
+            if (f.order.length !== before) { needsSave = true; f.ts = Date.now(); }
+          }
+          if (needsSave) saveFolders(LISTS_FOLDERS_KEY, folders);
 
-            row.innerHTML = `
-              <div class="adv-item-handle" title="Drag">≡</div>
-              <div class="adv-item-main">
-                <div class="adv-item-title">
-                  <a class="adv-link" href="${escapeAttr(item.url)}">${title}</a>
-                </div>
-                <div class="adv-item-sub">
-                  <a class="adv-link" href="${escapeAttr(item.url)}">${sub}</a>
-                  <span>${fmtTime(item.ts)}</span>
-                </div>
-              </div>
-              <div class="adv-item-actions">
-                <button class="adv-chip primary" data-action="confirm">${i18n.t('buttonConfirm')}</button>
-                <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
-              </div>
+          // 未所属
+          const allIds     = new Set(items.map(x => x.id));
+          const inFolders  = new Set(folders.flatMap(f => f.order));
+          const unassignedIds = [...allIds].filter(id => !inFolders.has(id));
+
+          // フィルタUI
+          const filterSel = document.getElementById('adv-lists-folder-filter');
+          const searchEl  = document.getElementById('adv-lists-search');
+          const newBtn    = document.getElementById('adv-lists-new-folder');
+
+          if (filterSel) {
+            const prev = filterSel.value;
+            filterSel.innerHTML = '';
+            const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent='ALL'; filterSel.appendChild(optAll);
+            const optUn  = document.createElement('option'); optUn.value='__UNASSIGNED__'; optUn.textContent='Unassigned'; filterSel.appendChild(optUn);
+            folders.forEach(f=>{
+              const o = document.createElement('option'); o.value = f.id; o.textContent = f.name; filterSel.appendChild(o);
+            });
+            if ([...filterSel.options].some(o=>o.value===prev)) filterSel.value = prev; else filterSel.value='__ALL__';
+            filterSel.onchange = ()=> renderLists();
+          }
+          if (searchEl && !searchEl._advBound) {
+            searchEl._advBound = true;
+            searchEl.addEventListener('input', ()=>renderLists());
+          }
+          if (newBtn && !newBtn._advBound) {
+            newBtn._advBound = true;
+            newBtn.addEventListener('click', ()=>{
+              const nm = prompt('New folder name', '');
+              if (!nm || !nm.trim()) return;
+              const fs = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
+              fs.push({ id: uid(), name: nm.trim(), order: [], ts: Date.now() });
+              saveFolders(LISTS_FOLDERS_KEY, fs);
+              renderLists();
+            });
+          }
+
+          const filterFolder = filterSel?.value || '__ALL__';
+          const q = (searchEl?.value || '').toLowerCase().trim();
+          const matchItem = (it) => {
+            if (!q) return true;
+            const name = (it.name||'').toLowerCase();
+            const url  = (it.url ||'').toLowerCase();
+            return name.includes(q) || url.includes(q);
+          };
+
+          const host = document.getElementById('adv-lists-list');
+          const emptyEl = document.getElementById('adv-lists-empty');
+          host.innerHTML = '';
+          emptyEl.textContent = items.length ? '' : i18n.t('emptyLists');
+
+          // Unassigned の並び位置
+          const UNASSIGNED_INDEX_KEY = 'advListsUnassignedIndex_v1';
+          const getUnIdx = () => {
+            try { const v = GM_getValue(UNASSIGNED_INDEX_KEY, 0); return Math.max(0, Math.min(folders.length, +v||0)); } catch { return 0; }
+          };
+          const setUnIdx = (idx) => { try { GM_setValue(UNASSIGNED_INDEX_KEY, String(idx)); } catch {} };
+
+          const foldersToDraw =
+            filterFolder === '__ALL__'      ? [...folders] :
+            filterFolder === '__UNASSIGNED__' ? [] :
+            folders.filter(f => f.id === filterFolder);
+
+          const buildSectionsOrder = () => {
+            if (filterFolder !== '__ALL__') return foldersToDraw.map(f => f.id);
+            const idx = getUnIdx();
+            const arr = foldersToDraw.map(f => f.id);
+            arr.splice(Math.max(0, Math.min(arr.length, idx)), 0, '__UNASSIGNED__');
+            return arr;
+          };
+
+          const SECT_MIME = 'adv/folder';
+          const getSectionAfterElement = (container, y) => {
+            const els = [...container.querySelectorAll('.adv-folder:not(.dragging-folder), .adv-unassigned:not(.dragging-folder)')];
+            let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+            for (const el of els) {
+              const box = el.getBoundingClientRect();
+              const offset = y - box.top - box.height / 2;
+              if (offset < 0 && offset > closest.offset) {
+                closest = { offset, element: el };
+              }
+            }
+            return closest.element;
+          };
+          const persistSectionsFromDOM = () => {
+            const order = [...host.querySelectorAll('.adv-folder, .adv-unassigned')].map(sec => sec.dataset.folderId);
+            // フォルダ順
+            const newFolderOrderIds = order.filter(id => id !== '__UNASSIGNED__');
+            let fs = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
+            const map = Object.fromEntries(fs.map(f=>[f.id,f]));
+            const reordered = newFolderOrderIds.map(id=>map[id]).filter(Boolean);
+            fs.forEach(f => { if (!reordered.includes(f)) reordered.push(f); });
+            saveFolders(LISTS_FOLDERS_KEY, reordered);
+
+            // Unassigned 位置
+            const unIdx = order.indexOf('__UNASSIGNED__');
+            if (unIdx >= 0) setUnIdx(unIdx);
+
+            showToast(i18n.t('toastReordered'));
+          };
+
+          const renderUnassignedSection = () => {
+            const sec = document.createElement('section');
+            sec.className = 'adv-unassigned';
+            sec.dataset.folderId = '__UNASSIGNED__';
+            sec.setAttribute('draggable', 'true');
+
+            const list = document.createElement('div');
+            list.className = 'adv-list';
+
+            const itemsUn = unassignedIds.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
+            itemsUn.forEach(it => list.appendChild(renderListRow(it)));
+
+            sec.appendChild(list);
+
+            sec.addEventListener('dragstart', (ev) => {
+              if (ev.target === sec) {
+                ev.dataTransfer.setData(SECT_MIME, '__UNASSIGNED__');
+                ev.dataTransfer.effectAllowed = 'move';
+                sec.classList.add('dragging-folder');
+              }
+            });
+            sec.addEventListener('dragend', () => sec.classList.remove('dragging-folder'));
+
+            sec.addEventListener('dragover', (ev) => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
+                ev.preventDefault();
+                const dragging = host.querySelector('.dragging-folder');
+                if (!dragging || dragging === sec) return;
+                const after = getSectionAfterElement(host, ev.clientY);
+                if (after == null) host.appendChild(dragging);
+                else host.insertBefore(dragging, after);
+              }
+            });
+
+            list.addEventListener('drop', () => {
+              const orderIds = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
+              const cur = loadLists();
+              const byId = Object.fromEntries(cur.map(x=>[x.id,x]));
+              const reordered = orderIds.map(id => byId[id]).filter(Boolean);
+              const others = cur.filter(x => !reordered.some(y=>y.id===x.id));
+              saveLists([...reordered, ...others]);
+              showToast(i18n.t('toastReordered'));
+            });
+
+            return sec;
+          };
+
+          const renderFolderSection = (folder) => {
+            const section = document.createElement('section');
+            section.className = 'adv-folder';
+            section.dataset.folderId = folder.id;
+            if (folder.collapsed) section.classList.add('adv-folder-collapsed');
+
+            const header = document.createElement('div');
+            header.className = 'adv-folder-header';
+            header.setAttribute('draggable', 'true');
+
+            const toggleBtn = renderFolderToggleButton(!!folder.collapsed);
+            const titleWrap = document.createElement('div');
+            titleWrap.className = 'adv-folder-title';
+            titleWrap.appendChild(toggleBtn);
+            const nameEl = document.createElement('strong'); nameEl.textContent = folder.name; titleWrap.appendChild(nameEl);
+            const countEl = document.createElement('span'); countEl.className='adv-item-sub'; countEl.textContent = `(${folder.order.length})`;
+            titleWrap.appendChild(countEl);
+
+            const actions = document.createElement('div');
+            actions.className = 'adv-folder-actions';
+            actions.innerHTML = `
+              <button class="adv-chip" data-action="rename"  aria-label="Rename folder" title="Rename folder">Rename</button>
+              <button class="adv-chip danger" data-action="delete" aria-label="Delete folder" title="Delete folder">Delete</button>
             `;
 
-            row.querySelector('[data-action="confirm"]').addEventListener('click', (e) => {
-              spaNavigate(item.url, { ctrlMeta: e.ctrlKey || e.metaKey });
-            });
+            header.appendChild(titleWrap);
+            header.appendChild(actions);
 
-            row.querySelectorAll('a.adv-link').forEach(a => {
-              a.addEventListener('click', (ev) => {
-                if (ev.defaultPrevented || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
-                ev.preventDefault();
-                const href = a.getAttribute('href') || item.url;
-                spaNavigate(href, { ctrlMeta: false });
-              });
-            });
-
-            row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteList(item.id));
-
-            row.addEventListener('dragstart', (ev) => {
-              row.classList.add('dragging');
-              ev.dataTransfer.setData('text/plain', item.id);
+            // セクション（フォルダ） DnD
+            header.addEventListener('dragstart', (ev) => {
+              if (ev.target && (ev.target.closest('.adv-folder-actions') || ev.target.closest('.adv-folder-toggle-btn'))) {
+                ev.preventDefault(); return;
+              }
+              ev.dataTransfer.setData(SECT_MIME, folder.id);
               ev.dataTransfer.effectAllowed = 'move';
+              section.classList.add('dragging-folder');
             });
-            row.addEventListener('dragend', () => row.classList.remove('dragging'));
-            row.addEventListener('dragover', (ev) => {
-              ev.preventDefault();
-              const dragging = advListsListEl.querySelector('.dragging');
-              if (!dragging) return;
-              const after = getDragAfterElement(advListsListEl, ev.clientY);
-              if (after == null) advListsListEl.appendChild(dragging);
-              else advListsListEl.insertBefore(dragging, after);
+            header.addEventListener('dragend', () => section.classList.remove('dragging-folder'));
+
+            section.addEventListener('dragover', (ev) => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
+                ev.preventDefault();
+                const dragging = host.querySelector('.dragging-folder');
+                if (!dragging || dragging === section) return;
+                const after = getSectionAfterElement(host, ev.clientY);
+                if (after == null) host.appendChild(dragging);
+                else host.insertBefore(dragging, after);
+              }
             });
 
-            advListsListEl.appendChild(row);
+            host.addEventListener('drop', (ev) => {
+              if (!(ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME))) return;
+              ev.preventDefault();
+              persistSectionsFromDOM();
+              renderLists();
+            }, { once:true });
+
+            // 折りたたみ
+            const collapseToggle = () => {
+              section.classList.toggle('adv-folder-collapsed');
+              const all = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
+              const f = all.find(x => x.id === folder.id);
+              if (f) { f.collapsed = section.classList.contains('adv-folder-collapsed'); f.ts = Date.now(); saveFolders(LISTS_FOLDERS_KEY, all); }
+              updateFolderToggleButton(toggleBtn, !!section.classList.contains('adv-folder-collapsed'));
+            };
+            toggleBtn.addEventListener('click', (e)=>{ e.stopPropagation(); collapseToggle(); });
+            toggleBtn.addEventListener('keydown', (e)=>{ if (e.key===' '||e.key==='Enter'){ e.preventDefault(); collapseToggle(); } });
+
+            // Rename / Delete
+            actions.querySelector('[data-action="rename"]').addEventListener('click', ()=>{
+              const nm = prompt('New folder name', folder.name);
+              if (!nm || !nm.trim()) return;
+              const fArr = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
+              const f = fArr.find(x=>x.id===folder.id); if (!f) return;
+              f.name = nm.trim(); f.ts = Date.now(); saveFolders(LISTS_FOLDERS_KEY, fArr);
+              renderLists(); showToast(i18n.t('updated'));
+            });
+            actions.querySelector('[data-action="delete"]').addEventListener('click', ()=>{
+              if (!confirm('Delete this folder? Items will become Unassigned.')) return;
+              let fArr = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
+              const idx = fArr.findIndex(x=>x.id===folder.id); if (idx<0) return;
+              fArr.splice(idx,1);
+              saveFolders(LISTS_FOLDERS_KEY, fArr);
+              renderLists(); showToast(i18n.t('toastDeleted'));
+            });
+
+            // フォルダ見出しにアイテムをドロップ → そのフォルダへ移動
+            header.addEventListener('dragover', ev => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
+              ev.preventDefault(); header.dataset.drop='1';
+            });
+            header.addEventListener('dragleave', () => { delete header.dataset.drop; });
+            header.addEventListener('drop', ev => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
+              ev.preventDefault(); delete header.dataset.drop;
+              const draggedId = ev.dataTransfer.getData('text/plain');
+              if (!draggedId) return;
+              moveListToFolder(draggedId, folder.id);
+            });
+
+            const list = document.createElement('div');
+            list.className = 'adv-list';
+            const itemsInFolder = folder.order.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
+            itemsInFolder.forEach(it => list.appendChild(renderListRow(it)));
+
+            list.addEventListener('drop', () => {
+              const newOrder = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
+              const fArr = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
+              const f = fArr.find(x=>x.id===folder.id);
+              if (f) { f.order = newOrder; f.ts = Date.now(); saveFolders(LISTS_FOLDERS_KEY, fArr); showToast(i18n.t('toastReordered')); }
+            });
+
+            section.appendChild(header);
+            section.appendChild(list);
+            return section;
+          };
+
+          // 単一表示モード
+          if (filterFolder !== '__ALL__') {
+            if (filterFolder === '__UNASSIGNED__') {
+              host.appendChild(renderUnassignedSection());
+            } else {
+              const folder = folders.find(f => f.id === filterFolder);
+              if (folder) host.appendChild(renderFolderSection(folder));
+            }
+            return;
+          }
+
+          // __ALL__: フォルダ間に Unassigned を混在表示
+          const order = buildSectionsOrder();
+          order.forEach(id => {
+            if (id === '__UNASSIGNED__') host.appendChild(renderUnassignedSection());
+            else {
+              const f = folders.find(x => x.id === id);
+              if (f) host.appendChild(renderFolderSection(f));
+            }
           });
+        }
+
+        // === Accounts フォルダ操作 ===
+        function moveAccountToFolder(accountId, targetFolderId) {
+          try {
+            const accounts = loadAccounts();
+            const folders = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
+            const idSet = new Set(accounts.map(a => a.id));
+            if (!idSet.has(accountId)) return;
+
+            // すべてのフォルダから一旦抜く
+            for (const f of folders) {
+              const before = f.order.length;
+              f.order = f.order.filter(id => id !== accountId);
+              if (f.order.length !== before) f.ts = Date.now();
+            }
+
+            // 目標フォルダへ追加（無ければ root へ）
+            const target = folders.find(f => f.id === targetFolderId);
+            // targetが無ければ“未所属”にする＝どこにも入れない
+            if (target) {
+              target.order = [accountId, ...target.order.filter(id => id !== accountId)];
+              target.ts = Date.now();
+            }
+
+            saveFolders(ACCOUNTS_FOLDERS_KEY, folders);
+            showToast(i18n.t('toastReordered'));
+            // 再描画
+            try { renderAccounts(); } catch(_) {}
+          } catch (e) {
+            console.error('moveAccountToFolder failed', e);
+          }
+        }
+
+        // === Lists フォルダ操作 ===
+        function moveListToFolder(listId, targetFolderId) {
+          try {
+            const lists = loadLists();
+            const folders = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
+            const idSet = new Set(lists.map(a => a.id));
+            if (!idSet.has(listId)) return;
+
+            // すべてのフォルダから一旦抜く
+            for (const f of folders) {
+              const before = f.order.length;
+              f.order = f.order.filter(id => id !== listId);
+              if (f.order.length !== before) f.ts = Date.now();
+            }
+
+            // 目標フォルダへ追加（無ければ root へ）
+            const target = folders.find(f => f.id === targetFolderId);
+            if (target) {
+              target.order = [listId, ...target.order.filter(id => id !== listId)];
+              target.ts = Date.now();
+            }
+
+            saveFolders(LISTS_FOLDERS_KEY, folders);
+            showToast(i18n.t('toastReordered'));
+            // 再描画
+            try { renderLists(); } catch(_) {}
+          } catch (e) {
+            console.error('moveListToFolder failed', e);
+          }
         }
 
         advListsListEl?.addEventListener('drop', () => {
