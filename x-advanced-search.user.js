@@ -10,7 +10,7 @@
 // @name:de      Erweiterte Suchmodal für X.com (Twitter) 🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.7.5
+// @version      4.7.6
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -1933,103 +1933,143 @@
         }
 
         function parseSearchTokens(queryOrURL) {
-          // クエリ文字列を決定
-          let q = '';
+          // 0) クエリ取得（URL→検索ボックス→モーダルの順でフォールバック）
+          let qRaw = '';
           try {
             if (queryOrURL) {
-              q = String(queryOrURL);
+              qRaw = String(queryOrURL);
             } else {
               const u = new URL(location.href);
-              q = u.searchParams.get('q') || '';
+              qRaw = u.searchParams.get('q') || '';
             }
           } catch (_) {}
-
-          // UI 側の入力やモーダルからもフォールバック取得
-          if (!q) {
+          if (!qRaw) {
             const si = typeof getActiveSearchInput === 'function' ? getActiveSearchInput() : null;
-            if (si?.value) q = si.value;
+            if (si?.value) qRaw = si.value;
           }
-          if (!q && typeof buildQueryStringFromModal === 'function') {
-            q = buildQueryStringFromModal() || '';
+          if (!qRaw && typeof buildQueryStringFromModal === 'function') {
+            qRaw = buildQueryStringFromModal() || '';
           }
 
-          // 前後にスペース追加（演算子抽出や -word 検出を安定させる）
-          q = ' ' + q + ' ';
+          // 正規化（%xx/スマート引用/空白整形）
+          const rawNorm0 = normalizeForParse(qRaw);
+          let q = ` ${rawNorm0} `;
 
-          // 1) 除外語（-xxx）を拾って控えておく（のちに include から引く）
+          // 1) 除外語（-xxx）を控えてのちに差し引く
           const NEG = [];
           (q.match(/\s-\S+/g) || []).forEach(w => NEG.push(w.trim().slice(1)));
 
-          // 2) 引用フレーズを抽出（抽出したものは q から除去）
+          // 2) ORグループ（括弧）を先に抜き出し（引用を含む簡易対応）
+          const orGroups = [];
+          const groupRegex = /\((?:[^()"]+|"[^"]*")+\)/g;
+          let groupMatch;
+          while ((groupMatch = groupRegex.exec(q)) !== null) {
+            const inner = groupMatch[0].slice(1, -1); // (...) 中身
+            const parts = inner.split(/\s+OR\s+/i).map(s => s.trim()).filter(Boolean);
+            if (parts.length >= 2) {
+              const tokens = parts.flatMap(p => tokenizeQuotedWords(p)).filter(Boolean);
+              if (tokens.length) orGroups.push(tokens);
+            }
+          }
+          // グループは丸ごと削る（以降の抽出を安定化）
+          q = q.replace(groupRegex, ' ');
+
+          // 3) 純粋トップレベルOR（括弧なし）検出（例：`foo OR "bar baz" OR #tag`）
+          const pureOr = splitTopLevelOR(rawNorm0);
+          let pureOrTokens = [];
+          if (pureOr && isPureORQuery(rawNorm0)) {
+            pureOrTokens = pureOr.flatMap(p => tokenizeQuotedWords(p)).filter(Boolean);
+            if (pureOrTokens.length >= 2) {
+              orGroups.push(pureOrTokens);
+              // 純粋ORは required には入れない（後で words から除外）
+            }
+          }
+
+          // 4) 引用フレーズを抽出（exactはAND相当として扱う）
           const phrases = [];
           q = q.replace(/"([^"]+)"/g, (_m, p1) => {
-            phrases.push((p1 || '').trim());
+            if (p1 && (p1 = p1.trim())) phrases.push(p1);
             return ' ';
           });
 
-          // 3) ハッシュタグを抽出（抽出したものは q から除去）
+          // 5) ハッシュタグ抽出
           const hashtags = [];
           q = q.replace(/\s#([^\s)"]+)/g, (_m, p1) => {
-            hashtags.push('#' + p1);
+            const tag = '#' + p1;
+            hashtags.push(tag);
             return ' ';
           });
 
-          // 4) from:/to:/@ に明示されたユーザー（除外ではないもの）を収集
-          //    （後の「ハンドル名のみヒット除外」の“例外”判定に使う）
+          // 6) from:/to:/@（除外ではないもの）→ 例外判定用 opUsers
           const opUsers = new Set();
-          q.replace(/\s(?:from:|to:|@)([^\s()]+)/g, (m, user) => {
-            // 先頭が " -" なら除外指定なのでスキップ
-            if (!m.startsWith(' -')) opUsers.add(String(user || '').toLowerCase());
+          rawNorm0.replace(/(?:^|\s)(?:from:|to:|@)([^\s()]+)/g, (m, user) => {
+            // 直前が "-" の否定演算子なら除外（例: "-from:foo"）
+            if (!/^\s*-/.test(m)) {
+              opUsers.add(String(user || '').toLowerCase());
+            }
             return m;
           });
 
-          // 5) 言語/各種フィルタ/日付・数値演算子・アカウント演算子はクエリから除去
+          // 7) 言語/最小値/日付/フィルタ/アカウント演算子などを q から除去
           q = q
-            .replace(/\s(?:lang|min_replies|min_faves|min_retweets|since|until):[^\s]+/g, ' ')
+            .replace(/\s(?:lang|min_replies|min_faves|min_retweets|since|until):[^\s]+/gi, ' ')
             .replace(/\s(?:is:verified|filter:(?:links|images|videos|replies)|include:replies|-filter:replies)\b/gi, ' ')
-            .replace(/\s(?:from:|to:|@)[^\s()]+/g, ' ');
+            .replace(/\s(?:from:|to:|@)[^\s()]+/gi, ' ')
+            .replace(/[()（）]/g, ' ')
+            .replace(/\bOR\b/gi, ' ');
 
-          // 6) 丸括弧（半角/全角）と OR は “語” になる前に取り除く
-          q = q.replace(/[()（）]/g, ' ').replace(/\bOR\b/gi, ' ');
+          // 8) 残りを単語化（句読点剥がし。#は温存済み）
+          const trimPunctKeepHash = (s) => {
+            if (!s) return '';
+            if (s.startsWith('#')) return s;
+            return s.replace(/^[\p{P}\p{S}]+/gu, '').replace(/[\p{P}\p{S}]+$/gu, '');
+          };
 
-          // 7) 残ったものを単語に分割
           let words = q
             .split(/\s+/)
             .map(s => s.trim())
+            .filter(Boolean)
+            .map(trimPunctKeepHash)
             .filter(Boolean);
 
-          // 8) 語の前後の記号を剥がす（# はハッシュタグで別管理なので先頭 # は温存）
-          //    ※ Unicode プロパティエスケープ使用（要 "u" フラグ対応ブラウザ。ダメなら簡易版に差し替え可）
-          const trimPunctKeepHash = (s) => {
-            if (!s) return '';
-            if (s.startsWith('#')) return s; // # は温存
-            return s
-              .replace(/^[\p{P}\p{S}]+/gu, '')  // 先頭の句読点/記号
-              .replace(/[\p{P}\p{S}]+$/gu, ''); // 末尾の句読点/記号
-          };
-          words = words.map(trimPunctKeepHash).filter(Boolean);
-
-          // 9) 正規化（小文字化）と除外語の差し引き
+          // 9) NEG を差し引く
           const normalize = (s) => String(s || '').toLowerCase();
           const NEGnorm = NEG.map(normalize);
 
-          const includeTerms = new Set(
-            [...phrases, ...hashtags, ...words]
-              .map(trimPunctKeepHash)  // 念のため二度がけ（phrases/hashtags も整形）
-              .map(normalize)
-              .filter(s => s && !NEGnorm.includes(s))
-          );
+          // 10) 純粋ORで拾ったトークンは AND 候補から先に除外（重複/衝突を避ける）
+          if (pureOrTokens.length) {
+            const pureSet = new Set(pureOrTokens.map(t => t.toLowerCase()));
+            const stripQuote = (s) => s.replace(/^"(.*)"$/, '$1').toLowerCase();
+            words = words.filter(w => !pureSet.has(stripQuote(w)));
+          }
 
-          // 10) ハッシュタグ集合（"#xxx" の小文字化）
+          // 11) required（AND相当）を構成：フレーズ + ハッシュタグ + 通常語
+          const requiredTermsArr = [
+            ...phrases,
+            ...hashtags,
+            ...words.filter(w => !NEGnorm.includes(normalize(w))),
+          ];
+
+          // 12) includeTerms（従来互換）：required + OR全トークン平坦化
+          const includeTerms = new Set([
+            ...requiredTermsArr,
+            ...orGroups.flatMap(g => g),
+          ]);
+
+          // 13) hashtagSet
           const hashtagSet = new Set(
-            hashtags
-              .map(h => h.startsWith('#') ? h : ('#' + h))
-              .map(normalize)
+            hashtags.map(h => h.startsWith('#') ? h : ('#' + h)).map(normalize)
           );
 
-          return { includeTerms, opUsers, hashtagSet };
+          // 14) 返却（requiredはSet、orGroupsは配列の配列）
+          return {
+            requiredTerms: new Set(requiredTermsArr),
+            orGroups,                  // [ ['ente','セール'], ['foo','bar'] , ... ]
+            includeTerms,              // AND/ORすべてを平坦化した包含語集合
+            opUsers,
+            hashtagSet,
+          };
         }
-
         function pickTweetFields(article) {
             const body = article.querySelector('[data-testid="tweetText"]')?.innerText || '';
             let disp = '';
@@ -2061,15 +2101,22 @@
         }
 
         function shouldHideTweetByNameHandle(article, flags, tokens) {
-          const { includeTerms, opUsers, hashtagSet } = tokens || {};
+          const {
+            requiredTerms = new Set(),
+            orGroups = [],
+            includeTerms = new Set(),
+            opUsers,
+            hashtagSet
+          } = tokens || {};
+
           if (includeTerms.size === 0) return false;
 
           const { body, disp, handle, replyHandles } = pickTweetFields(article);
 
-          // 正規化
+          // 正規化系ユーティリティ（本文検索はスペース正規化）
           const normSpace = (s) => String(s || '')
             .toLowerCase()
-            .replace(/[_.\-]+/g, ' ')   // 区切りはスペース化
+            .replace(/[_.\-]+/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();
 
@@ -2079,74 +2126,116 @@
           const textBody = normSpace(body);
           const textName = normSpace(disp);
 
-          // ハンドル集合
-          const handlesRaw   = [handle, ...replyHandles].map(normId).filter(Boolean);       // ex: ["elon_musk", "x_ai_lab"]
-          const handlesSpace = handlesRaw.map(normSpace);                                   // ex: ["elon musk", "x ai lab"]
-          const handlesTok   = handlesSpace.map(h => h.split(' ').filter(Boolean));         // ex: [["elon","musk"], ["x","ai","lab"]]
-          const handlesTight = handlesRaw.map(stripNonAlnum);                               // ex: ["elonmusk","xailab"]
+          // ハンドル群の正規化
+          const handlesRaw   = [handle, ...replyHandles].map(normId).filter(Boolean);
+          const handlesSpace = handlesRaw.map(normSpace);
+          const handlesTok   = handlesSpace.map(h => h.split(' ').filter(Boolean));
+          const handlesTight = handlesRaw.map(stripNonAlnum);
 
-          // 本文に出ていれば表示確定（“名前/ハンドルのみヒット”ではない）
+          // 本文に現れた語（正規化済み）を控える
+          const inBody = new Set();
           for (const term of includeTerms) {
             const t = normSpace(term);
-            if (t && textBody.includes(t)) return false;
+            if (t && textBody.includes(t)) inBody.add(t);
           }
 
-          // --- 表示名ヒットの除外（短語ガードつき） ---
+          // 名前/ハンドルで命中した語を記録（本文に出ているものは除外して記録しない）
+          const inMeta = new Set(); // normSpace/stripNonAlnum の両方を入れる
+
+          const markMetaHit = (tSpace, tTight) => {
+            if (tSpace && !inBody.has(tSpace)) inMeta.add(tSpace);
+            if (tTight) inMeta.add(tTight);
+          };
+
+          // --- 表示名ヒットの記録（短語ガードつき） ---
           if (flags.name) {
             for (const term of includeTerms) {
               const t = normSpace(term);
               if (!t) continue;
-              // 2文字以下の英字のみはスキップ（過剰除外防止）
+              // 2文字以下の英字のみは無視（過剰除外防止）
               if (/^[a-z]{1,2}$/.test(t)) continue;
-              if (textName.includes(t)) return true;
+              if (textName.includes(t) && !inBody.has(t)) {
+                markMetaHit(t, null);
+              }
             }
           }
 
-          // --- @ユーザー名ヒットの除外（演算子例外 + 短語ガード + 境界意識） ---
+          // --- @ユーザー名ヒットの記録（演算子例外/短語ガード/境界） ---
           if (flags.handle) {
             for (const term of includeTerms) {
               const raw = String(term || '');
-              // ハッシュタグは（"#"付き or 事前解析でタグ認定）なら常に除外
               const rawLC = raw.trim().toLowerCase();
+
+              // ハッシュタグは対象外
               if (rawLC.startsWith('#') || (hashtagSet && hashtagSet.has(rawLC.startsWith('#') ? rawLC : '#' + rawLC))) {
                 continue;
               }
+
               const bare = raw.replace(/^@/, '').toLowerCase();
+              if (opUsers && opUsers.has(bare)) continue; // from:/to:/@ 明示は例外
 
-              // 明示（from:/to:/@）している語は例外
-              if (opUsers.has(bare)) continue;
+              const tSpace = normSpace(raw);
+              const tTight = stripNonAlnum(raw);
 
-              const tSpace = normSpace(raw);       // "john doe" / "musk"
-              const tTight = stripNonAlnum(raw);   // "johndoe" / "musk"
-
-              // ── 短語ガード：英字だけで長さ < 3 の単語は無視（例: ai, it, go）
+              // 短語ガード：英数のみで長さ<3は無視
               if (/^[a-z0-9]+$/.test(tTight) && tTight.length < 3) continue;
 
-              // 1) トークン（_ 分割）一致 or 連続トークン一致
+              // 1) トークン一致/連続トークン一致
               if (tSpace) {
-                const tTokens = tSpace.split(' ').filter(Boolean); // ["john","doe"] or ["musk"]
+                const tTokens = tSpace.split(' ').filter(Boolean);
                 for (const hTokens of handlesTok) {
                   if (tTokens.length === 1) {
-                    // 単語一致：完全一致のみ（部分一致は暴発するためNG）
-                    if (hTokens.some(tok => tok === tTokens[0])) return true;
+                    if (hTokens.some(tok => tok === tTokens[0]) && !inBody.has(tSpace)) {
+                      markMetaHit(tSpace, null);
+                      break;
+                    }
                   } else {
-                    // 連続トークン一致："john doe" → ["john","doe"] が連続で出るか
                     for (let i = 0; i + tTokens.length <= hTokens.length; i++) {
                       let ok = true;
                       for (let j = 0; j < tTokens.length; j++) {
                         if (hTokens[i + j] !== tTokens[j]) { ok = false; break; }
                       }
-                      if (ok) return true;
+                      if (ok && !inBody.has(tSpace)) {
+                        markMetaHit(tSpace, null);
+                        break;
+                      }
                     }
                   }
                 }
               }
 
-              // 2) 非英数字除去の“完全一致”のみ（部分一致NG）
-              if (tTight && handlesTight.some(h => h === tTight)) return true;
+              // 2) 非英数字除去の完全一致（部分一致は不可）
+              if (tTight && handlesTight.some(h => h === tTight) && !(tSpace && inBody.has(tSpace))) {
+                markMetaHit(tSpace, tTight);
+              }
             }
           }
 
+          // === 最終判定 ===
+          // AND（requiredTerms）: “本文に出ていない & metaでのみヒット” が1語でもあれば隠す
+          for (const t of requiredTerms) {
+            const s = normSpace(t);
+            if (s && !inBody.has(s) && (inMeta.has(s) || inMeta.has(stripNonAlnum(t)))) {
+              return true;
+            }
+          }
+
+          // OR（orGroups）: 各グループが「本文で満たされていないのに metaだけで満たされる」場合は隠す
+          for (const group of orGroups) {
+            let anyBody = false;
+            let anyMeta = false;
+            for (const w of group) {
+              const s = normSpace(w);
+              const tight = stripNonAlnum(w);
+              if (s && inBody.has(s)) anyBody = true;
+              if (s && inMeta.has(s)) anyMeta = true;
+              if (tight && inMeta.has(tight)) anyMeta = true;
+              if (anyBody && anyMeta) break;
+            }
+            if (!anyBody && anyMeta) return true;
+          }
+
+          // ここまで来たら隠さない
           return false;
         }
 
