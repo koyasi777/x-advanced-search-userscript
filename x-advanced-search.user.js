@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.8.0
+// @version      4.8.1
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -3141,14 +3141,14 @@
         const accountsEmptyEl = document.getElementById('adv-accounts-empty');
         const accountsListEl  = document.getElementById('adv-accounts-list');
 
-        accountsListEl?.addEventListener('drop', () => {
-          const orderIds = [...accountsListEl.querySelectorAll('.adv-item')].map(el => el.dataset.id);
-          const list = loadAccounts();
-          const map = Object.fromEntries(list.map(x => [x.id, x]));
-          const reordered = orderIds.map(id => map[id]).filter(Boolean);
-          saveAccounts(reordered);
-          showToast(i18n.t('toastReordered'));
-        });
+        // accountsListEl?.addEventListener('drop', () => {
+        //   const orderIds = [...accountsListEl.querySelectorAll('.adv-item')].map(el => el.dataset.id);
+        //   const list = loadAccounts();
+        //   const map = Object.fromEntries(list.map(x => [x.id, x]));
+        //   const reordered = orderIds.map(id => map[id]).filter(Boolean);
+        //   saveAccounts(reordered);
+        //   showToast(i18n.t('toastReordered'));
+        // });
 
         function getProfileHandleFromURL(href = location.href) {
           try {
@@ -3227,10 +3227,14 @@
           const moreBtn = document.querySelector('button[data-testid="userActions"]');
           if (!moreBtn) return;
 
-          if (moreBtn.parentElement?.querySelector?.('#adv-add-account-btn')) {
-            profileButtonInstalledFor = handle;
-            return;
-          }
+        const parent = moreBtn.parentElement;
+        if (!parent) return; // 親コンテナがなければ挿入もできない
+
+        // 既存のボタンが残っていれば、ハンドルに関わらず強制的に削除する
+        const existingBtn = parent.querySelector('#adv-add-account-btn');
+        if (existingBtn) {
+            existingBtn.remove();
+        }
 
           const btn = document.createElement('button');
           btn.id = 'adv-add-account-btn';
@@ -3275,7 +3279,8 @@
             else if (ret === 'exists') showToast(i18n.t('toastAccountExists'));
           });
 
-          moreBtn.parentElement?.insertBefore(btn, moreBtn);
+          // moreBtn.parentElement?.insertBefore(btn, moreBtn);
+        parent.insertBefore(btn, moreBtn); // parent変数を使用
           profileButtonInstalledFor = handle;
 
           // プロフィールに来たタイミングで自動同期
@@ -3737,14 +3742,14 @@
           }
         }
 
-        advListsListEl?.addEventListener('drop', () => {
-          const orderIds = [...advListsListEl.querySelectorAll('.adv-item')].map(el => el.dataset.id);
-          const list = loadLists();
-          const map = Object.fromEntries(list.map(x => [x.id, x]));
-          const reordered = orderIds.map(id => map[id]).filter(Boolean);
-          saveLists(reordered);
-          showToast(i18n.t('toastReordered'));
-        });
+        // advListsListEl?.addEventListener('drop', () => {
+        //   const orderIds = [...advListsListEl.querySelectorAll('.adv-item')].map(el => el.dataset.id);
+        //   const list = loadLists();
+        //   const map = Object.fromEntries(list.map(x => [x.id, x]));
+        //   const reordered = orderIds.map(id => map[id]).filter(Boolean);
+        //   saveLists(reordered);
+        //   showToast(i18n.t('toastReordered'));
+        // });
 
         const isListPath = (pathname = location.pathname) => /^\/i\/lists\/\d+\/?$/.test(pathname);
 
@@ -3825,10 +3830,14 @@
           const shareBtn = document.querySelector('button[data-testid="share-button"]');
           if (!shareBtn) return;
 
-          if (shareBtn.parentElement?.querySelector?.('#adv-add-list-btn')) {
-            listButtonInstalledAt = location.pathname;
-            return;
-          }
+        const parent = shareBtn.parentElement;
+        if (!parent) return;
+
+        // 既存のボタンが残っていれば、強制的に削除する
+        const existingBtn = parent.querySelector('#adv-add-list-btn');
+        if (existingBtn) {
+            existingBtn.remove();
+        }
 
           const btn = document.createElement('button');
           btn.id = 'adv-add-list-btn';
@@ -3873,7 +3882,8 @@
           });
 
           // 左隣に設置
-          shareBtn.parentElement?.insertBefore(btn, shareBtn);
+          // shareBtn.parentElement?.insertBefore(btn, shareBtn);
+        parent.insertBefore(btn, shareBtn); // parent変数を使用
 
           listButtonInstalledAt = location.pathname;
         }
