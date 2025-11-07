@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.8.2
+// @version      4.8.3
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -2605,15 +2605,6 @@
             ev.dataTransfer.effectAllowed = 'move';
           });
           row.addEventListener('dragend', () => row.classList.remove('dragging'));
-          row.addEventListener('dragover', (ev) => {
-            ev.preventDefault();
-            const container = row.parentElement;
-            const dragging = container?.querySelector('.dragging');
-            if (!dragging) return;
-            const after = getDragAfterElement(container, ev.clientY);
-            if (after == null) container.appendChild(dragging);
-            else container.insertBefore(dragging, after);
-          });
 
           return row;
         }
@@ -2795,16 +2786,51 @@
               }
             });
 
-            // アイテム並び替え保存（Unassigned 内のアイテム順は全体順に反映）
-            list.addEventListener('drop', () => {
+            // アイテム並び替え 兼 Unassigned への移動
+            list.addEventListener('dragover', ev => {
+              ev.preventDefault(); // リスト領域全体をドロップターゲットにする
+              // プレビュー（DOM移動）
+              const container = list;
+              const dragging = document.querySelector('.adv-item.dragging'); // グローバルで探す
+              if (!dragging) return;
+              if (dragging.contains(container)) return;
+
+              const after = getDragAfterElement(container, ev.clientY);
+              if (after == null) container.appendChild(dragging);
+              else container.insertBefore(dragging, after);
+            });
+
+            list.addEventListener('drop', (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              const draggedId = ev.dataTransfer.getData('text/plain');
+              if (!draggedId) return;
+
+              // 1. 全フォルダーから ID を削除
+              const fArr = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
+              for (const f_other of fArr) {
+                const o_before = f_other.order.length;
+                f_other.order = f_other.order.filter(id => id !== draggedId);
+                if (f_other.order.length !== o_before) f_other.ts = Date.now();
+              }
+              saveFolders(LISTS_FOLDERS_KEY, fArr);
+
+              // 2. Unassigned 内での順序を反映（Lists 全体の順序を更新）
               const orderIds = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
-              const cur = loadAccounts();
+              const cur = loadLists();
               const byId = Object.fromEntries(cur.map(x=>[x.id,x]));
               const reordered = orderIds.map(id => byId[id]).filter(Boolean);
-              // 先頭に来るように（unshift で入れているのでほぼ既定通り）
+
+              if (!reordered.some(it => it.id === draggedId)) {
+                const item = byId[draggedId];
+                if (item) reordered.push(item);
+              }
+
               const others = cur.filter(x => !reordered.some(y=>y.id===x.id));
-              saveAccounts([...reordered, ...others]);
+              saveLists([...reordered, ...others]);
               showToast(i18n.t('toastReordered'));
+
+              renderLists();
             });
 
             return sec;
@@ -2915,12 +2941,56 @@
             const itemsInFolder = folder.order.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
             itemsInFolder.forEach(it => list.appendChild(renderAccountRow(it)));
 
-            // フォルダ内の並び保存
-            list.addEventListener('drop', () => {
+            // フォルダ内の並び保存 兼 フォルダへの移動
+            list.addEventListener('dragover', ev => {
+              ev.preventDefault(); // リスト領域全体をドロップターゲットにする
+              // プレビュー（DOM移動）
+              const container = list;
+              const dragging = document.querySelector('.adv-item.dragging'); // グローバルで探す
+              if (!dragging) return;
+              // ドロップ先が自分自身（または自分の子孫）でないことを確認
+
+              const after = getDragAfterElement(container, ev.clientY);
+              if (after == null) container.appendChild(dragging);
+              else container.insertBefore(dragging, after);
+            });
+
+            list.addEventListener('drop', (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation(); // ヘッダーへの drop イベント伝播を止める
+              const draggedId = ev.dataTransfer.getData('text/plain');
+              if (!draggedId) return;
+
+              // newOrder は DOM の順序から取得
               const newOrder = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
+              // dragover で DOM は移動済みのはず
+
               const fArr = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
               const f = fArr.find(x=>x.id===folder.id);
-              if (f) { f.order = newOrder; f.ts = Date.now(); saveFolders(ACCOUNTS_FOLDERS_KEY, fArr); showToast(i18n.t('toastReordered')); }
+              if (!f) return;
+
+              const isMove = !f.order.includes(draggedId); // このフォルダに元々無ければ「移動」
+
+              if (isMove) {
+                // 他の全フォルダから ID を削除
+                for (const f_other of fArr) {
+                  if (f_other.id === folder.id) continue; // 自分自身は除外
+                  const o_before = f_other.order.length;
+                  f_other.order = f_other.order.filter(id => id !== draggedId);
+                  if (f_other.order.length !== o_before) f_other.ts = Date.now();
+                }
+              }
+
+              // このフォルダの順序を DOM の順序で更新
+              f.order = newOrder;
+              f.ts = Date.now();
+              saveFolders(ACCOUNTS_FOLDERS_KEY, fArr);
+              showToast(i18n.t('toastReordered'));
+
+              if (isMove) {
+                // 「移動」の場合は、DOM要素が重複する可能性があるため、再描画してクリーンにする
+                renderAccounts();
+              }
             });
 
             section.appendChild(header);
@@ -2996,15 +3066,6 @@
             ev.dataTransfer.effectAllowed = 'move';
           });
           row.addEventListener('dragend', () => row.classList.remove('dragging'));
-          row.addEventListener('dragover', (ev) => {
-            ev.preventDefault();
-            const container = row.parentElement;
-            const dragging = container?.querySelector('.dragging');
-            if (!dragging) return;
-            const after = getDragAfterElement(container, ev.clientY);
-            if (after == null) container.appendChild(dragging);
-            else container.insertBefore(dragging, after);
-          });
 
           return row;
         }
@@ -3557,14 +3618,53 @@
               }
             });
 
-            list.addEventListener('drop', () => {
+            // アイテム並び替え 兼 Unassigned への移動
+            list.addEventListener('dragover', ev => {
+              ev.preventDefault(); // リスト領域全体をドロップターゲットにする
+              // プレビュー（DOM移動）
+              const container = list;
+              const dragging = document.querySelector('.adv-item.dragging'); // グローバルで探す
+              if (!dragging) return;
+              if (dragging.contains(container)) return;
+
+              const after = getDragAfterElement(container, ev.clientY);
+              if (after == null) container.appendChild(dragging);
+              else container.insertBefore(dragging, after);
+            });
+
+            list.addEventListener('drop', (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              const draggedId = ev.dataTransfer.getData('text/plain');
+              if (!draggedId) return;
+
+              // 1. 全フォルダーから ID を削除
+              const fArr = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
+              for (const f_other of fArr) {
+                const o_before = f_other.order.length;
+                f_other.order = f_other.order.filter(id => id !== draggedId);
+                if (f_other.order.length !== o_before) f_other.ts = Date.now();
+              }
+              saveFolders(ACCOUNTS_FOLDERS_KEY, fArr);
+
+              // 2. Unassigned 内での順序を反映（Accounts 全体の順序を更新）
               const orderIds = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
-              const cur = loadLists();
+              const cur = loadAccounts();
               const byId = Object.fromEntries(cur.map(x=>[x.id,x]));
               const reordered = orderIds.map(id => byId[id]).filter(Boolean);
+
+              // reordered に draggedId が含まれていなければ追加（DOM操作が間に合わなかった場合）
+              if (!reordered.some(it => it.id === draggedId)) {
+                const item = byId[draggedId];
+                if (item) reordered.push(item);
+              }
+
               const others = cur.filter(x => !reordered.some(y=>y.id===x.id));
-              saveLists([...reordered, ...others]);
+              saveAccounts([...reordered, ...others]);
               showToast(i18n.t('toastReordered'));
+
+              // 再描画してクリーンにする
+              renderAccounts();
             });
 
             return sec;
@@ -3675,11 +3775,53 @@
             const itemsInFolder = folder.order.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
             itemsInFolder.forEach(it => list.appendChild(renderListRow(it)));
 
-            list.addEventListener('drop', () => {
+            // フォルダ内の並び保存 兼 フォルダへの移動
+            list.addEventListener('dragover', ev => {
+              ev.preventDefault(); // リスト領域全体をドロップターゲットにする
+              // プレビュー（DOM移動）
+              const container = list;
+              const dragging = document.querySelector('.adv-item.dragging'); // グローバルで探す
+              if (!dragging) return;
+              if (dragging.contains(container)) return;
+
+              const after = getDragAfterElement(container, ev.clientY);
+              if (after == null) container.appendChild(dragging);
+              else container.insertBefore(dragging, after);
+            });
+
+            list.addEventListener('drop', (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation(); // ヘッダーへの drop イベント伝播を止める
+              const draggedId = ev.dataTransfer.getData('text/plain');
+              if (!draggedId) return;
+
               const newOrder = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
+
               const fArr = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
               const f = fArr.find(x=>x.id===folder.id);
-              if (f) { f.order = newOrder; f.ts = Date.now(); saveFolders(LISTS_FOLDERS_KEY, fArr); showToast(i18n.t('toastReordered')); }
+              if (!f) return;
+
+              const isMove = !f.order.includes(draggedId); // このフォルダに元々無ければ「移動」
+
+              if (isMove) {
+                // 他の全フォルダから ID を削除
+                for (const f_other of fArr) {
+                  if (f_other.id === folder.id) continue;
+                  const o_before = f_other.order.length;
+                  f_other.order = f_other.order.filter(id => id !== draggedId);
+                  if (f_other.order.length !== o_before) f_other.ts = Date.now();
+                }
+              }
+
+              // このフォルダの順序を DOM の順序で更新
+              f.order = newOrder;
+              f.ts = Date.now();
+              saveFolders(LISTS_FOLDERS_KEY, fArr);
+              showToast(i18n.t('toastReordered'));
+
+              if (isMove) {
+                renderLists();
+              }
             });
 
             section.appendChild(header);
