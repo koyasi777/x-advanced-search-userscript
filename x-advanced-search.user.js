@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.8.1
+// @version      4.8.2
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -3153,9 +3153,36 @@
         function getProfileHandleFromURL(href = location.href) {
           try {
             const u = new URL(href, location.origin);
-            const m = u.pathname.match(/^\/([A-Za-z0-9_]{1,50})\/?$/);
-            return m ? m[1] : '';
-          } catch { return ''; }
+            const segs = u.pathname.split('/').filter(Boolean);
+            if (segs.length === 0) return '';
+
+            // 先頭セグメントを候補にする
+            const first = segs[0];
+
+            // 明らかな非プロフィールの予約セグメントを除外
+            const RESERVED = new Set([
+              'home','explore','notifications','messages','i','settings',
+              'compose','search','login','signup','tos','privacy','about'
+            ]);
+            if (RESERVED.has(first)) return '';
+
+            // ユーザー名パターン: プロフ直下/配下タブ（/with_replies, /media, /likes 等）を許容
+            if (/^[A-Za-z0-9_]{1,50}$/.test(first)) {
+              return first; // /<handle> や /<handle>/with_replies /media /likes ... をすべてカバー
+            }
+
+            return '';
+          } catch {
+            // DOM フォールバック
+            try {
+              const a = document.querySelector('[data-testid="User-Name"] a[href^="/"], [data-testid="UserName"] a[href^="/"]');
+              if (a) {
+                const m = (a.getAttribute('href') || '').match(/^\/([A-Za-z0-9_]{1,50})/);
+                if (m) return m[1];
+              }
+            } catch (_) {}
+            return '';
+          }
         }
 
         // 指定ハンドルのプロフィール領域だけをスコープにして name / avatar を取得
@@ -3222,19 +3249,22 @@
         function ensureProfileAddButton(force = false) {
           const handle = getProfileHandleFromURL();
           if (!handle) return;
-          if (!force && profileButtonInstalledFor === handle) return;
+            // 同ハンドル内タブ遷移時でも、既存ボタンが消えていたら再設置できるようにする
+          if (!force && profileButtonInstalledFor === handle && document.getElementById('adv-add-account-btn')) {
+            return;
+          }
 
           const moreBtn = document.querySelector('button[data-testid="userActions"]');
           if (!moreBtn) return;
 
-        const parent = moreBtn.parentElement;
-        if (!parent) return; // 親コンテナがなければ挿入もできない
+          const parent = moreBtn.parentElement;
+          if (!parent) return; // 親コンテナがなければ挿入もできない
 
-        // 既存のボタンが残っていれば、ハンドルに関わらず強制的に削除する
-        const existingBtn = parent.querySelector('#adv-add-account-btn');
-        if (existingBtn) {
-            existingBtn.remove();
-        }
+          // 既存のボタンが残っていれば、ハンドルに関わらず強制的に削除する
+          const existingBtn = parent.querySelector('#adv-add-account-btn');
+          if (existingBtn) {
+              existingBtn.remove();
+          }
 
           const btn = document.createElement('button');
           btn.id = 'adv-add-account-btn';
