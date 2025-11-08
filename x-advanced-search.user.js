@@ -4,13 +4,13 @@
 // @name:en      X.com (Twitter) Advanced Search Modal 🔍
 // @name:zh-CN   X.com（Twitter）高级搜索模态框 🔍
 // @name:zh-TW   X.com（Twitter）高級搜尋模態框 🔍
-// @name:ko      X.com (Twitter) 고급 검색 モ달 🔍
+// @name:ko      X.com (Twitter) 고급 검색 모달 🔍
 // @name:fr      X.com (Twitter) : Modal de recherche avancée 🔍
 // @name:es      Modal de búsqueda avanzada para X.com (Twitter) 🔍
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.8.6
+// @version      4.8.7
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -923,6 +923,17 @@
           outline-offset: -8px;
         }
 
+        /* === Tab Drag & Drop === */
+        .adv-tab-btn {
+          user-select: none;
+        }
+        .adv-tab-btn:active {
+          cursor: grabbing;
+        }
+        .adv-tab-btn.dragging {
+          opacity: .5;
+        }
+
     `);
 
     const modalHTML = `
@@ -1463,6 +1474,7 @@
         // マスターON/OFF（全体の適用を止めるだけ。各エントリの enabled は保持）
         const MUTE_MASTER_KEY = 'advMuteMasterEnabled_v1';
         const LAST_TAB_KEY = 'advSearchLastTab_v1';
+        const TABS_ORDER_KEY = 'advTabsOrder_v1';
         const loadMuteMaster = () => { try { return kv.get(MUTE_MASTER_KEY, '1') === '1'; } catch(_) { return true; } };
         const saveMuteMaster = (on) => { try { kv.set(MUTE_MASTER_KEY, on ? '1' : '0'); } catch(_) {} };
 
@@ -1477,6 +1489,58 @@
         // Get tab panels for background drop
         const tabAccountsPanel = document.getElementById('adv-tab-accounts');
         const tabListsPanel = document.getElementById('adv-tab-lists');
+
+        // タブの順序を読み込んで適用
+        (function applyTabsOrder() {
+          const tabsContainer = document.querySelector('.adv-tabs');
+          if (!tabsContainer) return;
+
+          // 現在のボタンを data-tab をキーにした Map として保持
+          const currentButtons = new Map();
+          const defaultOrder = [];
+          tabsContainer.querySelectorAll('.adv-tab-btn[data-tab]').forEach(btn => {
+              const tabName = btn.dataset.tab;
+              if (tabName) {
+                  currentButtons.set(tabName, btn);
+                  defaultOrder.push(tabName);
+              }
+          });
+
+          // 保存された順序を読み込む
+          const savedOrder = loadJSON(TABS_ORDER_KEY, defaultOrder);
+
+          // 保存された順序を検証し、不足分を補う
+          const finalOrder = [];
+          const seen = new Set();
+          // 1. 保存された順序のうち、現在も存在するものを追加
+          savedOrder.forEach(tabName => {
+              if (currentButtons.has(tabName)) {
+                  finalOrder.push(tabName);
+                  seen.add(tabName);
+              }
+          });
+          // 2. デフォルト順序のうち、まだ追加されていないもの（＝新しいタブ）を末尾に追加
+          defaultOrder.forEach(tabName => {
+              if (!seen.has(tabName)) {
+                  finalOrder.push(tabName);
+              }
+          });
+
+          // 順序が実際に変更されているか確認
+          if (JSON.stringify(savedOrder) !== JSON.stringify(finalOrder)) {
+              saveJSON(TABS_ORDER_KEY, finalOrder);
+          }
+
+          // DOMを並び替える
+          finalOrder.forEach(tabName => {
+              const btn = currentButtons.get(tabName);
+              if (btn) {
+                  tabsContainer.appendChild(btn);
+              }
+          });
+          // tabButtons 配列も再取得（順序が変更されたため）
+          tabButtons.splice(0, tabButtons.length, ...Array.from(document.querySelectorAll('.adv-tab-btn')));
+        })();
 
         const saveModalRelativeState = () => {
             if (modal.style.display === 'none') {
@@ -2028,7 +2092,65 @@
             if (name === 'mute') renderMuted();
             if (name === 'search') updateSaveButtonState();
         };
-        tabButtons.forEach(btn => btn.addEventListener('click', (e)=> { e.preventDefault(); activateTab(btn.dataset.tab); }));
+
+        // タブのクリックイベントとD&Dイベントリスナーをセットアップ
+        (function setupTabDragAndDrop() {
+            const tabsContainer = document.querySelector('.adv-tabs');
+            if (!tabsContainer) return;
+
+            tabButtons.forEach(btn => {
+                // 1. クリックイベント（既存のロジック）
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    activateTab(btn.dataset.tab);
+                });
+
+                // 2. D&Dイベント（新規）
+                btn.draggable = true;
+
+                btn.addEventListener('dragstart', (ev) => {
+                    btn.classList.add('dragging');
+                    ev.dataTransfer.setData('text/plain', btn.dataset.tab);
+                    ev.dataTransfer.effectAllowed = 'move';
+                });
+
+                btn.addEventListener('dragend', () => {
+                    btn.classList.remove('dragging');
+                });
+            });
+
+            tabsContainer.addEventListener('dragover', (ev) => {
+                ev.preventDefault();
+                const dragging = tabsContainer.querySelector('.adv-tab-btn.dragging');
+                if (!dragging) return;
+
+                // 水平方向の挿入位置を計算
+                const after = getDragAfterElementHorizontal(tabsContainer, ev.clientX, '.adv-tab-btn');
+                if (after == null) {
+                    tabsContainer.appendChild(dragging);
+                } else {
+                    tabsContainer.insertBefore(dragging, after);
+                }
+            });
+
+            tabsContainer.addEventListener('drop', (ev) => {
+                ev.preventDefault();
+                const dragging = tabsContainer.querySelector('.adv-tab-btn.dragging');
+                if (dragging) {
+                    dragging.classList.remove('dragging');
+                }
+
+                // 最終的な順序をDOMから読み取って保存
+                const newOrder = [...tabsContainer.querySelectorAll('.adv-tab-btn[data-tab]')]
+                    .map(btn => btn.dataset.tab)
+                    .filter(Boolean);
+
+                saveJSON(TABS_ORDER_KEY, newOrder);
+                // tabButtons 配列も更新
+                tabButtons.splice(0, tabButtons.length, ...Array.from(document.querySelectorAll('.adv-tab-btn')));
+                showToast(i18n.t('toastReordered'));
+            });
+        })();
 
         const scopeChipsHTML = (pf, lf) => {
             const chips = [];
@@ -2140,6 +2262,21 @@
             for (const el of els) {
                 const box = el.getBoundingClientRect();
                 const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    closest = { offset, element: el };
+                }
+            }
+            return closest.element;
+        };
+
+        // タブ並び替え（水平）用のヘルパー
+        const getDragAfterElementHorizontal = (container, x, selector) => {
+            const els = [...container.querySelectorAll(`${selector}:not(.dragging)`)];
+            let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+            for (const el of els) {
+                const box = el.getBoundingClientRect();
+                // X座標（水平位置）の中央で判定
+                const offset = x - box.left - box.width / 2;
                 if (offset < 0 && offset > closest.offset) {
                     closest = { offset, element: el };
                 }
