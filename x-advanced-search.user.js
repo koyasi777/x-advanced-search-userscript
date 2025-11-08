@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.8.7
+// @version      4.8.8
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -170,6 +170,14 @@
                 buttonAddList: "Add list",
                 toastListAdded: "List added.",
                 toastListExists: "Already added.",
+
+                /* History tab */
+                placeholderSearchHistory: "Search history (query)",
+                labelSortBy: "Sort by:",
+                sortNewest: "Newest first",
+                sortOldest: "Oldest first",
+                sortNameAsc: "Query (A-Z)",
+                sortNameDesc: "Query (Z-A)",
             },
             'ja': {
                 modalTitle: "高度な検索",
@@ -294,6 +302,14 @@
                 buttonAddList: "リストを追加",
                 toastListAdded: "リストを追加しました。",
                 toastListExists: "すでに追加済みです。",
+
+                /* History tab */
+                placeholderSearchHistory: "履歴を検索（クエリ）",
+                labelSortBy: "並び順:",
+                sortNewest: "新しい順",
+                sortOldest: "古い順",
+                sortNameAsc: "クエリ (昇順)",
+                sortNameDesc: "クエリ (降順)",
             },
             'zh-CN': {},
             'ko': {},
@@ -678,7 +694,38 @@
         .adv-modal-footer { justify-content:flex-end; }
         .adv-modal-footer .adv-modal-button#adv-save-button { margin-right:auto; }
 
-        .adv-tab-toolbar { display:flex; justify-content:flex-end; margin-bottom:8px; }
+        .adv-tab-toolbar {
+          display:flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-bottom:12px;
+          padding: 0 2px;
+        }
+        /* ツールバーの左側（検索・ソート） */
+        .adv-tab-toolbar-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex: 1 1 auto;
+          min-width: 150px;
+        }
+        /* ツールバーの右側（すべて削除ボタン） */
+        .adv-tab-toolbar-right {
+          display: flex;
+          flex: 0 0 auto;
+        }
+        /* 検索ボックスとセレクトボックスのスタイル（.adv-folder-toolbar内と共通化） */
+        .adv-tab-toolbar .adv-input {
+          background-color:var(--modal-input-bg,#202327); border:1px solid var(--modal-input-border,#38444d); border-radius:8px; padding:6px 10px; color:var(--modal-text-primary,#e7e9ea);
+          flex: 1;
+          min-width: 80px;
+        }
+        .adv-tab-toolbar .adv-select {
+          background-color:var(--modal-input-bg,#202327); border:1px solid var(--modal-input-border,#38444d); border-radius:8px; padding:6px 10px; color:var(--modal-text-primary,#e7e9ea);
+          flex: 0 1 auto;
+        }
 
         [data-testid="cellInnerDiv"][data-adv-hidden],
         article[data-adv-hidden] { display:none !important; }
@@ -1074,7 +1121,18 @@
 
                 <div class="adv-tab-content" id="adv-tab-history">
                     <div class="adv-tab-toolbar">
-                        <button id="adv-history-clear-all" class="adv-chip danger"></button>
+                        <div class="adv-tab-toolbar-left">
+                            <input id="adv-history-search" class="adv-input" type="text" data-i18n-placeholder="placeholderSearchHistory">
+                            <select id="adv-history-sort" class="adv-select" data-i18n-title="labelSortBy" title="Sort by:">
+                                <option value="newest" data-i18n="sortNewest"></option>
+                                <option value="oldest" data-i18n="sortOldest"></option>
+                                <option value="name_asc" data-i18n="sortNameAsc"></option>
+                                <option value="name_desc" data-i18n="sortNameDesc"></option>
+                            </select>
+                        </div>
+                        <div class="adv-tab-toolbar-right">
+                            <button id="adv-history-clear-all" class="adv-chip danger"></button>
+                        </div>
                     </div>
                     <div id="adv-history-empty" class="adv-item-sub"></div>
                     <div id="adv-history-list" class="adv-list"></div>
@@ -1154,6 +1212,7 @@
         };
 
         const trigger = document.createElement('button');
+        const HISTORY_SORT_KEY = 'advHistorySort_v1';
         trigger.id = 'advanced-search-trigger';
         trigger.type = 'button';
         trigger.innerHTML = SEARCH_SVG;
@@ -2161,12 +2220,41 @@
 
         const historyEmptyEl = document.getElementById('adv-history-empty');
         const historyListEl = document.getElementById('adv-history-list');
-        const renderHistory = () => {
-          const list = migrateList(loadJSON(HISTORY_KEY, []));
-          historyListEl.innerHTML = '';
-          historyEmptyEl.textContent = list.length ? '' : i18n.t('emptyHistory');
+        const historySearchEl = document.getElementById('adv-history-search');
+        const historySortEl = document.getElementById('adv-history-sort');
 
-          list.forEach(item => {
+        const renderHistory = () => {
+          const listAll = migrateList(loadJSON(HISTORY_KEY, []));
+
+          // 1. Get filter/sort values
+          const q = (historySearchEl?.value || '').toLowerCase().trim();
+          const sort = historySortEl?.value || kv.get(HISTORY_SORT_KEY, 'newest');
+          if (historySortEl && historySortEl.value !== sort) {
+            historySortEl.value = sort;
+          }
+
+          // 2. Filter
+          const listFiltered = q
+            ? listAll.filter(item => (item.q || '').toLowerCase().includes(q))
+            : listAll;
+
+          // 3. Sort
+          const listSorted = listFiltered.sort((a, b) => {
+            switch (sort) {
+              case 'oldest': return (a.ts || 0) - (b.ts || 0);
+              case 'name_asc': return (a.q || '').localeCompare(b.q || '');
+              case 'name_desc': return (b.q || '').localeCompare(a.q || '');
+              case 'newest':
+              default:
+                return (b.ts || 0) - (a.ts || 0);
+            }
+          });
+
+          // 4. Render
+          historyListEl.innerHTML = '';
+          historyEmptyEl.textContent = listAll.length === 0 ? i18n.t('emptyHistory') : '';
+
+          listSorted.forEach(item => {
             const row = document.createElement('div');
             row.className = 'adv-item';
             row.dataset.id = item.id;
@@ -2201,6 +2289,18 @@
         };
 
         historyClearAllBtn.addEventListener('click', clearAllHistory);
+
+        // 履歴タブの検索とソートのイベントリスナー
+        if (historySearchEl) {
+          historySearchEl.addEventListener('input', debounce(renderHistory, 150));
+        }
+        if (historySortEl) {
+          historySortEl.value = kv.get(HISTORY_SORT_KEY, 'newest'); // 初期値を設定
+          historySortEl.addEventListener('change', () => {
+            kv.set(HISTORY_SORT_KEY, historySortEl.value);
+            renderHistory();
+          });
+        }
 
         const savedEmptyEl = document.getElementById('adv-saved-empty');
         const savedListEl = document.getElementById('adv-saved-list');
