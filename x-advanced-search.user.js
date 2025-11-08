@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.8.9
+// @version      4.9.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -1340,90 +1340,87 @@
             });
         };
 
+        // --- generic unassign helper (de-duplicate) ---
+        // Remove an item from all folders under FOLDERS_KEY,
+        // then move the item to the top of the master list (Unassigned head).
+        function unassignItemGeneric({ FOLDERS_KEY, loadItems, saveItems, itemId }) {
+            // 1) remove from every folder
+            const folders = loadFolders(FOLDERS_KEY, '');
+            let changed = false;
+            for (const f of folders) {
+                const before = f.order.length;
+                f.order = f.order.filter(id => id !== itemId);
+                if (f.order.length !== before) { f.ts = Date.now(); changed = true; }
+            }
+            if (changed) saveFolders(FOLDERS_KEY, folders);
+
+            // 2) bump the item to the head of the master list (Unassigned first)
+            const all = loadItems();
+            const hit = all.find(x => x.id === itemId);
+            if (hit) {
+                const next = [hit, ...all.filter(x => x.id !== itemId)];
+                saveItems(next);
+            }
+        }
+
+        // --- generic "move item to a folder" helper ---
+        function moveItemToFolderGeneric({ FOLDERS_KEY, itemId, folderId }) {
+            const fArr = loadFolders(FOLDERS_KEY, '');
+            // remove from every folder
+            for (const f of fArr) {
+                const before = f.order.length;
+                f.order = f.order.filter(id => id !== itemId);
+                if (f.order.length !== before) f.ts = Date.now();
+            }
+            // add to head of the target folder
+            const target = fArr.find(f => f.id === folderId);
+            if (target) {
+                target.order = [itemId, ...target.order.filter(id => id !== itemId)];
+                target.ts = Date.now();
+            }
+            saveFolders(FOLDERS_KEY, fArr);
+        }
+
+
         // 未分類化ロジックを共通化 (Account用)
         const unassignAccount = (draggedId) => {
-            // 1. すべてのフォルダからこのIDを削除
-            const fArr = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
-            let changed = false;
-             for (const f_other of fArr) {
-              const o_before = f_other.order.length;
-              f_other.order = f_other.order.filter(id => id !== draggedId);
-              if (f_other.order.length !== o_before) {
-                f_other.ts = Date.now();
-                changed = true;
-              }
-            }
-            if (changed) {
-              saveFolders(ACCOUNTS_FOLDERS_KEY, fArr);
-            }
-
-            // 2. マスターリストの順序を変更し、Unassigned内で先頭に来るようにする
-            const cur = loadAccounts();
-            const item = cur.find(x => x.id === draggedId);
-            if (item) {
-              const others = cur.filter(x => x.id !== draggedId);
-              saveAccounts([item, ...others]);
-            }
+            unassignItemGeneric({
+                FOLDERS_KEY: ACCOUNTS_FOLDERS_KEY,
+                loadItems: loadAccounts,
+                saveItems: saveAccounts,
+                itemId: draggedId,
+            });
             showToast(i18n.t('toastReordered'));
             renderAccounts();
         };
 
+
         // 未分類化ロジックを共通化 (List用)
         const unassignList = (draggedId) => {
-            // 1. すべてのフォルダからこのIDを削除
-            const fArr = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
-            let changed = false;
-             for (const f_other of fArr) {
-              const o_before = f_other.order.length;
-              f_other.order = f_other.order.filter(id => id !== draggedId);
-              if (f_other.order.length !== o_before) {
-                f_other.ts = Date.now();
-                changed = true;
-              }
-            }
-            if (changed) {
-              saveFolders(LISTS_FOLDERS_KEY, fArr);
-            }
-
-            // 2. マスターリストの順序を変更
-            const cur = loadLists();
-            const item = cur.find(x => x.id === draggedId);
-            if (item) {
-              const others = cur.filter(x => x.id !== draggedId);
-              saveLists([item, ...others]);
-            }
+            unassignItemGeneric({
+                FOLDERS_KEY: LISTS_FOLDERS_KEY,
+                loadItems: loadLists,
+                saveItems: saveLists,
+                itemId: draggedId,
+            });
             showToast(i18n.t('toastReordered'));
             renderLists();
         };
 
         const ZOOM_STATE_KEY = 'advSearchZoom_v1';
+
         // 未分類化ロジックを共通化 (Saved用)
         const unassignSaved = (draggedId) => {
-            // 1. すべてのフォルダからこのIDを削除
-            const fArr = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches'); // defaultNameはi18n未対応だが互換性のため
-            let changed = false;
-             for (const f_other of fArr) {
-              const o_before = f_other.order.length;
-              f_other.order = f_other.order.filter(id => id !== draggedId);
-              if (f_other.order.length !== o_before) {
-                f_other.ts = Date.now();
-                changed = true;
-              }
-            }
-            if (changed) {
-              saveFolders(SAVED_FOLDERS_KEY, fArr);
-            }
-
-            // 2. マスターリストの順序を変更
-            const cur = migrateList(loadJSON(SAVED_KEY, [])); // loadSaved相当
-            const item = cur.find(x => x.id === draggedId);
-            if (item) {
-              const others = cur.filter(x => x.id !== draggedId);
-              saveJSON(SAVED_KEY, migrateList([item, ...others])); // saveSaved相当
-            }
+            unassignItemGeneric({
+                FOLDERS_KEY: SAVED_FOLDERS_KEY,
+                loadItems: () => migrateList(loadJSON(SAVED_KEY, [])),
+                saveItems: (arr) => saveJSON(SAVED_KEY, migrateList(arr)),
+                itemId: draggedId,
+            });
             showToast(i18n.t('toastReordered'));
             renderSaved();
         };
+
         let zoom = 1.0;
         const ZOOM_MIN = 0.5, ZOOM_MAX = 2.0, ZOOM_STEP = 0.1;
 
@@ -2553,43 +2550,26 @@
               else container.insertBefore(dragging, after);
             });
 
-            list.addEventListener('drop', handleDropOnUnassigned_Saved); // 変更
+            list.addEventListener('drop', handleDropOnUnassigned_Saved);
             sec.addEventListener('dragover', (ev) => {
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
               ev.preventDefault();
               ev.stopPropagation();
             });
-            sec.addEventListener('drop', handleDropOnUnassigned_Saved); // 変更
+            sec.addEventListener('drop', handleDropOnUnassigned_Saved);
 
             return sec;
           };
 
-          // === Saved フォルダ操作 (新規追加) ===
+          // === Saved フォルダ操作 ===
           function moveSavedToFolder(savedId, targetFolderId) {
-            try {
-              const items = migrateList(loadJSON(SAVED_KEY, []));
-              const folders = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches');
-              const idSet = new Set(items.map(a => a.id));
-              if (!idSet.has(savedId)) return;
-
-              for (const f of folders) {
-                const before = f.order.length;
-                f.order = f.order.filter(id => id !== savedId);
-                if (f.order.length !== before) f.ts = Date.now();
-              }
-
-              const target = folders.find(f => f.id === targetFolderId);
-              if (target) {
-                target.order = [savedId, ...target.order.filter(id => id !== savedId)];
-                target.ts = Date.now();
-              }
-
-              saveFolders(SAVED_FOLDERS_KEY, folders);
-              showToast(i18n.t('toastReordered'));
-              try { renderSaved(); } catch(_) {}
-            } catch (e) {
-              console.error('moveSavedToFolder failed', e);
-            }
+            moveItemToFolderGeneric({
+              FOLDERS_KEY: SAVED_FOLDERS_KEY,
+              itemId: savedId,
+              folderId: targetFolderId
+            });
+            showToast(i18n.t('toastReordered'));
+            try { renderSaved(); } catch(_) {}
           }
 
           const renderFolderSection = (folder) => {
@@ -2664,18 +2644,18 @@
             actions.querySelector('[data-action="rename"]').addEventListener('click', ()=>{
               const nm = prompt('New folder name', folder.name);
               if (!nm || !nm.trim()) return;
-              const fArr = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches'); // キー変更
+              const fArr = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches');
               const f = fArr.find(x=>x.id===folder.id); if (!f) return;
-              f.name = nm.trim(); f.ts = Date.now(); saveFolders(SAVED_FOLDERS_KEY, fArr); // キー変更
-              renderSaved(); showToast(i18n.t('updated')); // 変更
+              f.name = nm.trim(); f.ts = Date.now(); saveFolders(SAVED_FOLDERS_KEY, fArr);
+              renderSaved(); showToast(i18n.t('updated'));
             });
             actions.querySelector('[data-action="delete"]').addEventListener('click', ()=>{
               if (!confirm('Delete this folder? Items will become Unassigned.')) return;
-              let fArr = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches'); // キー変更
+              let fArr = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches');
               const idx = fArr.findIndex(x=>x.id===folder.id); if (idx<0) return;
               fArr.splice(idx,1);
-              saveFolders(SAVED_FOLDERS_KEY, fArr); // キー変更
-              renderSaved(); showToast(i18n.t('toastDeleted')); // 変更
+              saveFolders(SAVED_FOLDERS_KEY, fArr);
+              renderSaved(); showToast(i18n.t('toastDeleted'));
             });
 
             // フォルダ見出しにアイテムをドロップ → そのフォルダへ移動
@@ -2689,13 +2669,13 @@
               ev.preventDefault(); delete header.dataset.drop;
               const draggedId = ev.dataTransfer.getData('text/plain');
               if (!draggedId) return;
-              moveSavedToFolder(draggedId, folder.id); // 変更
+              moveSavedToFolder(draggedId, folder.id);
             });
 
             const list = document.createElement('div');
             list.className = 'adv-list';
             const itemsInFolder = folder.order.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
-            itemsInFolder.forEach(it => list.appendChild(renderSavedRow(it))); // 変更
+            itemsInFolder.forEach(it => list.appendChild(renderSavedRow(it)));
 
             // フォルダ内の並び保存 兼 フォルダへの移動
             list.addEventListener('dragover', ev => {
@@ -2718,7 +2698,7 @@
 
               const newOrder = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
 
-              const fArr = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches'); // キー変更
+              const fArr = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches');
               const f = fArr.find(x=>x.id===folder.id);
               if (!f) return;
 
@@ -2735,11 +2715,11 @@
 
               f.order = newOrder;
               f.ts = Date.now();
-              saveFolders(SAVED_FOLDERS_KEY, fArr); // キー変更
+              saveFolders(SAVED_FOLDERS_KEY, fArr);
               showToast(i18n.t('toastReordered'));
 
               if (isMove) {
-                renderSaved(); // 変更
+                renderSaved();
               }
             });
 
@@ -4672,65 +4652,24 @@
 
         // === Accounts フォルダ操作 ===
         function moveAccountToFolder(accountId, targetFolderId) {
-          try {
-            const accounts = loadAccounts();
-            const folders = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
-            const idSet = new Set(accounts.map(a => a.id));
-            if (!idSet.has(accountId)) return;
-
-            // すべてのフォルダから一旦抜く
-            for (const f of folders) {
-              const before = f.order.length;
-              f.order = f.order.filter(id => id !== accountId);
-              if (f.order.length !== before) f.ts = Date.now();
-            }
-
-            // 目標フォルダへ追加（無ければ root へ）
-            const target = folders.find(f => f.id === targetFolderId);
-            // targetが無ければ“未所属”にする＝どこにも入れない
-            if (target) {
-              target.order = [accountId, ...target.order.filter(id => id !== accountId)];
-              target.ts = Date.now();
-            }
-
-            saveFolders(ACCOUNTS_FOLDERS_KEY, folders);
-            showToast(i18n.t('toastReordered'));
-            // 再描画
-            try { renderAccounts(); } catch(_) {}
-          } catch (e) {
-            console.error('moveAccountToFolder failed', e);
-          }
+          moveItemToFolderGeneric({
+            FOLDERS_KEY: ACCOUNTS_FOLDERS_KEY,
+            itemId: accountId,
+            folderId: targetFolderId
+          });
+          showToast(i18n.t('toastReordered'));
+          try { renderAccounts(); } catch(_) {}
         }
 
         // === Lists フォルダ操作 ===
         function moveListToFolder(listId, targetFolderId) {
-          try {
-            const lists = loadLists();
-            const folders = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
-            const idSet = new Set(lists.map(a => a.id));
-            if (!idSet.has(listId)) return;
-
-            // すべてのフォルダから一旦抜く
-            for (const f of folders) {
-              const before = f.order.length;
-              f.order = f.order.filter(id => id !== listId);
-              if (f.order.length !== before) f.ts = Date.now();
-            }
-
-            // 目標フォルダへ追加（無ければ root へ）
-            const target = folders.find(f => f.id === targetFolderId);
-            if (target) {
-              target.order = [listId, ...target.order.filter(id => id !== listId)];
-              target.ts = Date.now();
-            }
-
-            saveFolders(LISTS_FOLDERS_KEY, folders);
-            showToast(i18n.t('toastReordered'));
-            // 再描画
-            try { renderLists(); } catch(_) {}
-          } catch (e) {
-            console.error('moveListToFolder failed', e);
-          }
+          moveItemToFolderGeneric({
+            FOLDERS_KEY: LISTS_FOLDERS_KEY,
+            itemId: listId,
+            folderId: targetFolderId
+          });
+          showToast(i18n.t('toastReordered'));
+          try { renderLists(); } catch(_) {}
         }
 
         // advListsListEl?.addEventListener('drop', () => {
