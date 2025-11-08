@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.8.4
+// @version      4.8.5
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -782,7 +782,7 @@
         .adv-mute-list.disabled .adv-mute-item.disabled {
           opacity: 1;    /* 子の追加の薄さを無効化（親のopacityのみが効く） */
           filter: none;  /* 子の追加グレースケールも無効化（親側のfilterのみ適用） */
-          /* 任意：ボーダーだけ通常色に戻したい場合 */
+          /* ボーダーだけ通常色に戻す */
           /* border-color: var(--modal-input-border,#38444d); */
         }
 
@@ -896,6 +896,7 @@
         /* ▼ Unassigned セクション（見出しなし・枠なし） */
         .adv-unassigned {
           margin-bottom: 10px;
+          min-height: 30px; /* ★ 空の時でもドロップできるように最小高さを確保 */
         }
         .adv-unassigned .adv-list {
           display: flex;
@@ -906,6 +907,22 @@
         .adv-unassigned.dragging-folder {
           opacity: .6;
         }
+
+        /* タブ背景およびリストコンテナ背景へのドロップハイライト */
+        #adv-tab-accounts.adv-bg-drop-active,
+        #adv-tab-lists.adv-bg-drop-active,
+        #adv-accounts-list.adv-bg-drop-active,
+        #adv-lists-list.adv-bg-drop-active {
+          outline: 2px dashed var(--modal-primary-color, #1d9bf0);
+          /* リストコンテナ側はパディングが無いためオフセットを小さく */
+          outline-offset: -4px;
+        }
+        /* タブパネル（上部余白）側は既存のオフセットを維持 */
+        #adv-tab-accounts.adv-bg-drop-active,
+        #adv-tab-lists.adv-bg-drop-active {
+          outline-offset: -8px;
+        }
+
     `);
 
     const modalHTML = `
@@ -1191,6 +1208,122 @@
 
         themeManager.observeChanges(modal, trigger);
 
+        // Accounts/Listsタブの背景をドロップターゲットにするためのヘルパー
+        const setupBackgroundDrop = (panel, host, unassignFunction) => {
+            const feedbackClass = 'adv-bg-drop-active';
+            const SECT_MIME = 'adv/folder'; // フォルダ並び替えD&DのMIME
+            const targets = [panel, host].filter(Boolean); // ★ パネルとホストの両方を対象にする
+
+            const onDragEnter = (ev) => {
+                // アイテム（text/plain）であり、セクション（adv/folder）ではない
+                if (ev.dataTransfer.types && !ev.dataTransfer.types.includes(SECT_MIME) && ev.dataTransfer.types.includes('text/plain')) {
+                    // ターゲットがパネル自身またはホスト自身（＝子要素の上ではない）
+                    if (targets.includes(ev.target)) {
+                        ev.target.classList.add(feedbackClass);
+                    }
+                }
+            };
+
+            const onDragLeave = (ev) => {
+                // ターゲット自身から離れた時だけフィードバックを消す
+                if (targets.includes(ev.target)) {
+                    ev.target.classList.remove(feedbackClass);
+                }
+            };
+
+            const onDragOver = (ev) => {
+                // dropイベントを発火させるために、dragoverでpreventDefaultが必要
+                // アイテムであり、ターゲットがパネル/ホスト自身の場合のみ許可
+                if (targets.includes(ev.target) && ev.dataTransfer.types && !ev.dataTransfer.types.includes(SECT_MIME) && ev.dataTransfer.types.includes('text/plain')) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    ev.target.classList.add(feedbackClass); // 継続してハイライト
+                } else {
+                    // 子要素（フォルダなど）の上に来たら背景ハイライトは消す
+                    targets.forEach(t => t.classList.remove(feedbackClass));
+                }
+            };
+
+            const onDrop = (ev) => {
+                targets.forEach(t => t.classList.remove(feedbackClass)); // ドロップ時は常にハイライト解除
+
+                // 最終チェック：アイテムであり、パネル/ホスト自身へのドロップ
+                if (targets.includes(ev.target) && ev.dataTransfer.types && !ev.dataTransfer.types.includes(SECT_MIME) && ev.dataTransfer.types.includes('text/plain')) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+
+                    const draggedId = ev.dataTransfer.getData('text/plain');
+                    if (draggedId) {
+                        unassignFunction(draggedId); // (unassignAccount または unassignList を実行)
+                    }
+                }
+            };
+
+            targets.forEach(target => {
+                if (!target) return; // hostがまだ存在しない場合など
+                target.addEventListener('dragenter', onDragEnter);
+                target.addEventListener('dragleave', onDragLeave);
+                target.addEventListener('dragover', onDragOver);
+                target.addEventListener('drop', onDrop);
+            });
+        };
+
+        // 未分類化ロジックを共通化 (Account用)
+        const unassignAccount = (draggedId) => {
+            // 1. すべてのフォルダからこのIDを削除
+            const fArr = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
+            let changed = false;
+             for (const f_other of fArr) {
+              const o_before = f_other.order.length;
+              f_other.order = f_other.order.filter(id => id !== draggedId);
+              if (f_other.order.length !== o_before) {
+                f_other.ts = Date.now();
+                changed = true;
+              }
+            }
+            if (changed) {
+              saveFolders(ACCOUNTS_FOLDERS_KEY, fArr);
+            }
+
+            // 2. マスターリストの順序を変更し、Unassigned内で先頭に来るようにする
+            const cur = loadAccounts();
+            const item = cur.find(x => x.id === draggedId);
+            if (item) {
+              const others = cur.filter(x => x.id !== draggedId);
+              saveAccounts([item, ...others]);
+            }
+            showToast(i18n.t('toastReordered'));
+            renderAccounts();
+        };
+
+        // 未分類化ロジックを共通化 (List用)
+        const unassignList = (draggedId) => {
+            // 1. すべてのフォルダからこのIDを削除
+            const fArr = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
+            let changed = false;
+             for (const f_other of fArr) {
+              const o_before = f_other.order.length;
+              f_other.order = f_other.order.filter(id => id !== draggedId);
+              if (f_other.order.length !== o_before) {
+                f_other.ts = Date.now();
+                changed = true;
+              }
+            }
+            if (changed) {
+              saveFolders(LISTS_FOLDERS_KEY, fArr);
+            }
+
+            // 2. マスターリストの順序を変更
+            const cur = loadLists();
+            const item = cur.find(x => x.id === draggedId);
+            if (item) {
+              const others = cur.filter(x => x.id !== draggedId);
+              saveLists([item, ...others]);
+            }
+            showToast(i18n.t('toastReordered'));
+            renderLists();
+        };
+
         const ZOOM_STATE_KEY = 'advSearchZoom_v1';
         let zoom = 1.0;
         const ZOOM_MIN = 0.5, ZOOM_MAX = 2.0, ZOOM_STEP = 0.1;
@@ -1339,6 +1472,10 @@
         const tabLists = document.getElementById('adv-tab-lists');
         const tabAccounts = document.getElementById('adv-tab-accounts');
         const tabMute = document.getElementById('adv-tab-mute');
+
+        // Get tab panels for background drop
+        const tabAccountsPanel = document.getElementById('adv-tab-accounts');
+        const tabListsPanel = document.getElementById('adv-tab-lists');
 
         const saveModalRelativeState = () => {
             if (modal.style.display === 'none') {
@@ -2763,8 +2900,11 @@
 
             // セクション D&D: ドラッグ開始/終了
             sec.addEventListener('dragstart', (ev) => {
-              // アイテム行のドラッグと衝突しないよう、セクション枠が開始点の時のみ MIME を載せる
-              if (ev.target === sec) {
+              // ★ドラッグ開始地点がアイテム(.adv-item)やその子孫でないことを確認
+              const item = ev.target.closest('.adv-item');
+
+              if (!item) {
+                // アイテムD&Dでない場合、セクションD&Dとして扱う
                 ev.dataTransfer.setData(SECT_MIME, '__UNASSIGNED__');
                 ev.dataTransfer.effectAllowed = 'move';
                 sec.classList.add('dragging-folder');
@@ -2786,9 +2926,31 @@
               }
             });
 
-            // アイテム並び替え 兼 Unassigned への移動
+            // Unassigned領域へのドロップ処理（Accounts専用）
+            const handleDropOnUnassigned_Accounts = (ev) => {
+              // セクション（フォルダ）自体のドラッグは無視
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
+
+              ev.preventDefault();
+              ev.stopPropagation(); // イベント伝播を停止
+              const draggedId = ev.dataTransfer.getData('text/plain');
+              if (draggedId) {
+                  unassignAccount(draggedId); // ★ 共通関数を呼ぶように変更
+              }
+            };
+
+            // アイテム並び替え（リスト内）
             list.addEventListener('dragover', ev => {
-              ev.preventDefault(); // リスト領域全体をドロップターゲットにする
+              // セクション（フォルダ）のドラッグ
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
+                // ★セクション並び替えD&D。親(sec)のdragoverに処理を任せる。
+                // ★イベントを止めずに return する。
+                return;
+              }
+
+              // アイテムのドラッグ
+              ev.preventDefault();
+              ev.stopPropagation(); // ★ 親(sec)のアイテムD&Dハンドラには行かせない
               // プレビュー（DOM移動）
               const container = list;
               const dragging = document.querySelector('.adv-item.dragging'); // グローバルで探す
@@ -2800,38 +2962,17 @@
               else container.insertBefore(dragging, after);
             });
 
-            list.addEventListener('drop', (ev) => {
+            // リスト（またはその中のアイテム）へのドロップ
+            list.addEventListener('drop', handleDropOnUnassigned_Accounts);
+
+            // ★セクション（の余白）へのドラッグを許可
+            sec.addEventListener('dragover', (ev) => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
               ev.preventDefault();
               ev.stopPropagation();
-              const draggedId = ev.dataTransfer.getData('text/plain');
-              if (!draggedId) return;
-
-              // 1. 全フォルダーから ID を削除
-              const fArr = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
-              for (const f_other of fArr) {
-                const o_before = f_other.order.length;
-                f_other.order = f_other.order.filter(id => id !== draggedId);
-                if (f_other.order.length !== o_before) f_other.ts = Date.now();
-              }
-              saveFolders(LISTS_FOLDERS_KEY, fArr);
-
-              // 2. Unassigned 内での順序を反映（Lists 全体の順序を更新）
-              const orderIds = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
-              const cur = loadLists();
-              const byId = Object.fromEntries(cur.map(x=>[x.id,x]));
-              const reordered = orderIds.map(id => byId[id]).filter(Boolean);
-
-              if (!reordered.some(it => it.id === draggedId)) {
-                const item = byId[draggedId];
-                if (item) reordered.push(item);
-              }
-
-              const others = cur.filter(x => !reordered.some(y=>y.id===x.id));
-              saveLists([...reordered, ...others]);
-              showToast(i18n.t('toastReordered'));
-
-              renderLists();
             });
+            // ★セクション（の余白）へのドロップ
+            sec.addEventListener('drop', handleDropOnUnassigned_Accounts);
 
             return sec;
           };
@@ -3599,7 +3740,11 @@
             sec.appendChild(list);
 
             sec.addEventListener('dragstart', (ev) => {
-              if (ev.target === sec) {
+              // ★ドラッグ開始地点がアイテム(.adv-item)やその子孫でないことを確認
+              const item = ev.target.closest('.adv-item');
+
+              if (!item) {
+                // アイテムD&Dでない場合、セクションD&Dとして扱う
                 ev.dataTransfer.setData(SECT_MIME, '__UNASSIGNED__');
                 ev.dataTransfer.effectAllowed = 'move';
                 sec.classList.add('dragging-folder');
@@ -3618,9 +3763,32 @@
               }
             });
 
+            // Unassigned領域へのドロップ処理（Lists専用）
+            const handleDropOnUnassigned_Lists = (ev) => {
+              // セクション（フォルダ）自体のドラッグは無視
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
+
+              ev.preventDefault();
+              ev.stopPropagation(); // イベント伝播を停止
+              const draggedId = ev.dataTransfer.getData('text/plain');
+              if (draggedId) {
+                unassignList(draggedId); // ★ 共通関数を呼ぶように変更
+              }
+            };
+
             // アイテム並び替え 兼 Unassigned への移動
             list.addEventListener('dragover', ev => {
-              ev.preventDefault(); // リスト領域全体をドロップターゲットにする
+              // セクション（フォルダ）のドラッグ
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
+                // ★セクション並び替えD&D。親(sec)のdragoverに処理を任せる。
+                // ★イベントを止めずに return する。
+                return;
+              }
+
+              // アイテムのドラッグ
+              ev.preventDefault();
+              ev.stopPropagation(); // ★ 親(sec)のアイテムD&Dハンドラには行かせない
+
               // プレビュー（DOM移動）
               const container = list;
               const dragging = document.querySelector('.adv-item.dragging'); // グローバルで探す
@@ -3632,40 +3800,17 @@
               else container.insertBefore(dragging, after);
             });
 
-            list.addEventListener('drop', (ev) => {
+            // リスト（またはその中のアイテム）へのドロップ
+            list.addEventListener('drop', handleDropOnUnassigned_Lists);
+
+            // ★セクション（の余白）へのドラッグを許可
+            sec.addEventListener('dragover', (ev) => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
               ev.preventDefault();
               ev.stopPropagation();
-              const draggedId = ev.dataTransfer.getData('text/plain');
-              if (!draggedId) return;
-
-              // 1. 全フォルダーから ID を削除
-              const fArr = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
-              for (const f_other of fArr) {
-                const o_before = f_other.order.length;
-                f_other.order = f_other.order.filter(id => id !== draggedId);
-                if (f_other.order.length !== o_before) f_other.ts = Date.now();
-              }
-              saveFolders(ACCOUNTS_FOLDERS_KEY, fArr);
-
-              // 2. Unassigned 内での順序を反映（Accounts 全体の順序を更新）
-              const orderIds = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
-              const cur = loadAccounts();
-              const byId = Object.fromEntries(cur.map(x=>[x.id,x]));
-              const reordered = orderIds.map(id => byId[id]).filter(Boolean);
-
-              // reordered に draggedId が含まれていなければ追加（DOM操作が間に合わなかった場合）
-              if (!reordered.some(it => it.id === draggedId)) {
-                const item = byId[draggedId];
-                if (item) reordered.push(item);
-              }
-
-              const others = cur.filter(x => !reordered.some(y=>y.id===x.id));
-              saveAccounts([...reordered, ...others]);
-              showToast(i18n.t('toastReordered'));
-
-              // 再描画してクリーンにする
-              renderAccounts();
             });
+            // ★セクション（の余白）へのドロップ
+            sec.addEventListener('drop', handleDropOnUnassigned_Lists);
 
             return sec;
           };
@@ -4363,6 +4508,10 @@
         setupModalDrag();
         setupModalResize();
         setupObservers();
+
+        // ▼ Setup background drop zones ▼
+        setupBackgroundDrop(tabAccountsPanel, accountsListEl, unassignAccount);
+        setupBackgroundDrop(tabListsPanel, advListsListEl, unassignList);
 
         renderHistory();
         renderSaved();
