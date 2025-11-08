@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.8.5
+// @version      4.8.6
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -1462,6 +1462,7 @@
 
         // マスターON/OFF（全体の適用を止めるだけ。各エントリの enabled は保持）
         const MUTE_MASTER_KEY = 'advMuteMasterEnabled_v1';
+        const LAST_TAB_KEY = 'advSearchLastTab_v1';
         const loadMuteMaster = () => { try { return kv.get(MUTE_MASTER_KEY, '1') === '1'; } catch(_) { return true; } };
         const saveMuteMaster = (on) => { try { kv.set(MUTE_MASTER_KEY, on ? '1' : '0'); } catch(_) {} };
 
@@ -2014,6 +2015,12 @@
             [tabSearch, tabHistory, tabSaved, tabLists, tabAccounts, tabMute]
               .forEach((el) => el.classList.toggle('active', el.id === `adv-tab-${name}`));
             footerEl.style.display = (name === 'search') ? '' : 'none';
+            // 最後に開いたタブを保存
+            try {
+                kv.set(LAST_TAB_KEY, name);
+            } catch(e) {
+                console.error('Failed to save last tab state:', e);
+            }
             if (name === 'history') renderHistory();
             if (name === 'saved') renderSaved();
             if (name === 'lists') renderLists();
@@ -4517,7 +4524,10 @@
         renderSaved();
         renderAccounts();
         renderMuted();
-        activateTab('search');
+
+        // 保存された最後のタブを読み込んでアクティブにする
+        const lastTab = kv.get(LAST_TAB_KEY, 'search');
+        activateTab(lastTab || 'search');
 
         (async () => {
             const input = await waitForElement(searchInputSelectors.join(','), 7000);
