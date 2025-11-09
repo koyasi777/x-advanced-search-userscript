@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.9.0
+// @version      4.9.1
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -1381,6 +1381,36 @@
             saveFolders(FOLDERS_KEY, fArr);
         }
 
+        // === [ADD] 特化 move 関数（トースト＆再描画まで含む） ===
+        function moveAccountToFolder(accountId, folderId) {
+          moveItemToFolderGeneric({
+            FOLDERS_KEY: ACCOUNTS_FOLDERS_KEY,
+            itemId: accountId,
+            folderId
+          });
+          showToast(i18n.t('toastReordered'));
+          try { renderAccounts(); } catch(_) {}
+        }
+
+        function moveSavedToFolder(savedId, folderId) {
+          moveItemToFolderGeneric({
+            FOLDERS_KEY: SAVED_FOLDERS_KEY,
+            itemId: savedId,
+            folderId
+          });
+          showToast(i18n.t('toastReordered'));
+          try { renderSaved(); } catch(_) {}
+        }
+
+        function moveListToFolder(listId, targetFolderId) {
+          moveItemToFolderGeneric({
+            FOLDERS_KEY: LISTS_FOLDERS_KEY,
+            itemId: listId,
+            folderId: targetFolderId
+          });
+          showToast(i18n.t('toastReordered'));
+          try { renderLists(); } catch(_) {}
+        }
 
         // 未分類化ロジックを共通化 (Account用)
         const unassignAccount = (draggedId) => {
@@ -1393,7 +1423,6 @@
             showToast(i18n.t('toastReordered'));
             renderAccounts();
         };
-
 
         // 未分類化ロジックを共通化 (List用)
         const unassignList = (draggedId) => {
@@ -2373,382 +2402,65 @@
         const renderSaved = () => {
           ensureFolderToolbars();
 
-          const items   = migrateList(loadJSON(SAVED_KEY, [])); // loadSaved相当
-          let   folders = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches'); // キー変更
-          const idToItem = Object.fromEntries(items.map(x => [x.id, x]));
+          const itemsLoader = () => migrateList(loadJSON(SAVED_KEY, []));
+          const itemsSaver  = (arr) => saveJSON(SAVED_KEY, migrateList(arr));
 
-          // フォルダ order の死票掃除
-          let needsSave = false;
-          for (const f of folders) {
-            const before = f.order.length;
-            f.order = f.order.filter(id => !!idToItem[id]);
-            if (f.order.length !== before) { needsSave = true; f.ts = Date.now(); }
-          }
-          if (needsSave) saveFolders(SAVED_FOLDERS_KEY, folders); // キー変更
+          renderFolderedCollection({
+            hostId: 'adv-saved-list',
+            emptyId: 'adv-saved-empty',
+            filterSelectId: 'adv-saved-folder-filter',
+            searchInputId:  'adv-saved-search',
+            newFolderBtnId: 'adv-saved-new-folder',
 
-          // 未所属
-          const allIds     = new Set(items.map(x => x.id));
-          const inFolders  = new Set(folders.flatMap(f => f.order));
-          const unassignedIds = [...allIds].filter(id => !inFolders.has(id));
+            foldersKey: SAVED_FOLDERS_KEY,
+            defaultFolderName: 'Saved Searches',
 
-          // フィルタUI
-          const filterSel = document.getElementById('adv-saved-folder-filter'); // ID変更
-          const searchEl  = document.getElementById('adv-saved-search'); // ID変更
-          const newBtn    = document.getElementById('adv-saved-new-folder'); // ID変更
+            loadItems: itemsLoader,
+            saveItems: itemsSaver,
+            renderRow: (item) => {
+              // 以前の renderSavedRow と同じ見た目
+              const row = document.createElement('div');
+              row.className = 'adv-item';
+              row.draggable = true;
+              row.dataset.id = item.id;
+              row.innerHTML = `
+                <div class="adv-item-handle" title="Drag">≡</div>
+                <div class="adv-item-main">
+                  <div class="adv-item-title">${escapeHTML(item.q)}</div>
+                  <div class="adv-item-sub">
+                    <span>${fmtTime(item.ts)}</span>
+                    ${scopeChipsHTML(!!item.pf, !!item.lf)}
+                  </div>
+                </div>
+                <div class="adv-item-actions">
+                  <button class="adv-chip primary" data-action="run">${i18n.t('run')}</button>
+                  <button class="adv-chip danger"  data-action="delete">${i18n.t('delete')}</button>
+                </div>
+              `;
+              row.querySelector('[data-action="run"]').addEventListener('click', ()=>{
+                parseQueryAndApplyToModal(item.q);
+                applyScopesToControls({pf:!!item.pf, lf:!!item.lf});
+                activateTab('search');
+                executeSearch({pf:item.pf, lf:item.lf});
+              });
+              row.querySelector('[data-action="delete"]').addEventListener('click', ()=> deleteSaved(item.id));
 
-          if (filterSel) {
-            const prev = filterSel.value;
-            filterSel.innerHTML = '';
-            const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent='ALL'; filterSel.appendChild(optAll);
-            const optUn  = document.createElement('option'); optUn.value='__UNASSIGNED__'; optUn.textContent='Unassigned'; filterSel.appendChild(optUn);
-            folders.forEach(f=>{
-              const o = document.createElement('option'); o.value = f.id; o.textContent = f.name; filterSel.appendChild(o);
-            });
-            if ([...filterSel.options].some(o=>o.value===prev)) filterSel.value = prev; else filterSel.value='__ALL__';
-            filterSel.onchange = ()=> renderSaved(); // 変更
-          }
-          if (searchEl && !searchEl._advBound) {
-            searchEl._advBound = true;
-            searchEl.addEventListener('input', ()=>renderSaved()); // 変更
-          }
-          if (newBtn && !newBtn._advBound) {
-            newBtn._advBound = true;
-            newBtn.addEventListener('click', ()=>{
-              const nm = prompt('New folder name', '');
-              if (!nm || !nm.trim()) return;
-              const fs = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches'); // キー変更
-              fs.push({ id: uid(), name: nm.trim(), order: [], ts: Date.now() });
-              saveFolders(SAVED_FOLDERS_KEY, fs); // キー変更
-              renderSaved(); // 変更
-            });
-          }
-
-          const filterFolder = filterSel?.value || '__ALL__';
-          const q = (searchEl?.value || '').toLowerCase().trim();
-          const matchItem = (it) => {
-            if (!q) return true;
-            const name = (it.q||'').toLowerCase(); // 'q' (query) で検索
-            // const url  = (it.url ||'').toLowerCase(); // Saved には url がない
-            return name.includes(q);
-          };
-
-          const host = savedListEl; // グローバル変数を使用
-          const emptyEl = savedEmptyEl; // グローバル変数を使用
-          host.innerHTML = '';
-          emptyEl.textContent = items.length ? '' : i18n.t('emptySaved'); // メッセージ変更
-
-          // Unassigned の並び位置
-          const UNASSIGNED_INDEX_KEY = 'advSavedUnassignedIndex_v1'; // キー変更
-          const getUnIdx = () => {
-            try { const v = GM_getValue(UNASSIGNED_INDEX_KEY, 0); return Math.max(0, Math.min(folders.length, +v||0)); } catch { return 0; }
-          };
-          const setUnIdx = (idx) => { try { GM_setValue(UNASSIGNED_INDEX_KEY, String(idx)); } catch {} };
-
-          const foldersToDraw =
-            filterFolder === '__ALL__'      ? [...folders] :
-            filterFolder === '__UNASSIGNED__' ? [] :
-            folders.filter(f => f.id === filterFolder);
-
-          const buildSectionsOrder = () => {
-            if (filterFolder !== '__ALL__') return foldersToDraw.map(f => f.id);
-            const idx = getUnIdx();
-            const arr = foldersToDraw.map(f => f.id);
-            arr.splice(Math.max(0, Math.min(arr.length, idx)), 0, '__UNASSIGNED__');
-            return arr;
-          };
-
-          const SECT_MIME = 'adv/folder';
-          const getSectionAfterElement = (container, y) => {
-            const els = [...container.querySelectorAll('.adv-folder:not(.dragging-folder), .adv-unassigned:not(.dragging-folder)')];
-            let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
-            for (const el of els) {
-              const box = el.getBoundingClientRect();
-              const offset = y - box.top - box.height / 2;
-              if (offset < 0 && offset > closest.offset) {
-                closest = { offset, element: el };
-              }
-            }
-            return closest.element;
-          };
-          const persistSectionsFromDOM = () => {
-            const order = [...host.querySelectorAll('.adv-folder, .adv-unassigned')].map(sec => sec.dataset.folderId);
-            // フォルダ順
-            const newFolderOrderIds = order.filter(id => id !== '__UNASSIGNED__');
-            let fs = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches'); // キー変更
-            const map = Object.fromEntries(fs.map(f=>[f.id,f]));
-            const reordered = newFolderOrderIds.map(id=>map[id]).filter(Boolean);
-            fs.forEach(f => { if (!reordered.includes(f)) reordered.push(f); });
-            saveFolders(SAVED_FOLDERS_KEY, reordered); // キー変更
-
-            // Unassigned 位置
-            const unIdx = order.indexOf('__UNASSIGNED__');
-            if (unIdx >= 0) setUnIdx(unIdx);
-
-            showToast(i18n.t('toastReordered'));
-          };
-
-          const renderUnassignedSection = () => {
-            const sec = document.createElement('section');
-            sec.className = 'adv-unassigned';
-            sec.dataset.folderId = '__UNASSIGNED__';
-            sec.setAttribute('draggable', 'true');
-
-            const list = document.createElement('div');
-            list.className = 'adv-list';
-
-            const itemsUn = unassignedIds.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
-            itemsUn.forEach(it => list.appendChild(renderSavedRow(it))); // 変更
-
-            sec.appendChild(list);
-
-            sec.addEventListener('dragstart', (ev) => {
-              const item = ev.target.closest('.adv-item');
-              if (!item) {
-                ev.dataTransfer.setData(SECT_MIME, '__UNASSIGNED__');
+              row.addEventListener('dragstart', (ev) => {
+                row.classList.add('dragging');
+                ev.dataTransfer.setData('text/plain', item.id);
                 ev.dataTransfer.effectAllowed = 'move';
-                sec.classList.add('dragging-folder');
-              }
-            });
-            sec.addEventListener('dragend', () => sec.classList.remove('dragging-folder'));
+              });
+              row.addEventListener('dragend', () => row.classList.remove('dragging'));
+              return row;
+            },
 
-            sec.addEventListener('dragover', (ev) => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
-                ev.preventDefault();
-                const dragging = host.querySelector('.dragging-folder');
-                if (!dragging || dragging === sec) return;
-                const after = getSectionAfterElement(host, ev.clientY);
-                if (after == null) host.appendChild(dragging);
-                else host.insertBefore(dragging, after);
-              }
-            });
+            onUnassign: unassignSaved,
+            onMoveToFolder: moveSavedToFolder,
 
-            // Unassigned領域へのドロップ処理 (Saved専用)
-            const handleDropOnUnassigned_Saved = (ev) => { // 関数名変更
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
-              ev.preventDefault();
-              ev.stopPropagation();
-              const draggedId = ev.dataTransfer.getData('text/plain');
-              if (draggedId) {
-                unassignSaved(draggedId); // 変更
-              }
-            };
-
-            list.addEventListener('dragover', ev => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
-                return;
-              }
-              ev.preventDefault();
-              ev.stopPropagation();
-
-              const container = list;
-              const dragging = document.querySelector('.adv-item.dragging');
-              if (!dragging) return;
-              if (dragging.contains(container)) return;
-
-              const after = getDragAfterElement(container, ev.clientY); // <-- This is the call
-              if (after == null) container.appendChild(dragging);
-              else container.insertBefore(dragging, after);
-            });
-
-            list.addEventListener('drop', handleDropOnUnassigned_Saved);
-            sec.addEventListener('dragover', (ev) => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
-              ev.preventDefault();
-              ev.stopPropagation();
-            });
-            sec.addEventListener('drop', handleDropOnUnassigned_Saved);
-
-            return sec;
-          };
-
-          // === Saved フォルダ操作 ===
-          function moveSavedToFolder(savedId, targetFolderId) {
-            moveItemToFolderGeneric({
-              FOLDERS_KEY: SAVED_FOLDERS_KEY,
-              itemId: savedId,
-              folderId: targetFolderId
-            });
-            showToast(i18n.t('toastReordered'));
-            try { renderSaved(); } catch(_) {}
-          }
-
-          const renderFolderSection = (folder) => {
-            const section = document.createElement('section');
-            section.className = 'adv-folder';
-            section.dataset.folderId = folder.id;
-            if (folder.collapsed) section.classList.add('adv-folder-collapsed');
-
-            const header = document.createElement('div');
-            header.className = 'adv-folder-header';
-            header.setAttribute('draggable', 'true');
-
-            const toggleBtn = renderFolderToggleButton(!!folder.collapsed);
-            const titleWrap = document.createElement('div');
-            titleWrap.className = 'adv-folder-title';
-            titleWrap.appendChild(toggleBtn);
-            const nameEl = document.createElement('strong'); nameEl.textContent = folder.name; titleWrap.appendChild(nameEl);
-            const countEl = document.createElement('span'); countEl.className='adv-item-sub'; countEl.textContent = `(${folder.order.length})`;
-            titleWrap.appendChild(countEl);
-
-            const actions = document.createElement('div');
-            actions.className = 'adv-folder-actions';
-            actions.innerHTML = `
-              <button class="adv-chip" data-action="rename"  aria-label="Rename folder" title="Rename folder">Rename</button>
-              <button class="adv-chip danger" data-action="delete" aria-label="Delete folder" title="Delete folder">Delete</button>
-            `;
-
-            header.appendChild(titleWrap);
-            header.appendChild(actions);
-
-            // セクション（フォルダ） DnD
-            header.addEventListener('dragstart', (ev) => {
-              if (ev.target && (ev.target.closest('.adv-folder-actions') || ev.target.closest('.adv-folder-toggle-btn'))) {
-                ev.preventDefault(); return;
-              }
-              ev.dataTransfer.setData(SECT_MIME, folder.id);
-              ev.dataTransfer.effectAllowed = 'move';
-              section.classList.add('dragging-folder');
-            });
-            header.addEventListener('dragend', () => section.classList.remove('dragging-folder'));
-
-            section.addEventListener('dragover', (ev) => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
-                ev.preventDefault();
-                const dragging = host.querySelector('.dragging-folder');
-                if (!dragging || dragging === section) return;
-                const after = getSectionAfterElement(host, ev.clientY);
-                if (after == null) host.appendChild(dragging);
-                else host.insertBefore(dragging, after);
-              }
-            });
-
-            host.addEventListener('drop', (ev) => {
-              if (!(ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME))) return;
-              ev.preventDefault();
-              persistSectionsFromDOM();
-              renderSaved(); // 変更
-            }, { once:true });
-
-            // 折りたたみ
-            const collapseToggle = () => {
-              section.classList.toggle('adv-folder-collapsed');
-              const all = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches'); // キー変更
-              const f = all.find(x => x.id === folder.id);
-              if (f) { f.collapsed = section.classList.contains('adv-folder-collapsed'); f.ts = Date.now(); saveFolders(SAVED_FOLDERS_KEY, all); } // キー変更
-              updateFolderToggleButton(toggleBtn, !!section.classList.contains('adv-folder-collapsed'));
-            };
-            toggleBtn.addEventListener('click', (e)=>{ e.stopPropagation(); collapseToggle(); });
-            toggleBtn.addEventListener('keydown', (e)=>{ if (e.key===' '||e.key==='Enter'){ e.preventDefault(); collapseToggle(); } });
-
-            // Rename / Delete
-            actions.querySelector('[data-action="rename"]').addEventListener('click', ()=>{
-              const nm = prompt('New folder name', folder.name);
-              if (!nm || !nm.trim()) return;
-              const fArr = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches');
-              const f = fArr.find(x=>x.id===folder.id); if (!f) return;
-              f.name = nm.trim(); f.ts = Date.now(); saveFolders(SAVED_FOLDERS_KEY, fArr);
-              renderSaved(); showToast(i18n.t('updated'));
-            });
-            actions.querySelector('[data-action="delete"]').addEventListener('click', ()=>{
-              if (!confirm('Delete this folder? Items will become Unassigned.')) return;
-              let fArr = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches');
-              const idx = fArr.findIndex(x=>x.id===folder.id); if (idx<0) return;
-              fArr.splice(idx,1);
-              saveFolders(SAVED_FOLDERS_KEY, fArr);
-              renderSaved(); showToast(i18n.t('toastDeleted'));
-            });
-
-            // フォルダ見出しにアイテムをドロップ → そのフォルダへ移動
-            header.addEventListener('dragover', ev => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
-              ev.preventDefault(); header.dataset.drop='1';
-            });
-            header.addEventListener('dragleave', () => { delete header.dataset.drop; });
-            header.addEventListener('drop', ev => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
-              ev.preventDefault(); delete header.dataset.drop;
-              const draggedId = ev.dataTransfer.getData('text/plain');
-              if (!draggedId) return;
-              moveSavedToFolder(draggedId, folder.id);
-            });
-
-            const list = document.createElement('div');
-            list.className = 'adv-list';
-            const itemsInFolder = folder.order.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
-            itemsInFolder.forEach(it => list.appendChild(renderSavedRow(it)));
-
-            // フォルダ内の並び保存 兼 フォルダへの移動
-            list.addEventListener('dragover', ev => {
-              ev.preventDefault();
-              const container = list;
-              const dragging = document.querySelector('.adv-item.dragging');
-              if (!dragging) return;
-              if (dragging.contains(container)) return;
-
-              const after = getDragAfterElement(container, ev.clientY); // <-- This is the call
-              if (after == null) container.appendChild(dragging);
-              else container.insertBefore(dragging, after);
-            });
-
-            list.addEventListener('drop', (ev) => {
-              ev.preventDefault();
-              ev.stopPropagation();
-              const draggedId = ev.dataTransfer.getData('text/plain');
-              if (!draggedId) return;
-
-              const newOrder = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
-
-              const fArr = loadFolders(SAVED_FOLDERS_KEY, 'Saved Searches');
-              const f = fArr.find(x=>x.id===folder.id);
-              if (!f) return;
-
-              const isMove = !f.order.includes(draggedId);
-
-              if (isMove) {
-                for (const f_other of fArr) {
-                  if (f_other.id === folder.id) continue;
-                  const o_before = f_other.order.length;
-                  f_other.order = f_other.order.filter(id => id !== draggedId);
-                  if (f_other.order.length !== o_before) f_other.ts = Date.now();
-                }
-              }
-
-              f.order = newOrder;
-              f.ts = Date.now();
-              saveFolders(SAVED_FOLDERS_KEY, fArr);
-              showToast(i18n.t('toastReordered'));
-
-              if (isMove) {
-                renderSaved();
-              }
-            });
-
-            section.appendChild(header);
-            section.appendChild(list);
-            return section;
-          };
-
-          // 単一表示モード
-          if (filterFolder !== '__ALL__') {
-            if (filterFolder === '__UNASSIGNED__') {
-              host.appendChild(renderUnassignedSection());
-            } else {
-              const folder = folders.find(f => f.id === filterFolder);
-              if (folder) host.appendChild(renderFolderSection(folder));
-            }
-            updateSaveButtonState();
-            return;
-          }
-
-          // __ALL__: フォルダ間に Unassigned を混在表示
-          const order = buildSectionsOrder();
-          order.forEach(id => {
-            if (id === '__UNASSIGNED__') host.appendChild(renderUnassignedSection());
-            else {
-              const f = folders.find(x => x.id === id);
-              if (f) host.appendChild(renderFolderSection(f));
-            }
+            emptyMessage: i18n.t('emptySaved'),
+            unassignedIndexKey: 'advSavedUnassignedIndex_v1',
           });
+
           updateSaveButtonState();
         };
 
@@ -2764,6 +2476,367 @@
             }
             return closest.element;
         };
+
+        // === [ADD] セクション（フォルダ/Unassigned）用：縦方向の挿入位置計算 ===
+        function getSectionAfterElement(container, y) {
+          const els = [...container.querySelectorAll('.adv-folder:not(.dragging-folder), .adv-unassigned:not(.dragging-folder)')];
+          let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+          for (const el of els) {
+            const box = el.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+              closest = { offset, element: el };
+            }
+          }
+          return closest.element;
+        }
+
+        // === [ADD] 汎用フォルダ描画レンダラ ===
+        // 各タブ（Saved/Accounts/Listsなど）の重複ロジックを1か所に集約します。
+        function renderFolderedCollection(cfg) {
+          const {
+            // 固有ID/キー
+            hostId, emptyId,
+            filterSelectId, searchInputId, newFolderBtnId,
+            foldersKey, defaultFolderName,
+            // データI/O
+            loadItems, saveItems, loadFoldersFn = loadFolders, saveFoldersFn = saveFolders,
+            // Row描画/操作
+            renderRow, onUnassign, onMoveToFolder,
+            // 文言/保存キー
+            emptyMessage,
+            unassignedIndexKey, // ex: 'advAccountsUnassignedIndex_v1' / 'advSavedUnassignedIndex_v1'
+          } = cfg;
+
+          // ツールバーは呼び出し側で ensureFolderToolbars() してある前提
+          const host   = document.getElementById(hostId);
+          const empty  = document.getElementById(emptyId);
+          const sel    = document.getElementById(filterSelectId);
+          const qInput = document.getElementById(searchInputId);
+          const addBtn = document.getElementById(newFolderBtnId);
+          if (!host) return;
+
+          // 1) データロード
+          const items = loadItems();
+          let folders = loadFoldersFn(foldersKey, defaultFolderName);
+          const idToItem = Object.fromEntries(items.map(x => [x.id, x]));
+
+          // 2) 死票掃除（フォルダの order から存在しないIDを除去）
+          let needSave = false;
+          for (const f of folders) {
+            const before = f.order.length;
+            f.order = f.order.filter(id => !!idToItem[id]);
+            if (f.order.length !== before) { needSave = true; f.ts = Date.now(); }
+          }
+          if (needSave) saveFoldersFn(foldersKey, folders);
+
+          // 3) 未所属セット
+          const allIds    = new Set(items.map(x => x.id));
+          const inFolders = new Set(folders.flatMap(f => f.order));
+          const unassignedIds = [...allIds].filter(id => !inFolders.has(id));
+
+          // 4) フィルタUI（セレクト＆検索＆新規フォルダ）
+          if (sel) {
+            const prev = sel.value;
+            sel.innerHTML = '';
+            const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent='ALL'; sel.appendChild(optAll);
+            const optUn  = document.createElement('option'); optUn.value='__UNASSIGNED__'; optUn.textContent='Unassigned'; sel.appendChild(optUn);
+            folders.forEach(f=>{
+              const o = document.createElement('option'); o.value = f.id; o.textContent = f.name; sel.appendChild(o);
+            });
+            sel.value = [...sel.options].some(o=>o.value===prev) ? prev : '__ALL__';
+            sel.onchange = () => renderFolderedCollection(cfg);
+          }
+          if (qInput && !qInput._advBound) {
+            qInput._advBound = true;
+            qInput.addEventListener('input', () => renderFolderedCollection(cfg));
+          }
+          if (addBtn && !addBtn._advBound) {
+            addBtn._advBound = true;
+            addBtn.addEventListener('click', () => {
+              const nm = prompt('New folder name', '');
+              if (!nm || !nm.trim()) return;
+              const fs = loadFoldersFn(foldersKey, defaultFolderName);
+              fs.push({ id: uid(), name: nm.trim(), order: [], ts: Date.now() });
+              saveFoldersFn(foldersKey, fs);
+              renderFolderedCollection(cfg);
+            });
+          }
+
+          const filterFolder = sel?.value || '__ALL__';
+          const q = (qInput?.value || '').toLowerCase().trim();
+
+          const matchItem = (it) => {
+            // Saved: it.q, Accounts: it.name/handle …など、row renderer 側の表示に合わせて検索したい場合は
+            // 各タブ側の renderRow が構成する代表的フィールドを想定しておく
+            const s = JSON.stringify(it || {}).toLowerCase();
+            return !q || s.includes(q);
+          };
+
+          host.innerHTML = '';
+          empty.textContent = items.length ? '' : (emptyMessage || '');
+
+          // 5) Unassigned インデックス保持
+          const getUnIdx = () => {
+            try { const v = GM_getValue(unassignedIndexKey, 0); return Math.max(0, Math.min(folders.length, +v || 0)); }
+            catch { return 0; }
+          };
+          const setUnIdx = (idx) => { try { GM_setValue(unassignedIndexKey, String(idx)); } catch {} };
+
+          // 6) 表示対象フォルダ
+          const foldersToDraw =
+            filterFolder === '__ALL__'        ? [...folders] :
+            filterFolder === '__UNASSIGNED__' ? [] :
+            folders.filter(f => f.id === filterFolder);
+
+          // 7) セクション並び（__ALL__ の場合のみ Unassigned を混在）
+          const buildSectionsOrder = () => {
+            if (filterFolder !== '__ALL__') return foldersToDraw.map(f => f.id);
+            const idx = getUnIdx();
+            const arr = foldersToDraw.map(f => f.id);
+            arr.splice(Math.max(0, Math.min(arr.length, idx)), 0, '__UNASSIGNED__');
+            return arr;
+          };
+
+          // 8) DOM → 順序保存
+          const persistSectionsFromDOM = () => {
+            const order = [...host.querySelectorAll('.adv-folder, .adv-unassigned')].map(sec => sec.dataset.folderId);
+
+            // フォルダ順（Unassigned を除いた順序で保存）
+            const newFolderOrderIds = order.filter(id => id !== '__UNASSIGNED__');
+            let fs = loadFoldersFn(foldersKey, defaultFolderName);
+            const map = Object.fromEntries(fs.map(f => [f.id, f]));
+            const reordered = newFolderOrderIds.map(id => map[id]).filter(Boolean);
+            fs.forEach(f => { if (!reordered.includes(f)) reordered.push(f); });
+            saveFoldersFn(foldersKey, reordered);
+
+            // Unassigned の位置を保存
+            const unIdx = order.indexOf('__UNASSIGNED__');
+            if (unIdx >= 0) setUnIdx(unIdx);
+
+            showToast(i18n.t('toastReordered'));
+          };
+
+          // 9) Unassigned セクション
+          const renderUnassignedSection = () => {
+            const sec = document.createElement('section');
+            sec.className = 'adv-unassigned';
+            sec.dataset.folderId = '__UNASSIGNED__';
+            sec.setAttribute('draggable', 'true');
+
+            const list = document.createElement('div'); list.className = 'adv-list';
+
+            const itemsUn = unassignedIds.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
+            itemsUn.forEach(it => list.appendChild(renderRow(it)));
+
+            // セクションD&D（セクション入替）
+            const SECT_MIME = 'adv/folder';
+            sec.addEventListener('dragstart', (ev) => {
+              const item = ev.target.closest('.adv-item');
+              if (!item) {
+                ev.dataTransfer.setData(SECT_MIME, '__UNASSIGNED__');
+                ev.dataTransfer.effectAllowed = 'move';
+                sec.classList.add('dragging-folder');
+              }
+            });
+            sec.addEventListener('dragend', () => sec.classList.remove('dragging-folder'));
+            sec.addEventListener('dragover', (ev) => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
+                ev.preventDefault();
+                const dragging = host.querySelector('.dragging-folder');
+                if (!dragging || dragging === sec) return;
+                const after = getSectionAfterElement(host, ev.clientY);
+                if (after == null) host.appendChild(dragging);
+                else host.insertBefore(dragging, after);
+              }
+            });
+
+            // アイテムのプレビュー移動（DOM）
+            list.addEventListener('dragover', ev => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return; // セクションD&Dは無視
+              ev.preventDefault(); ev.stopPropagation();
+              const dragging = document.querySelector('.adv-item.dragging');
+              if (!dragging) return;
+              const after = getDragAfterElement(list, ev.clientY);
+              if (after == null) list.appendChild(dragging);
+              else list.insertBefore(dragging, after);
+            });
+
+            // Unassigned への drop = 未所属化
+            const dropToUnassign = (ev) => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
+              ev.preventDefault(); ev.stopPropagation();
+              const draggedId = ev.dataTransfer.getData('text/plain');
+              if (draggedId) onUnassign(draggedId);
+            };
+            list.addEventListener('drop', dropToUnassign);
+            sec.addEventListener('dragover', ev => { if (!(ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME))) { ev.preventDefault(); ev.stopPropagation(); }});
+            sec.addEventListener('drop', dropToUnassign);
+
+            sec.appendChild(list);
+            return sec;
+          };
+
+          // 10) フォルダセクション
+          const renderFolderSection = (folder) => {
+            const section = document.createElement('section');
+            section.className = 'adv-folder';
+            section.dataset.folderId = folder.id;
+            if (folder.collapsed) section.classList.add('adv-folder-collapsed');
+
+            const header = document.createElement('div');
+            header.className = 'adv-folder-header';
+            header.setAttribute('draggable', 'true');
+
+            const toggleBtn = renderFolderToggleButton(!!folder.collapsed);
+            const titleWrap = document.createElement('div'); titleWrap.className = 'adv-folder-title';
+            titleWrap.appendChild(toggleBtn);
+            const nameEl = document.createElement('strong'); nameEl.textContent = folder.name; titleWrap.appendChild(nameEl);
+            const countEl = document.createElement('span'); countEl.className='adv-item-sub'; countEl.textContent = `(${folder.order.length})`;
+            titleWrap.appendChild(countEl);
+
+            const actions = document.createElement('div');
+            actions.className = 'adv-folder-actions';
+            actions.innerHTML = `
+              <button class="adv-chip"        data-action="rename"  title="Rename folder">Rename</button>
+              <button class="adv-chip danger" data-action="delete"  title="Delete folder">Delete</button>
+            `;
+
+            header.appendChild(titleWrap);
+            header.appendChild(actions);
+
+            // セクションD&D
+            const SECT_MIME = 'adv/folder';
+            header.addEventListener('dragstart', (ev) => {
+              if (ev.target && (ev.target.closest('.adv-folder-actions') || ev.target.closest('.adv-folder-toggle-btn'))) { ev.preventDefault(); return; }
+              ev.dataTransfer.setData(SECT_MIME, folder.id);
+              ev.dataTransfer.effectAllowed = 'move';
+              section.classList.add('dragging-folder');
+            });
+            header.addEventListener('dragend', () => section.classList.remove('dragging-folder'));
+            section.addEventListener('dragover', (ev) => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
+                ev.preventDefault();
+                const dragging = host.querySelector('.dragging-folder');
+                if (!dragging || dragging === section) return;
+                const after = getSectionAfterElement(host, ev.clientY);
+                if (after == null) host.appendChild(dragging);
+                else host.insertBefore(dragging, after);
+              }
+            });
+            host.addEventListener('drop', (ev) => {
+              if (!(ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME))) return;
+              ev.preventDefault();
+              persistSectionsFromDOM();
+              renderFolderedCollection(cfg);
+            }, { once:true });
+
+            // 折りたたみ
+            const collapseToggle = () => {
+              section.classList.toggle('adv-folder-collapsed');
+              const all = loadFoldersFn(foldersKey, defaultFolderName);
+              const f = all.find(x => x.id === folder.id);
+              if (f) { f.collapsed = section.classList.contains('adv-folder-collapsed'); f.ts = Date.now(); saveFoldersFn(foldersKey, all); }
+              updateFolderToggleButton(toggleBtn, !!section.classList.contains('adv-folder-collapsed'));
+            };
+            toggleBtn.addEventListener('click', (e)=>{ e.stopPropagation(); collapseToggle(); });
+            toggleBtn.addEventListener('keydown', (e)=>{ if (e.key===' '||e.key==='Enter'){ e.preventDefault(); collapseToggle(); } });
+
+            // Rename / Delete
+            actions.querySelector('[data-action="rename"]').addEventListener('click', ()=>{
+              const nm = prompt('New folder name', folder.name);
+              if (!nm || !nm.trim()) return;
+              const fArr = loadFoldersFn(foldersKey, defaultFolderName);
+              const f = fArr.find(x=>x.id===folder.id); if (!f) return;
+              f.name = nm.trim(); f.ts = Date.now(); saveFoldersFn(foldersKey, fArr);
+              renderFolderedCollection(cfg); showToast(i18n.t('updated'));
+            });
+            actions.querySelector('[data-action="delete"]').addEventListener('click', ()=>{
+              if (!confirm('Delete this folder? Items will become Unassigned.')) return;
+              let fArr = loadFoldersFn(foldersKey, defaultFolderName);
+              const idx = fArr.findIndex(x=>x.id===folder.id); if (idx<0) return;
+              fArr.splice(idx,1);
+              saveFoldersFn(foldersKey, fArr);
+              renderFolderedCollection(cfg); showToast(i18n.t('toastDeleted'));
+            });
+
+            // フォルダ見出しにドロップ → そのフォルダへ移動
+            header.addEventListener('dragover', ev => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
+              ev.preventDefault(); header.dataset.drop='1';
+            });
+            header.addEventListener('dragleave', () => { delete header.dataset.drop; });
+            header.addEventListener('drop', ev => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
+              ev.preventDefault(); delete header.dataset.drop;
+              const draggedId = ev.dataTransfer.getData('text/plain');
+              if (!draggedId) return;
+              onMoveToFolder(draggedId, folder.id);
+            });
+
+            // リスト本体
+            const list = document.createElement('div'); list.className = 'adv-list';
+            const itemsInFolder = folder.order.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
+            itemsInFolder.forEach(it => list.appendChild(renderRow(it)));
+
+            // 並びプレビュー
+            list.addEventListener('dragover', ev => {
+              ev.preventDefault();
+              const dragging = document.querySelector('.adv-item.dragging');
+              if (!dragging) return;
+              const after = getDragAfterElement(list, ev.clientY);
+              if (after == null) list.appendChild(dragging);
+              else list.insertBefore(dragging, after);
+            });
+
+            // 並び確定（かつ別フォルダ→このフォルダへの“移動”も吸収）
+            list.addEventListener('drop', (ev) => {
+              ev.preventDefault(); ev.stopPropagation();
+              const draggedId = ev.dataTransfer.getData('text/plain');
+              if (!draggedId) return;
+
+              const newOrder = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
+
+              const fArr = loadFoldersFn(foldersKey, defaultFolderName);
+              const f = fArr.find(x=>x.id===folder.id);
+              if (!f) return;
+
+              const isMove = !f.order.includes(draggedId);
+              if (isMove) {
+                for (const f_other of fArr) {
+                  if (f_other.id === folder.id) continue;
+                  const o_before = f_other.order.length;
+                  f_other.order = f_other.order.filter(id => id !== draggedId);
+                  if (f_other.order.length !== o_before) f_other.ts = Date.now();
+                }
+              }
+
+              f.order = newOrder;
+              f.ts = Date.now();
+              saveFoldersFn(foldersKey, fArr);
+              showToast(i18n.t('toastReordered'));
+
+              if (isMove) renderFolderedCollection(cfg);
+            });
+
+            section.appendChild(header);
+            section.appendChild(list);
+            return section;
+          };
+
+          // 11) 単一表示かALL表示か
+          const order = (filterFolder !== '__ALL__')
+            ? (filterFolder === '__UNASSIGNED__' ? ['__UNASSIGNED__'] : foldersToDraw.map(f => f.id))
+            : buildSectionsOrder();
+
+          order.forEach(id => {
+            if (id === '__UNASSIGNED__') host.appendChild(renderUnassignedSection());
+            else {
+              const f = folders.find(x => x.id === id);
+              if (f) host.appendChild(renderFolderSection(f));
+            }
+          });
+        }
 
         // タブ並び替え（水平）用のヘルパー
         const getDragAfterElementHorizontal = (container, x, selector) => {
@@ -3399,401 +3472,25 @@
         function renderAccounts() {
           ensureFolderToolbars();
 
-          const items   = loadAccounts();
-          let   folders = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
-          const idToItem = Object.fromEntries(items.map(x => [x.id, x]));
+          renderFolderedCollection({
+            hostId: 'adv-accounts-list',
+            emptyId: 'adv-accounts-empty',
+            filterSelectId: 'adv-accounts-folder-filter',
+            searchInputId:  'adv-accounts-search',
+            newFolderBtnId: 'adv-accounts-new-folder',
 
-          // フォルダ order の死票を掃除
-          let needsSave = false;
-          for (const f of folders) {
-            const before = f.order.length;
-            f.order = f.order.filter(id => !!idToItem[id]);
-            if (f.order.length !== before) { needsSave = true; f.ts = Date.now(); }
-          }
-          if (needsSave) saveFolders(ACCOUNTS_FOLDERS_KEY, folders);
+            foldersKey: ACCOUNTS_FOLDERS_KEY,
+            defaultFolderName: i18n.t('optAccountAll'),
 
-          // 未所属（Unassigned）ID 群
-          const allIds     = new Set(items.map(x => x.id));
-          const inFolders  = new Set(folders.flatMap(f => f.order));
-          const unassignedIds = [...allIds].filter(id => !inFolders.has(id));
+            loadItems: loadAccounts,
+            saveItems: saveAccounts,
+            renderRow: renderAccountRow,
 
-          // フィルタUIや検索
-          const filterSel = document.getElementById('adv-accounts-folder-filter');
-          const searchEl  = document.getElementById('adv-accounts-search');
-          const newBtn    = document.getElementById('adv-accounts-new-folder');
+            onUnassign: unassignAccount,
+            onMoveToFolder: moveAccountToFolder,
 
-          // セレクト更新
-          if (filterSel) {
-            const prev = filterSel.value;
-            filterSel.innerHTML = '';
-            const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent='ALL'; filterSel.appendChild(optAll);
-            const optUn  = document.createElement('option'); optUn.value='__UNASSIGNED__'; optUn.textContent='Unassigned'; filterSel.appendChild(optUn);
-            folders.forEach(f=>{
-              const o = document.createElement('option'); o.value = f.id; o.textContent = f.name; filterSel.appendChild(o);
-            });
-            if ([...filterSel.options].some(o=>o.value===prev)) filterSel.value = prev; else filterSel.value='__ALL__';
-            filterSel.onchange = ()=> renderAccounts();
-          }
-          if (searchEl && !searchEl._advBound) {
-            searchEl._advBound = true;
-            searchEl.addEventListener('input', ()=>renderAccounts());
-          }
-          if (newBtn && !newBtn._advBound) {
-            newBtn._advBound = true;
-            newBtn.addEventListener('click', ()=>{
-              const nm = prompt('New folder name', '');
-              if (!nm || !nm.trim()) return;
-              const fs = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
-              fs.push({ id: uid(), name: nm.trim(), order: [], ts: Date.now() });
-              saveFolders(ACCOUNTS_FOLDERS_KEY, fs);
-              renderAccounts();
-            });
-          }
-
-          const filterFolder = filterSel?.value || '__ALL__';
-          const q = (searchEl?.value || '').toLowerCase().trim();
-          const matchItem = (it) => {
-            if (!q) return true;
-            const name = (it.name||'').toLowerCase();
-            const handle = (it.handle||'').toLowerCase();
-            return name.includes(q) || handle.includes(q) || (`@${handle}`).includes(q);
-          };
-
-          const host = document.getElementById('adv-accounts-list');
-          const emptyEl = document.getElementById('adv-accounts-empty');
-          host.innerHTML = '';
-          emptyEl.textContent = items.length ? '' : i18n.t('emptyAccounts');
-
-          // === 並び順：フォルダ列の間に Unassigned を挿入できるよう index を保存/復元 ===
-          const UNASSIGNED_INDEX_KEY = 'advAccountsUnassignedIndex_v1';
-          const getUnIdx = () => {
-            try { const v = GM_getValue(UNASSIGNED_INDEX_KEY, 0); return Math.max(0, Math.min(folders.length, +v||0)); } catch { return 0; }
-          };
-          const setUnIdx = (idx) => { try { GM_setValue(UNASSIGNED_INDEX_KEY, String(idx)); } catch {} };
-
-          // 表示対象フォルダの選定
-          const foldersToDraw =
-            filterFolder === '__ALL__'      ? [...folders] :
-            filterFolder === '__UNASSIGNED__' ? [] : // フォルダは描かない（後で unassigned だけ描く）
-            folders.filter(f => f.id === filterFolder);
-
-          // DOM 並び：foldersToDraw の間に Unassigned を差し込む（__ALL__ の時のみ）
-          const buildSectionsOrder = () => {
-            if (filterFolder !== '__ALL__') return foldersToDraw.map(f => f.id);
-            const idx = getUnIdx();
-            const arr = foldersToDraw.map(f => f.id);
-            arr.splice(Math.max(0, Math.min(arr.length, idx)), 0, '__UNASSIGNED__');
-            return arr;
-          };
-
-          const SECT_MIME = 'adv/folder'; // 既存のフォルダD&Dと同じMIMEを流用
-          const getSectionAfterElement = (container, y) => {
-            const els = [...container.querySelectorAll('.adv-folder:not(.dragging-folder), .adv-unassigned:not(.dragging-folder)')];
-            let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
-            for (const el of els) {
-              const box = el.getBoundingClientRect();
-              const offset = y - box.top - box.height / 2;
-              if (offset < 0 && offset > closest.offset) {
-                closest = { offset, element: el };
-              }
-            }
-            return closest.element;
-          };
-          const persistSectionsFromDOM = () => {
-            const order = [...host.querySelectorAll('.adv-folder, .adv-unassigned')].map(sec => sec.dataset.folderId);
-            // フォルダ順保存
-            const newFolderOrderIds = order.filter(id => id !== '__UNASSIGNED__');
-            let fs = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
-            const map = Object.fromEntries(fs.map(f=>[f.id,f]));
-            const reordered = newFolderOrderIds.map(id=>map[id]).filter(Boolean);
-            // 未描画があれば末尾へ
-            fs.forEach(f => { if (!reordered.includes(f)) reordered.push(f); });
-            saveFolders(ACCOUNTS_FOLDERS_KEY, reordered);
-
-            // Unassigned の位置を保存
-            const unIdx = order.indexOf('__UNASSIGNED__');
-            if (unIdx >= 0) setUnIdx(unIdx);
-
-            showToast(i18n.t('toastReordered'));
-          };
-
-          // === Unassigned セクション（ヘッダー無し・枠無し） ===
-          const renderUnassignedSection = () => {
-            const sec = document.createElement('section');
-            sec.className = 'adv-unassigned';
-            sec.dataset.folderId = '__UNASSIGNED__';
-            sec.setAttribute('draggable', 'true'); // 並び替えのためにセクション自体をドラッグ可
-            const list = document.createElement('div');
-            list.className = 'adv-list';
-            const itemsUn = unassignedIds.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
-            // Unassigned のみの表示要求(__UNASSIGNED__)時は単独表示
-            if (filterFolder === '__UNASSIGNED__') {
-              // ここでは単に全件描画
-            }
-            itemsUn.forEach(it => list.appendChild(renderAccountRow(it)));
-            sec.appendChild(list);
-
-            // セクション D&D: ドラッグ開始/終了
-            sec.addEventListener('dragstart', (ev) => {
-              // ★ドラッグ開始地点がアイテム(.adv-item)やその子孫でないことを確認
-              const item = ev.target.closest('.adv-item');
-
-              if (!item) {
-                // アイテムD&Dでない場合、セクションD&Dとして扱う
-                ev.dataTransfer.setData(SECT_MIME, '__UNASSIGNED__');
-                ev.dataTransfer.effectAllowed = 'move';
-                sec.classList.add('dragging-folder');
-              }
-            });
-            sec.addEventListener('dragend', () => {
-              sec.classList.remove('dragging-folder');
-            });
-
-            // セクション上を通過中：セクション間の並び替え
-            sec.addEventListener('dragover', (ev) => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
-                ev.preventDefault();
-                const dragging = host.querySelector('.dragging-folder');
-                if (!dragging || dragging === sec) return;
-                const after = getSectionAfterElement(host, ev.clientY);
-                if (after == null) host.appendChild(dragging);
-                else host.insertBefore(dragging, after);
-              }
-            });
-
-            // Unassigned領域へのドロップ処理（Accounts専用）
-            const handleDropOnUnassigned_Accounts = (ev) => {
-              // セクション（フォルダ）自体のドラッグは無視
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
-
-              ev.preventDefault();
-              ev.stopPropagation(); // イベント伝播を停止
-              const draggedId = ev.dataTransfer.getData('text/plain');
-              if (draggedId) {
-                  unassignAccount(draggedId); // ★ 共通関数を呼ぶように変更
-              }
-            };
-
-            // アイテム並び替え（リスト内）
-            list.addEventListener('dragover', ev => {
-              // セクション（フォルダ）のドラッグ
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
-                // ★セクション並び替えD&D。親(sec)のdragoverに処理を任せる。
-                // ★イベントを止めずに return する。
-                return;
-              }
-
-              // アイテムのドラッグ
-              ev.preventDefault();
-              ev.stopPropagation(); // ★ 親(sec)のアイテムD&Dハンドラには行かせない
-              // プレビュー（DOM移動）
-              const container = list;
-              const dragging = document.querySelector('.adv-item.dragging'); // グローバルで探す
-              if (!dragging) return;
-              if (dragging.contains(container)) return;
-
-              const after = getDragAfterElement(container, ev.clientY);
-              if (after == null) container.appendChild(dragging);
-              else container.insertBefore(dragging, after);
-            });
-
-            // リスト（またはその中のアイテム）へのドロップ
-            list.addEventListener('drop', handleDropOnUnassigned_Accounts);
-
-            // ★セクション（の余白）へのドラッグを許可
-            sec.addEventListener('dragover', (ev) => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
-              ev.preventDefault();
-              ev.stopPropagation();
-            });
-            // ★セクション（の余白）へのドロップ
-            sec.addEventListener('drop', handleDropOnUnassigned_Accounts);
-
-            return sec;
-          };
-
-          // === フォルダ描画（既存に近いが、ヘッダーを DnD 起点にしてセクション入替に参加） ===
-          const renderFolderSection = (folder) => {
-            const section = document.createElement('section');
-            section.className = 'adv-folder';
-            section.dataset.folderId = folder.id;
-            if (folder.collapsed) section.classList.add('adv-folder-collapsed');
-
-            const header = document.createElement('div');
-            header.className = 'adv-folder-header';
-            header.setAttribute('draggable', 'true');
-
-            const toggleBtn = renderFolderToggleButton(!!folder.collapsed);
-            const titleWrap = document.createElement('div');
-            titleWrap.className = 'adv-folder-title';
-            titleWrap.appendChild(toggleBtn);
-            const nameEl = document.createElement('strong'); nameEl.textContent = folder.name; titleWrap.appendChild(nameEl);
-            const countEl = document.createElement('span'); countEl.className='adv-item-sub'; countEl.textContent = `(${folder.order.length})`;
-            titleWrap.appendChild(countEl);
-
-            const actions = document.createElement('div');
-            actions.className = 'adv-folder-actions';
-            actions.innerHTML = `
-              <button class="adv-chip" data-action="rename"  aria-label="Rename folder" title="Rename folder">Rename</button>
-              <button class="adv-chip danger" data-action="delete" aria-label="Delete folder" title="Delete folder">Delete</button>
-            `;
-            header.appendChild(titleWrap);
-            header.appendChild(actions);
-
-            // フォルダ DnD（セクション入替）
-            header.addEventListener('dragstart', (ev) => {
-              if (ev.target && (ev.target.closest('.adv-folder-actions') || ev.target.closest('.adv-folder-toggle-btn'))) {
-                ev.preventDefault(); return;
-              }
-              ev.dataTransfer.setData(SECT_MIME, folder.id);
-              ev.dataTransfer.effectAllowed = 'move';
-              section.classList.add('dragging-folder');
-            });
-            header.addEventListener('dragend', () => section.classList.remove('dragging-folder'));
-
-            section.addEventListener('dragover', (ev) => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
-                ev.preventDefault();
-                const dragging = host.querySelector('.dragging-folder');
-                if (!dragging || dragging === section) return;
-                const after = getSectionAfterElement(host, ev.clientY);
-                if (after == null) host.appendChild(dragging);
-                else host.insertBefore(dragging, after);
-              }
-            });
-
-            host.addEventListener('drop', (ev) => {
-              if (!(ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME))) return;
-              ev.preventDefault();
-              persistSectionsFromDOM();
-              renderAccounts();
-            }, { once:true });
-
-            // 折りたたみ
-            const collapseToggle = () => {
-              section.classList.toggle('adv-folder-collapsed');
-              const all = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
-              const f = all.find(x => x.id === folder.id);
-              if (f) { f.collapsed = section.classList.contains('adv-folder-collapsed'); f.ts = Date.now(); saveFolders(ACCOUNTS_FOLDERS_KEY, all); }
-              updateFolderToggleButton(toggleBtn, !!section.classList.contains('adv-folder-collapsed'));
-            };
-            toggleBtn.addEventListener('click', (e)=>{ e.stopPropagation(); collapseToggle(); });
-            toggleBtn.addEventListener('keydown', (e)=>{ if (e.key===' '||e.key==='Enter'){ e.preventDefault(); collapseToggle(); } });
-
-            // Rename / Delete
-            actions.querySelector('[data-action="rename"]').addEventListener('click', ()=>{
-              const nm = prompt('New folder name', folder.name);
-              if (!nm || !nm.trim()) return;
-              const fArr = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
-              const f = fArr.find(x=>x.id===folder.id); if (!f) return;
-              f.name = nm.trim(); f.ts = Date.now(); saveFolders(ACCOUNTS_FOLDERS_KEY, fArr);
-              renderAccounts(); showToast(i18n.t('updated'));
-            });
-            actions.querySelector('[data-action="delete"]').addEventListener('click', ()=>{
-              if (!confirm('Delete this folder? Items will become Unassigned.')) return;
-              let fArr = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
-              const idx = fArr.findIndex(x=>x.id===folder.id); if (idx<0) return;
-              fArr.splice(idx,1);
-              saveFolders(ACCOUNTS_FOLDERS_KEY, fArr);
-              renderAccounts(); showToast(i18n.t('toastDeleted'));
-            });
-
-            // ヘッダにドロップ（アカウント→このフォルダへ移動 / Unassigned へ移動は別処理）
-            header.addEventListener('dragover', ev => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return; // セクションD&D時は無視
-              ev.preventDefault(); header.dataset.drop='1';
-            });
-            header.addEventListener('dragleave', () => { delete header.dataset.drop; });
-            header.addEventListener('drop', ev => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
-              ev.preventDefault(); delete header.dataset.drop;
-              const draggedId = ev.dataTransfer.getData('text/plain');
-              if (!draggedId) return;
-              moveAccountToFolder(draggedId, folder.id);
-            });
-
-            const list = document.createElement('div');
-            list.className = 'adv-list';
-            const itemsInFolder = folder.order.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
-            itemsInFolder.forEach(it => list.appendChild(renderAccountRow(it)));
-
-            // フォルダ内の並び保存 兼 フォルダへの移動
-            list.addEventListener('dragover', ev => {
-              ev.preventDefault(); // リスト領域全体をドロップターゲットにする
-              // プレビュー（DOM移動）
-              const container = list;
-              const dragging = document.querySelector('.adv-item.dragging'); // グローバルで探す
-              if (!dragging) return;
-              // ドロップ先が自分自身（または自分の子孫）でないことを確認
-
-              const after = getDragAfterElement(container, ev.clientY);
-              if (after == null) container.appendChild(dragging);
-              else container.insertBefore(dragging, after);
-            });
-
-            list.addEventListener('drop', (ev) => {
-              ev.preventDefault();
-              ev.stopPropagation(); // ヘッダーへの drop イベント伝播を止める
-              const draggedId = ev.dataTransfer.getData('text/plain');
-              if (!draggedId) return;
-
-              // newOrder は DOM の順序から取得
-              const newOrder = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
-              // dragover で DOM は移動済みのはず
-
-              const fArr = loadFolders(ACCOUNTS_FOLDERS_KEY, i18n.t('optAccountAll'));
-              const f = fArr.find(x=>x.id===folder.id);
-              if (!f) return;
-
-              const isMove = !f.order.includes(draggedId); // このフォルダに元々無ければ「移動」
-
-              if (isMove) {
-                // 他の全フォルダから ID を削除
-                for (const f_other of fArr) {
-                  if (f_other.id === folder.id) continue; // 自分自身は除外
-                  const o_before = f_other.order.length;
-                  f_other.order = f_other.order.filter(id => id !== draggedId);
-                  if (f_other.order.length !== o_before) f_other.ts = Date.now();
-                }
-              }
-
-              // このフォルダの順序を DOM の順序で更新
-              f.order = newOrder;
-              f.ts = Date.now();
-              saveFolders(ACCOUNTS_FOLDERS_KEY, fArr);
-              showToast(i18n.t('toastReordered'));
-
-              if (isMove) {
-                // 「移動」の場合は、DOM要素が重複する可能性があるため、再描画してクリーンにする
-                renderAccounts();
-              }
-            });
-
-            section.appendChild(header);
-            section.appendChild(list);
-            return section;
-          };
-
-          // === 描画 ===
-          // 単一指定（特定フォルダ or Unassigned のみ）モード
-          if (filterFolder !== '__ALL__') {
-            if (filterFolder === '__UNASSIGNED__') {
-              host.appendChild(renderUnassignedSection());
-            } else {
-              const folder = folders.find(f => f.id === filterFolder);
-              if (folder) host.appendChild(renderFolderSection(folder));
-            }
-            return;
-          }
-
-          // __ALL__ モード：フォルダ列の間に Unassigned を混在表示
-          const order = buildSectionsOrder();
-          order.forEach(id => {
-            if (id === '__UNASSIGNED__') host.appendChild(renderUnassignedSection());
-            else {
-              const f = folders.find(x => x.id === id);
-              if (f) host.appendChild(renderFolderSection(f));
-            }
+            emptyMessage: i18n.t('emptyAccounts'),
+            unassignedIndexKey: 'advAccountsUnassignedIndex_v1',
           });
         }
 
@@ -3996,15 +3693,6 @@
 
         const accountsEmptyEl = document.getElementById('adv-accounts-empty');
         const accountsListEl  = document.getElementById('adv-accounts-list');
-
-        // accountsListEl?.addEventListener('drop', () => {
-        //   const orderIds = [...accountsListEl.querySelectorAll('.adv-item')].map(el => el.dataset.id);
-        //   const list = loadAccounts();
-        //   const map = Object.fromEntries(list.map(x => [x.id, x]));
-        //   const reordered = orderIds.map(id => map[id]).filter(Boolean);
-        //   saveAccounts(reordered);
-        //   showToast(i18n.t('toastReordered'));
-        // });
 
         function getProfileHandleFromURL(href = location.href) {
           try {
@@ -4265,421 +3953,28 @@
         function renderLists() {
           ensureFolderToolbars();
 
-          const items   = loadLists();
-          let   folders = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
-          const idToItem = Object.fromEntries(items.map(x => [x.id, x]));
+          renderFolderedCollection({
+            hostId: 'adv-lists-list',
+            emptyId: 'adv-lists-empty',
+            filterSelectId: 'adv-lists-folder-filter',
+            searchInputId:  'adv-lists-search',
+            newFolderBtnId: 'adv-lists-new-folder',
 
-          // フォルダ order の死票掃除
-          let needsSave = false;
-          for (const f of folders) {
-            const before = f.order.length;
-            f.order = f.order.filter(id => !!idToItem[id]);
-            if (f.order.length !== before) { needsSave = true; f.ts = Date.now(); }
-          }
-          if (needsSave) saveFolders(LISTS_FOLDERS_KEY, folders);
+            foldersKey: LISTS_FOLDERS_KEY,
+            // 翻訳キーがあるなら i18n.t('optListsAll')、なければ 'Lists'
+            defaultFolderName: i18n.t?.('optListsAll') ?? 'Lists',
 
-          // 未所属
-          const allIds     = new Set(items.map(x => x.id));
-          const inFolders  = new Set(folders.flatMap(f => f.order));
-          const unassignedIds = [...allIds].filter(id => !inFolders.has(id));
+            loadItems: loadLists,
+            saveItems: saveLists,
+            renderRow: renderListRow,
 
-          // フィルタUI
-          const filterSel = document.getElementById('adv-lists-folder-filter');
-          const searchEl  = document.getElementById('adv-lists-search');
-          const newBtn    = document.getElementById('adv-lists-new-folder');
+            onUnassign: unassignList,
+            onMoveToFolder: moveListToFolder,
 
-          if (filterSel) {
-            const prev = filterSel.value;
-            filterSel.innerHTML = '';
-            const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent='ALL'; filterSel.appendChild(optAll);
-            const optUn  = document.createElement('option'); optUn.value='__UNASSIGNED__'; optUn.textContent='Unassigned'; filterSel.appendChild(optUn);
-            folders.forEach(f=>{
-              const o = document.createElement('option'); o.value = f.id; o.textContent = f.name; filterSel.appendChild(o);
-            });
-            if ([...filterSel.options].some(o=>o.value===prev)) filterSel.value = prev; else filterSel.value='__ALL__';
-            filterSel.onchange = ()=> renderLists();
-          }
-          if (searchEl && !searchEl._advBound) {
-            searchEl._advBound = true;
-            searchEl.addEventListener('input', ()=>renderLists());
-          }
-          if (newBtn && !newBtn._advBound) {
-            newBtn._advBound = true;
-            newBtn.addEventListener('click', ()=>{
-              const nm = prompt('New folder name', '');
-              if (!nm || !nm.trim()) return;
-              const fs = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
-              fs.push({ id: uid(), name: nm.trim(), order: [], ts: Date.now() });
-              saveFolders(LISTS_FOLDERS_KEY, fs);
-              renderLists();
-            });
-          }
-
-          const filterFolder = filterSel?.value || '__ALL__';
-          const q = (searchEl?.value || '').toLowerCase().trim();
-          const matchItem = (it) => {
-            if (!q) return true;
-            const name = (it.name||'').toLowerCase();
-            const url  = (it.url ||'').toLowerCase();
-            return name.includes(q) || url.includes(q);
-          };
-
-          const host = document.getElementById('adv-lists-list');
-          const emptyEl = document.getElementById('adv-lists-empty');
-          host.innerHTML = '';
-          emptyEl.textContent = items.length ? '' : i18n.t('emptyLists');
-
-          // Unassigned の並び位置
-          const UNASSIGNED_INDEX_KEY = 'advListsUnassignedIndex_v1';
-          const getUnIdx = () => {
-            try { const v = GM_getValue(UNASSIGNED_INDEX_KEY, 0); return Math.max(0, Math.min(folders.length, +v||0)); } catch { return 0; }
-          };
-          const setUnIdx = (idx) => { try { GM_setValue(UNASSIGNED_INDEX_KEY, String(idx)); } catch {} };
-
-          const foldersToDraw =
-            filterFolder === '__ALL__'      ? [...folders] :
-            filterFolder === '__UNASSIGNED__' ? [] :
-            folders.filter(f => f.id === filterFolder);
-
-          const buildSectionsOrder = () => {
-            if (filterFolder !== '__ALL__') return foldersToDraw.map(f => f.id);
-            const idx = getUnIdx();
-            const arr = foldersToDraw.map(f => f.id);
-            arr.splice(Math.max(0, Math.min(arr.length, idx)), 0, '__UNASSIGNED__');
-            return arr;
-          };
-
-          const SECT_MIME = 'adv/folder';
-          const getSectionAfterElement = (container, y) => {
-            const els = [...container.querySelectorAll('.adv-folder:not(.dragging-folder), .adv-unassigned:not(.dragging-folder)')];
-            let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
-            for (const el of els) {
-              const box = el.getBoundingClientRect();
-              const offset = y - box.top - box.height / 2;
-              if (offset < 0 && offset > closest.offset) {
-                closest = { offset, element: el };
-              }
-            }
-            return closest.element;
-          };
-          const persistSectionsFromDOM = () => {
-            const order = [...host.querySelectorAll('.adv-folder, .adv-unassigned')].map(sec => sec.dataset.folderId);
-            // フォルダ順
-            const newFolderOrderIds = order.filter(id => id !== '__UNASSIGNED__');
-            let fs = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
-            const map = Object.fromEntries(fs.map(f=>[f.id,f]));
-            const reordered = newFolderOrderIds.map(id=>map[id]).filter(Boolean);
-            fs.forEach(f => { if (!reordered.includes(f)) reordered.push(f); });
-            saveFolders(LISTS_FOLDERS_KEY, reordered);
-
-            // Unassigned 位置
-            const unIdx = order.indexOf('__UNASSIGNED__');
-            if (unIdx >= 0) setUnIdx(unIdx);
-
-            showToast(i18n.t('toastReordered'));
-          };
-
-          const renderUnassignedSection = () => {
-            const sec = document.createElement('section');
-            sec.className = 'adv-unassigned';
-            sec.dataset.folderId = '__UNASSIGNED__';
-            sec.setAttribute('draggable', 'true');
-
-            const list = document.createElement('div');
-            list.className = 'adv-list';
-
-            const itemsUn = unassignedIds.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
-            itemsUn.forEach(it => list.appendChild(renderListRow(it)));
-
-            sec.appendChild(list);
-
-            sec.addEventListener('dragstart', (ev) => {
-              // ★ドラッグ開始地点がアイテム(.adv-item)やその子孫でないことを確認
-              const item = ev.target.closest('.adv-item');
-
-              if (!item) {
-                // アイテムD&Dでない場合、セクションD&Dとして扱う
-                ev.dataTransfer.setData(SECT_MIME, '__UNASSIGNED__');
-                ev.dataTransfer.effectAllowed = 'move';
-                sec.classList.add('dragging-folder');
-              }
-            });
-            sec.addEventListener('dragend', () => sec.classList.remove('dragging-folder'));
-
-            sec.addEventListener('dragover', (ev) => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
-                ev.preventDefault();
-                const dragging = host.querySelector('.dragging-folder');
-                if (!dragging || dragging === sec) return;
-                const after = getSectionAfterElement(host, ev.clientY);
-                if (after == null) host.appendChild(dragging);
-                else host.insertBefore(dragging, after);
-              }
-            });
-
-            // Unassigned領域へのドロップ処理（Lists専用）
-            const handleDropOnUnassigned_Lists = (ev) => {
-              // セクション（フォルダ）自体のドラッグは無視
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
-
-              ev.preventDefault();
-              ev.stopPropagation(); // イベント伝播を停止
-              const draggedId = ev.dataTransfer.getData('text/plain');
-              if (draggedId) {
-                unassignList(draggedId); // ★ 共通関数を呼ぶように変更
-              }
-            };
-
-            // アイテム並び替え 兼 Unassigned への移動
-            list.addEventListener('dragover', ev => {
-              // セクション（フォルダ）のドラッグ
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
-                // ★セクション並び替えD&D。親(sec)のdragoverに処理を任せる。
-                // ★イベントを止めずに return する。
-                return;
-              }
-
-              // アイテムのドラッグ
-              ev.preventDefault();
-              ev.stopPropagation(); // ★ 親(sec)のアイテムD&Dハンドラには行かせない
-
-              // プレビュー（DOM移動）
-              const container = list;
-              const dragging = document.querySelector('.adv-item.dragging'); // グローバルで探す
-              if (!dragging) return;
-              if (dragging.contains(container)) return;
-
-              const after = getDragAfterElement(container, ev.clientY);
-              if (after == null) container.appendChild(dragging);
-              else container.insertBefore(dragging, after);
-            });
-
-            // リスト（またはその中のアイテム）へのドロップ
-            list.addEventListener('drop', handleDropOnUnassigned_Lists);
-
-            // ★セクション（の余白）へのドラッグを許可
-            sec.addEventListener('dragover', (ev) => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
-              ev.preventDefault();
-              ev.stopPropagation();
-            });
-            // ★セクション（の余白）へのドロップ
-            sec.addEventListener('drop', handleDropOnUnassigned_Lists);
-
-            return sec;
-          };
-
-          const renderFolderSection = (folder) => {
-            const section = document.createElement('section');
-            section.className = 'adv-folder';
-            section.dataset.folderId = folder.id;
-            if (folder.collapsed) section.classList.add('adv-folder-collapsed');
-
-            const header = document.createElement('div');
-            header.className = 'adv-folder-header';
-            header.setAttribute('draggable', 'true');
-
-            const toggleBtn = renderFolderToggleButton(!!folder.collapsed);
-            const titleWrap = document.createElement('div');
-            titleWrap.className = 'adv-folder-title';
-            titleWrap.appendChild(toggleBtn);
-            const nameEl = document.createElement('strong'); nameEl.textContent = folder.name; titleWrap.appendChild(nameEl);
-            const countEl = document.createElement('span'); countEl.className='adv-item-sub'; countEl.textContent = `(${folder.order.length})`;
-            titleWrap.appendChild(countEl);
-
-            const actions = document.createElement('div');
-            actions.className = 'adv-folder-actions';
-            actions.innerHTML = `
-              <button class="adv-chip" data-action="rename"  aria-label="Rename folder" title="Rename folder">Rename</button>
-              <button class="adv-chip danger" data-action="delete" aria-label="Delete folder" title="Delete folder">Delete</button>
-            `;
-
-            header.appendChild(titleWrap);
-            header.appendChild(actions);
-
-            // セクション（フォルダ） DnD
-            header.addEventListener('dragstart', (ev) => {
-              if (ev.target && (ev.target.closest('.adv-folder-actions') || ev.target.closest('.adv-folder-toggle-btn'))) {
-                ev.preventDefault(); return;
-              }
-              ev.dataTransfer.setData(SECT_MIME, folder.id);
-              ev.dataTransfer.effectAllowed = 'move';
-              section.classList.add('dragging-folder');
-            });
-            header.addEventListener('dragend', () => section.classList.remove('dragging-folder'));
-
-            section.addEventListener('dragover', (ev) => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
-                ev.preventDefault();
-                const dragging = host.querySelector('.dragging-folder');
-                if (!dragging || dragging === section) return;
-                const after = getSectionAfterElement(host, ev.clientY);
-                if (after == null) host.appendChild(dragging);
-                else host.insertBefore(dragging, after);
-              }
-            });
-
-            host.addEventListener('drop', (ev) => {
-              if (!(ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME))) return;
-              ev.preventDefault();
-              persistSectionsFromDOM();
-              renderLists();
-            }, { once:true });
-
-            // 折りたたみ
-            const collapseToggle = () => {
-              section.classList.toggle('adv-folder-collapsed');
-              const all = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
-              const f = all.find(x => x.id === folder.id);
-              if (f) { f.collapsed = section.classList.contains('adv-folder-collapsed'); f.ts = Date.now(); saveFolders(LISTS_FOLDERS_KEY, all); }
-              updateFolderToggleButton(toggleBtn, !!section.classList.contains('adv-folder-collapsed'));
-            };
-            toggleBtn.addEventListener('click', (e)=>{ e.stopPropagation(); collapseToggle(); });
-            toggleBtn.addEventListener('keydown', (e)=>{ if (e.key===' '||e.key==='Enter'){ e.preventDefault(); collapseToggle(); } });
-
-            // Rename / Delete
-            actions.querySelector('[data-action="rename"]').addEventListener('click', ()=>{
-              const nm = prompt('New folder name', folder.name);
-              if (!nm || !nm.trim()) return;
-              const fArr = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
-              const f = fArr.find(x=>x.id===folder.id); if (!f) return;
-              f.name = nm.trim(); f.ts = Date.now(); saveFolders(LISTS_FOLDERS_KEY, fArr);
-              renderLists(); showToast(i18n.t('updated'));
-            });
-            actions.querySelector('[data-action="delete"]').addEventListener('click', ()=>{
-              if (!confirm('Delete this folder? Items will become Unassigned.')) return;
-              let fArr = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
-              const idx = fArr.findIndex(x=>x.id===folder.id); if (idx<0) return;
-              fArr.splice(idx,1);
-              saveFolders(LISTS_FOLDERS_KEY, fArr);
-              renderLists(); showToast(i18n.t('toastDeleted'));
-            });
-
-            // フォルダ見出しにアイテムをドロップ → そのフォルダへ移動
-            header.addEventListener('dragover', ev => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
-              ev.preventDefault(); header.dataset.drop='1';
-            });
-            header.addEventListener('dragleave', () => { delete header.dataset.drop; });
-            header.addEventListener('drop', ev => {
-              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
-              ev.preventDefault(); delete header.dataset.drop;
-              const draggedId = ev.dataTransfer.getData('text/plain');
-              if (!draggedId) return;
-              moveListToFolder(draggedId, folder.id);
-            });
-
-            const list = document.createElement('div');
-            list.className = 'adv-list';
-            const itemsInFolder = folder.order.map(id => idToItem[id]).filter(Boolean).filter(matchItem);
-            itemsInFolder.forEach(it => list.appendChild(renderListRow(it)));
-
-            // フォルダ内の並び保存 兼 フォルダへの移動
-            list.addEventListener('dragover', ev => {
-              ev.preventDefault(); // リスト領域全体をドロップターゲットにする
-              // プレビュー（DOM移動）
-              const container = list;
-              const dragging = document.querySelector('.adv-item.dragging'); // グローバルで探す
-              if (!dragging) return;
-              if (dragging.contains(container)) return;
-
-              const after = getDragAfterElement(container, ev.clientY);
-              if (after == null) container.appendChild(dragging);
-              else container.insertBefore(dragging, after);
-            });
-
-            list.addEventListener('drop', (ev) => {
-              ev.preventDefault();
-              ev.stopPropagation(); // ヘッダーへの drop イベント伝播を止める
-              const draggedId = ev.dataTransfer.getData('text/plain');
-              if (!draggedId) return;
-
-              const newOrder = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
-
-              const fArr = loadFolders(LISTS_FOLDERS_KEY, i18n.t('optLocationAll'));
-              const f = fArr.find(x=>x.id===folder.id);
-              if (!f) return;
-
-              const isMove = !f.order.includes(draggedId); // このフォルダに元々無ければ「移動」
-
-              if (isMove) {
-                // 他の全フォルダから ID を削除
-                for (const f_other of fArr) {
-                  if (f_other.id === folder.id) continue;
-                  const o_before = f_other.order.length;
-                  f_other.order = f_other.order.filter(id => id !== draggedId);
-                  if (f_other.order.length !== o_before) f_other.ts = Date.now();
-                }
-              }
-
-              // このフォルダの順序を DOM の順序で更新
-              f.order = newOrder;
-              f.ts = Date.now();
-              saveFolders(LISTS_FOLDERS_KEY, fArr);
-              showToast(i18n.t('toastReordered'));
-
-              if (isMove) {
-                renderLists();
-              }
-            });
-
-            section.appendChild(header);
-            section.appendChild(list);
-            return section;
-          };
-
-          // 単一表示モード
-          if (filterFolder !== '__ALL__') {
-            if (filterFolder === '__UNASSIGNED__') {
-              host.appendChild(renderUnassignedSection());
-            } else {
-              const folder = folders.find(f => f.id === filterFolder);
-              if (folder) host.appendChild(renderFolderSection(folder));
-            }
-            return;
-          }
-
-          // __ALL__: フォルダ間に Unassigned を混在表示
-          const order = buildSectionsOrder();
-          order.forEach(id => {
-            if (id === '__UNASSIGNED__') host.appendChild(renderUnassignedSection());
-            else {
-              const f = folders.find(x => x.id === id);
-              if (f) host.appendChild(renderFolderSection(f));
-            }
+            emptyMessage: i18n.t('emptyLists'),
+            unassignedIndexKey: 'advListsUnassignedIndex_v1',
           });
         }
-
-        // === Accounts フォルダ操作 ===
-        function moveAccountToFolder(accountId, targetFolderId) {
-          moveItemToFolderGeneric({
-            FOLDERS_KEY: ACCOUNTS_FOLDERS_KEY,
-            itemId: accountId,
-            folderId: targetFolderId
-          });
-          showToast(i18n.t('toastReordered'));
-          try { renderAccounts(); } catch(_) {}
-        }
-
-        // === Lists フォルダ操作 ===
-        function moveListToFolder(listId, targetFolderId) {
-          moveItemToFolderGeneric({
-            FOLDERS_KEY: LISTS_FOLDERS_KEY,
-            itemId: listId,
-            folderId: targetFolderId
-          });
-          showToast(i18n.t('toastReordered'));
-          try { renderLists(); } catch(_) {}
-        }
-
-        // advListsListEl?.addEventListener('drop', () => {
-        //   const orderIds = [...advListsListEl.querySelectorAll('.adv-item')].map(el => el.dataset.id);
-        //   const list = loadLists();
-        //   const map = Object.fromEntries(list.map(x => [x.id, x]));
-        //   const reordered = orderIds.map(id => map[id]).filter(Boolean);
-        //   saveLists(reordered);
-        //   showToast(i18n.t('toastReordered'));
-        // });
 
         const isListPath = (pathname = location.pathname) => /^\/i\/lists\/\d+\/?$/.test(pathname);
 
