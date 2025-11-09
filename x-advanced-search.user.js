@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.0.1
+// @version      5.0.2
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -643,6 +643,15 @@
         .adv-checkbox-item{display:flex;align-items:center}
         .adv-checkbox-item input{margin-right:8px; accent-color:var(--modal-primary-color);}
         .adv-checkbox-item label{color:var(--modal-text-secondary,#8b98a5);margin-bottom:0}
+        .adv-checkbox-item input[type="checkbox"]:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        .adv-checkbox-item input[type="checkbox"]:disabled + label {
+          opacity: 0.5;
+          cursor: not-allowed;
+          text-decoration: line-through;
+        }
         .adv-modal-footer{padding:12px 16px;border-top:1px solid var(--modal-border,#333);display:flex;justify-content:flex-end;gap:12px}
         .adv-modal-button{padding:8px 16px;border-radius:9999px;border:1px solid var(--modal-text-secondary,#536471);background-color:transparent;color:var(--modal-text-primary,#e7e9ea);font-weight:700;cursor:pointer;transition:background-color .2s}
         .adv-modal-button:hover{background-color:var(--modal-button-hover-bg,rgba(231,233,234,.1))}
@@ -2048,6 +2057,13 @@
             if (isUpdating) return; isUpdating = true;
             const formEl = document.getElementById('advanced-search-form');
             formEl.reset();
+            // フォームリセット時に disabled を解除
+            ['verified', 'links', 'images', 'videos'].forEach(groupName => {
+                const includeEl = document.getElementById(`adv-filter-${groupName}-include`);
+                const excludeEl = document.getElementById(`adv-filter-${groupName}-exclude`);
+                if (includeEl) includeEl.disabled = false;
+                if (excludeEl) excludeEl.disabled = false;
+            });
             try {
               const st = loadExcludeFlags();
               const nameEl   = document.getElementById('adv-exclude-hit-name');
@@ -2202,6 +2218,15 @@
 
             document.getElementById('adv-all-words').value =
               q.trim().split(/\s+/).filter(Boolean).join(' ');
+
+            // フィルタ適用後に disabled 状態を再評価
+            ['verified', 'links', 'images', 'videos'].forEach(groupName => {
+                const includeEl = document.getElementById(`adv-filter-${groupName}-include`);
+                const excludeEl = document.getElementById(`adv-filter-${groupName}-exclude`);
+                if (!includeEl || !excludeEl) return;
+                if (includeEl.checked) excludeEl.disabled = true;
+                if (excludeEl.checked) includeEl.disabled = true;
+            });
 
             isUpdating = false;
         };
@@ -4355,7 +4380,17 @@
             saveModalRelativeState();
         });
 
-        clearButton.addEventListener('click', () => { form.reset(); syncFromModalToSearchBox(); });
+        clearButton.addEventListener('click', () => {
+            form.reset();
+            // クリア時に disabled を解除
+            ['verified', 'links', 'images', 'videos'].forEach(groupName => {
+                const includeEl = document.getElementById(`adv-filter-${groupName}-include`);
+                const excludeEl = document.getElementById(`adv-filter-${groupName}-exclude`);
+                if (includeEl) includeEl.disabled = false;
+                if (excludeEl) excludeEl.disabled = false;
+            });
+            syncFromModalToSearchBox();
+        });
 
         applyButton.addEventListener('click', () => executeSearch());
         applyButton.addEventListener('click', () => { setTimeout(scanAndFilterTweets, 800); });
@@ -4611,6 +4646,29 @@
         reconcileUI();
         setupModalDrag();
         setupModalResize();
+        // 排他チェックボックスのロジック
+        const setupExclusiveChecks = () => {
+            const groups = [
+                'verified', 'links', 'images', 'videos'
+            ];
+            groups.forEach(groupName => {
+                const includeEl = document.getElementById(`adv-filter-${groupName}-include`);
+                const excludeEl = document.getElementById(`adv-filter-${groupName}-exclude`);
+                if (!includeEl || !excludeEl) return;
+
+                const handleChange = (eventSource, oppositeEl) => {
+                    if (eventSource.checked) {
+                        oppositeEl.disabled = true;
+                    } else {
+                        oppositeEl.disabled = false;
+                    }
+                };
+
+                includeEl.addEventListener('change', () => handleChange(includeEl, excludeEl));
+                excludeEl.addEventListener('change', () => handleChange(excludeEl, includeEl));
+            });
+        };
+        setupExclusiveChecks();
         setupObservers();
 
         // ▼ Setup background drop zones ▼
