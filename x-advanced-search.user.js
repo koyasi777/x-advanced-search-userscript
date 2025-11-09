@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.9.2
+// @version      4.9.3
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -2791,7 +2791,9 @@
 
             // 並びプレビュー
             list.addEventListener('dragover', ev => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return; // ガード追加
               ev.preventDefault();
+              ev.stopPropagation(); // 伝播停止も追加
               const dragging = document.querySelector('.adv-item.dragging');
               if (!dragging) return;
               const after = getDragAfterElement(list, ev.clientY);
@@ -2801,6 +2803,7 @@
 
             // 並び確定（かつ別フォルダ→このフォルダへの“移動”も吸収）
             list.addEventListener('drop', (ev) => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return; // ガード追加
               ev.preventDefault(); ev.stopPropagation();
               const draggedId = ev.dataTransfer.getData('text/plain');
               if (!draggedId) return;
