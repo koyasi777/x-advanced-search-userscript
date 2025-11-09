@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.9.4
+// @version      4.9.5
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -658,7 +658,12 @@
         .adv-exclude-toggle input{margin-right:4px}
         .adv-exclude-toggle label{font-size:13px;font-weight:normal;color:var(--modal-text-secondary,#8b98a5);cursor:pointer}
         hr.adv-separator{border:none;height:1px;background-color:var(--hr-color,#333);margin:20px 0;transition:background-color .2s}
-        #adv-zoom-root{ transform-origin: top left; will-change: transform; padding:16px; }
+        /* ★全タブ共通のズーム対象に拡張（検索タブの既存idにも適用維持） */
+        .adv-zoom-root, #adv-zoom-root{ transform-origin: top left; will-change: transform; padding:12px 11.6px 10px 11px; }
+        #adv-zoom-root {
+          padding-top: 16px; /* 検索タブの上余白だけを 16px に上書き */
+          padding-left:16px; padding-right:20px;
+        }
         .adv-modal-body{ overflow:auto; }
 
         .adv-form-row.two-cols { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
@@ -669,7 +674,6 @@
         .adv-tab-btn.active { color:var(--modal-text-primary,#e7e9ea); background-color:var(--modal-input-bg,#202327); border:1px solid var(--modal-input-border,#38444d); border-bottom:none; }
         .adv-tab-content { display:none; }
         .adv-tab-content.active { display:block; }
-        #adv-tab-history, #adv-tab-saved, #adv-tab-accounts, #adv-tab-lists { padding:12px 16px; }
 
         .adv-secret-wrap { display:flex; align-items:center; gap:8px; }
         .adv-secret-btn { cursor:pointer; border:1px solid var(--modal-input-border,#38444d); background:var(--modal-input-bg,#202327); color:var(--modal-text-primary,#e7e9ea); padding:4px 8px; border-radius:9999px; font-weight:700; user-select:none; display:flex; align-items:center; gap:6px; font-size:12px; }
@@ -1032,7 +1036,7 @@
                 </div>
 
                 <div class="adv-tab-content active" id="adv-tab-search">
-                    <div id="adv-zoom-root">
+                    <div id="adv-zoom-root" class="adv-zoom-root">
                     <form id="advanced-search-form">
                         <div class="adv-form-group"><label for="adv-all-words" data-i18n="labelAllWords"></label><input type="text" id="adv-all-words" data-i18n-placeholder="placeholderAllWords"></div>
                         <div class="adv-form-group"><label for="adv-exact-phrase" data-i18n="labelExactPhrase"></label><input type="text" id="adv-exact-phrase" data-i18n-placeholder="placeholderExactPhrase"></div>
@@ -1145,6 +1149,7 @@
                 </div>
 
                 <div class="adv-tab-content" id="adv-tab-history">
+                  <div class="adv-zoom-root">
                     <div class="adv-tab-toolbar">
                         <div class="adv-tab-toolbar-left">
                             <input id="adv-history-search" class="adv-input" type="text" data-i18n-placeholder="placeholderSearchHistory">
@@ -1161,26 +1166,33 @@
                     </div>
                     <div id="adv-history-empty" class="adv-item-sub"></div>
                     <div id="adv-history-list" class="adv-list"></div>
+                  </div>
                 </div>
 
                 <div class="adv-tab-content" id="adv-tab-saved">
+                  <div class="adv-zoom-root">
                     <div id="adv-saved-empty" class="adv-item-sub"></div>
                     <div id="adv-saved-list" class="adv-list"></div>
+                  </div>
                 </div>
 
                 <div class="adv-tab-content" id="adv-tab-lists">
+                  <div class="adv-zoom-root">
                     <div id="adv-lists-empty" class="adv-item-sub"></div>
                     <div id="adv-lists-list" class="adv-list"></div>
+                  </div>
                 </div>
 
                 <div class="adv-tab-content" id="adv-tab-accounts">
+                  <div class="adv-zoom-root">
                     <div id="adv-accounts-empty" class="adv-item-sub"></div>
                     <div id="adv-accounts-list" class="adv-list"></div>
+                  </div>
                 </div>
 
                 <!-- ▶ Mute タブ -->
                 <div class="adv-tab-content" id="adv-tab-mute">
-                  <div style="padding:12px 16px;">
+                  <div class="adv-zoom-root">
                     <div class="adv-form-group">
                       <!-- 追加する並び：まず“追加”UI -->
                       <div class="adv-mute-add">
@@ -1461,8 +1473,6 @@
             renderLists();
         };
 
-        const ZOOM_STATE_KEY = 'advSearchZoom_v1';
-
         // 未分類化ロジックを共通化 (Saved用)
         const unassignSaved = (draggedId) => {
             unassignItemGeneric({
@@ -1475,54 +1485,112 @@
             renderSaved();
         };
 
-        let zoom = 1.0;
+        /* ★タブごと保存に対応 */
+        const ZOOM_KEYS = {
+          search:  'advZoom_tab_search_v1',
+          history: 'advZoom_tab_history_v1',
+          saved:   'advZoom_tab_saved_v1',
+          lists:   'advZoom_tab_lists_v1',
+          accounts:'advZoom_tab_accounts_v1',
+          mute:    'advZoom_tab_mute_v1',
+        };
         const ZOOM_MIN = 0.5, ZOOM_MAX = 2.0, ZOOM_STEP = 0.1;
 
-        const zoomRoot = () => document.getElementById('adv-zoom-root');
-        const loadZoom = () => {
-            try {
-                const z = parseFloat(kv.get(ZOOM_STATE_KEY, '1'));
-                if (!Number.isNaN(z)) zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
-            } catch(_) {}
+        /* 各タブの現在値（メモリキャッシュ） */
+        const zoomByTab = {
+          search:  1.0,
+          history: 1.0,
+          saved:   1.0,
+          lists:   1.0,
+          accounts:1.0,
+          mute:    1.0,
         };
-        const saveZoom = () => { try { kv.set(ZOOM_STATE_KEY, String(zoom)); } catch(_) {} };
+
+        const getActiveTabName = () => {
+          const btn = document.querySelector('.adv-tab-btn.active');
+          return btn?.dataset?.tab || 'search';
+        };
+        const getActiveZoomRoot = () =>
+          document.querySelector('.adv-tab-content.active .adv-zoom-root') ||
+          document.getElementById('adv-zoom-root');
+
+        const clampZoom = z => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z*100)/100));
+
+        const loadZoomFor = (tab) => {
+          try {
+            const k = ZOOM_KEYS[tab] || ZOOM_KEYS.search;
+            const v = parseFloat(kv.get(k, '1'));
+            if (!Number.isNaN(v)) zoomByTab[tab] = clampZoom(v);
+          } catch {}
+        };
+        const saveZoomFor = (tab) => {
+          try {
+            const k = ZOOM_KEYS[tab] || ZOOM_KEYS.search;
+            kv.set(k, String(zoomByTab[tab]));
+          } catch {}
+        };
+
+        /* 初期ロード（全タブ） */
+        Object.keys(zoomByTab).forEach(loadZoomFor);
+
         const applyZoom = () => {
-            const el = zoomRoot();
-            if (!el) return;
-            el.style.zoom = '';
-            el.style.transform = '';
-            el.style.width = '';
-            if ('zoom' in el.style) {
-                el.style.zoom = zoom;
-            } else {
-                el.style.transform = `scale(${zoom})`;
-                el.style.width = `${(100/zoom).toFixed(3)}%`;
-            }
+          const tab = getActiveTabName();
+          const el = getActiveZoomRoot();
+          if (!el) return;
+          const z = zoomByTab[tab] ?? 1.0;
+
+          el.style.zoom = '';
+          el.style.transform = '';
+          el.style.width = '';
+
+          if ('zoom' in el.style) {
+            el.style.zoom = z;
+          } else {
+            el.style.transform = `scale(${z})`;
+            el.style.width = `${(100 / z).toFixed(3)}%`;
+          }
         };
-        const setZoom = (z) => { zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z*100)/100)); applyZoom(); saveZoom(); };
+
+        const setZoomActiveTab = (z) => {
+          const tab = getActiveTabName();
+          zoomByTab[tab] = clampZoom(z);
+          applyZoom();
+          saveZoomFor(tab);
+        };
+
+        /* タブ見出しは拡大しない：.adv-zoom-rootの内側だけ反応 */
         const onWheelZoom = (e) => {
-            const isAccel = e.ctrlKey || e.metaKey;
-            if (!isAccel) return;
-            if (!modal.contains(e.target)) return;
-            e.preventDefault();
-            const factor = e.deltaY > 0 ? (1 - ZOOM_STEP) : (1 + ZOOM_STEP);
-            setZoom(zoom * factor);
+          const isAccel = e.ctrlKey || e.metaKey;
+          if (!isAccel) return;
+          if (!e.target.closest('.adv-zoom-root')) return; // ★タブバー等は除外
+          e.preventDefault();
+          const tab = getActiveTabName();
+          const cur = zoomByTab[tab] ?? 1.0;
+          const factor = e.deltaY > 0 ? (1 - ZOOM_STEP) : (1 + ZOOM_STEP);
+          setZoomActiveTab(cur * factor);
         };
         const onKeyZoom = (e) => {
-            const accel = (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey;
-            if (!accel) return;
-            if (!modal.contains(e.target)) return;
-            const k = e.key;
-            if (k === '+' || k === '=') { e.preventDefault(); setZoom(zoom + ZOOM_STEP); }
-            else if (k === '-' || k === '_') { e.preventDefault(); setZoom(zoom - ZOOM_STEP); }
-            else if (k === '0') { e.preventDefault(); setZoom(1.0); }
+          const accel = (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey;
+          if (!accel) return;
+          if (!e.target.closest('.adv-zoom-root')) return; // ★タブバー等は除外
+          const k = e.key;
+          const tab = getActiveTabName();
+          const cur = zoomByTab[tab] ?? 1.0;
+          if (k === '+' || k === '=') { e.preventDefault(); setZoomActiveTab(cur + ZOOM_STEP); }
+          else if (k === '-' || k === '_') { e.preventDefault(); setZoomActiveTab(cur - ZOOM_STEP); }
+          else if (k === '0') { e.preventDefault(); setZoomActiveTab(1.0); }
         };
-        loadZoom();
+
+        /* 初回適用＋表示時に再適用 */
         requestAnimationFrame(applyZoom);
         modal.addEventListener('wheel', onWheelZoom, { passive:false });
         modal.addEventListener('keydown', onKeyZoom);
-        const modalDisplayObserver = new MutationObserver(() => { if (modal.style.display === 'flex') applyZoom(); });
+        const modalDisplayObserver = new MutationObserver(() => {
+          if (modal.style.display === 'flex') applyZoom();
+        });
         modalDisplayObserver.observe(modal, { attributes:true, attributeFilter:['style'] });
+
+        /* ★タブ切替時にもズーム再適用 */
 
         const searchInputSelectors = [
             'div[data-testid="primaryColumn"] input[data-testid="SearchBox_Search_Input"]',
@@ -2231,6 +2299,9 @@
             if (name === 'accounts') renderAccounts();
             if (name === 'mute') renderMuted();
             if (name === 'search') updateSaveButtonState();
+
+            /* タブ切替ごとに該当タブのズーム率を反映 */
+            applyZoom();
         };
 
         // タブのクリックイベントとD&Dイベントリスナーをセットアップ
