@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.0.2
+// @version      5.0.3
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -181,6 +181,21 @@
                 sortOldest: "Oldest first",
                 sortNameAsc: "Query (A-Z)",
                 sortNameDesc: "Query (Z-A)",
+
+                /* Folder/List/Account tabs */
+                placeholderFilterAccounts: "Filter accounts (@, name)",
+                placeholderFilterLists: "Filter lists (name, url)",
+                buttonAddFolder: "+Folder",
+                folderFilterAll: "ALL",
+                folderFilterUnassigned: "Unassigned",
+                folderRename: "Rename",
+                folderRenameTitle: "Rename folder",
+                folderDelete: "Delete",
+                folderDeleteTitle: "Delete folder",
+                promptNewFolder: "New folder name",
+                confirmDeleteFolder: "Delete this folder? Items will become Unassigned.",
+                optListsAll: "Lists",
+                defaultSavedFolders: "Saved Searches",
             },
             'ja': {
                 modalTitle: "高度な検索",
@@ -316,6 +331,21 @@
                 sortOldest: "古い順",
                 sortNameAsc: "クエリ (昇順)",
                 sortNameDesc: "クエリ (降順)",
+
+                /* Folder/List/Account tabs */
+                placeholderFilterAccounts: "アカウントを検索 (@, 名前)",
+                placeholderFilterLists: "リストを検索 (名前, URL)",
+                buttonAddFolder: "+フォルダー",
+                folderFilterAll: "すべて",
+                folderFilterUnassigned: "未分類",
+                folderRename: "名前変更",
+                folderRenameTitle: "フォルダー名を変更",
+                folderDelete: "削除",
+                folderDeleteTitle: "フォルダーを削除",
+                promptNewFolder: "新しいフォルダー名",
+                confirmDeleteFolder: "このフォルダーを削除しますか？中のアイテムは未分類に戻ります。",
+                optListsAll: "リスト",
+                defaultSavedFolders: "保存済み検索",
             },
             'zh-CN': {},
             'ko': {},
@@ -2570,7 +2600,7 @@
             newFolderBtnId: 'adv-saved-new-folder',
 
             foldersKey: SAVED_FOLDERS_KEY,
-            defaultFolderName: 'Saved Searches',
+            defaultFolderName: i18n.t('defaultSavedFolders'),
 
             loadItems: itemsLoader,
             saveItems: itemsSaver,
@@ -2696,8 +2726,8 @@
           if (sel) {
             const prev = sel.value;
             sel.innerHTML = '';
-            const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent='ALL'; sel.appendChild(optAll);
-            const optUn  = document.createElement('option'); optUn.value='__UNASSIGNED__'; optUn.textContent='Unassigned'; sel.appendChild(optUn);
+            const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent=i18n.t('folderFilterAll'); sel.appendChild(optAll);
+            const optUn  = document.createElement('option'); optUn.value='__UNASSIGNED__'; optUn.textContent=i18n.t('folderFilterUnassigned'); sel.appendChild(optUn);
             folders.forEach(f=>{
               const o = document.createElement('option'); o.value = f.id; o.textContent = f.name; sel.appendChild(o);
             });
@@ -2711,7 +2741,7 @@
           if (addBtn && !addBtn._advBound) {
             addBtn._advBound = true;
             addBtn.addEventListener('click', () => {
-              const nm = prompt('New folder name', '');
+              const nm = prompt(i18n.t('promptNewFolder'), '');
               if (!nm || !nm.trim()) return;
               const fs = loadFoldersFn(foldersKey, defaultFolderName);
               fs.push({ id: uid(), name: nm.trim(), order: [], ts: Date.now() });
@@ -2855,8 +2885,8 @@
             const actions = document.createElement('div');
             actions.className = 'adv-folder-actions';
             actions.innerHTML = `
-              <button class="adv-chip"        data-action="rename"  title="Rename folder">Rename</button>
-              <button class="adv-chip danger" data-action="delete"  title="Delete folder">Delete</button>
+              <button class="adv-chip"        data-action="rename"  title="${i18n.t('folderRenameTitle')}">${i18n.t('folderRename')}</button>
+              <button class="adv-chip danger" data-action="delete"  title="${i18n.t('folderDeleteTitle')}">${i18n.t('folderDelete')}</button>
             `;
 
             header.appendChild(titleWrap);
@@ -2901,7 +2931,7 @@
 
             // Rename / Delete
             actions.querySelector('[data-action="rename"]').addEventListener('click', ()=>{
-              const nm = prompt('New folder name', folder.name);
+              const nm = prompt(i18n.t('promptNewFolder'), folder.name);
               if (!nm || !nm.trim()) return;
               const fArr = loadFoldersFn(foldersKey, defaultFolderName);
               const f = fArr.find(x=>x.id===folder.id); if (!f) return;
@@ -2909,7 +2939,7 @@
               renderFolderedCollection(cfg); showToast(i18n.t('updated'));
             });
             actions.querySelector('[data-action="delete"]').addEventListener('click', ()=>{
-              if (!confirm('Delete this folder? Items will become Unassigned.')) return;
+              if (!confirm(i18n.t('confirmDeleteFolder'))) return;
               let fArr = loadFoldersFn(foldersKey, defaultFolderName);
               const idx = fArr.findIndex(x=>x.id===folder.id); if (idx<0) return;
               fArr.splice(idx,1);
@@ -3795,8 +3825,8 @@
               bar.className = 'adv-folder-toolbar';
               bar.innerHTML = `
                 <select id="adv-accounts-folder-filter" class="adv-select"></select>
-                <input id="adv-accounts-search" class="adv-input" type="text" placeholder="Filter accounts (@, name)">
-                <button id="adv-accounts-new-folder" class="adv-chip">+Folder</button>
+                <input id="adv-accounts-search" class="adv-input" type="text" placeholder="${i18n.t('placeholderFilterAccounts')}">
+                <button id="adv-accounts-new-folder" class="adv-chip">${i18n.t('buttonAddFolder')}</button>
               `;
               host.parentElement.insertBefore(bar, host);
             }
@@ -3809,8 +3839,8 @@
               bar.className = 'adv-folder-toolbar';
               bar.innerHTML = `
                 <select id="adv-lists-folder-filter" class="adv-select"></select>
-                <input id="adv-lists-search" class="adv-input" type="text" placeholder="Filter lists (name, url)">
-                <button id="adv-lists-new-folder" class="adv-chip">+Folder</button>
+                <input id="adv-lists-search" class="adv-input" type="text" placeholder="${i18n.t('placeholderFilterLists')}">
+                <button id="adv-lists-new-folder" class="adv-chip">${i18n.t('buttonAddFolder')}</button>
               `;
               host.parentElement.insertBefore(bar, host);
             }
@@ -3824,7 +3854,7 @@
               bar.innerHTML = `
                 <select id="adv-saved-folder-filter" class="adv-select"></select>
                 <input id="adv-saved-search" class="adv-input" type="text" data-i18n-placeholder="placeholderSearchSaved">
-                <button id="adv-saved-new-folder" class="adv-chip">+Folder</button>
+                <button id="adv-saved-new-folder" class="adv-chip">${i18n.t('buttonAddFolder')}</button>
               `;
               host.parentElement.insertBefore(bar, host);
               // プレースホルダーのi18n適用
@@ -4175,8 +4205,7 @@
             newFolderBtnId: 'adv-lists-new-folder',
 
             foldersKey: LISTS_FOLDERS_KEY,
-            // 翻訳キーがあるなら i18n.t('optListsAll')、なければ 'Lists'
-            defaultFolderName: i18n.t?.('optListsAll') ?? 'Lists',
+            defaultFolderName: i18n.t('optListsAll'),
 
             loadItems: loadLists,
             saveItems: saveLists,
