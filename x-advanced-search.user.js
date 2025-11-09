@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.0.4
+// @version      5.0.5
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -4101,8 +4101,21 @@
           const spanCls    = spanEl?.getAttribute('class') || spanEl?.classList?.value || '';
           btn.innerHTML = `
             <div dir="ltr" class="${innerCls}" style="${innerStyle}">
-              <svg viewBox="0 0 24 24" aria-hidden="true" class="${svgCls}" fill="currentColor">
-                <g><path d="M12 2a5 5 0 110 10 5 5 0 010-10zm-7 18a7 7 0 0114 0v2H5v-2zm14-8h2v2h-2v2h-2v-2h-2v-2h2V8h2v2z"></path></g>
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                role="img"
+                class="${svgCls}"
+                fill="currentColor"
+              >
+                <!-- Head (aligned to 24px grid; center (10,7.5), r=3.5) -->
+                <circle cx="10" cy="7.5" r="3.5"></circle>
+
+                <!-- Body (smooth shoulder curve; designed for 24px grid) -->
+                <path d="M3.5 18.5C3.5 15.46 6.79 13 10 13s6.5 2.46 6.5 5.5V20H3.5v-1.5z"></path>
+
+                <!-- Plus (no circle; balanced stroke-equivalent thickness in fill) -->
+                <path d="M18 5h2v3h3v2h-3v3h-2V10h-3V8h3V5z"></path>
               </svg>
               <span class="${spanCls}"></span>
             </div>
