@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.9.1
+// @version      4.9.2
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -641,7 +641,12 @@
         .adv-modal-footer{padding:12px 16px;border-top:1px solid var(--modal-border,#333);display:flex;justify-content:flex-end;gap:12px}
         .adv-modal-button{padding:8px 16px;border-radius:9999px;border:1px solid var(--modal-text-secondary,#536471);background-color:transparent;color:var(--modal-text-primary,#e7e9ea);font-weight:700;cursor:pointer;transition:background-color .2s}
         .adv-modal-button:hover{background-color:var(--modal-button-hover-bg,rgba(231,233,234,.1))}
-        .adv-modal-button.primary{background-color:var(--modal-primary-color);border-color:var(--modal-primary-color);color:var(--modal-primary-text-color)}
+        .adv-modal-button.primary,
+        .adv-chip.primary {
+          background-color:var(--modal-primary-color);
+          border-color:var(--modal-primary-color);
+          color:var(--modal-primary-text-color);
+        }
         .adv-modal-button.primary:hover{background-color:var(--modal-primary-color-hover)}
         .adv-modal-button[disabled]{opacity:.5; cursor:not-allowed;}
         .adv-modal-body::-webkit-scrollbar{width:8px}
@@ -687,7 +692,6 @@
         .adv-item-actions { display:flex; gap:6px; align-items:center; align-self:center; }
         .adv-chip { border:1px solid var(--modal-input-border,#38444d); background:transparent; color:var(--modal-text-primary,#e7e9ea); padding:4px 8px; border-radius:9999px; font-size:12px; cursor:pointer; }
         .adv-chip.danger { border-color:#8b0000; color:#ffb3b3; }
-        .adv-chip.primary { background-color:var(--modal-primary-color); border-color:var(--modal-primary-color); color:var(--modal-primary-text-color); }
         .adv-chip.scope { padding:2px 6px; font-size:11px; line-height:1.2; opacity:0.95; }
 
         .adv-toast { position:fixed; z-index:10001; left:50%; transform:translateX(-50%); bottom:24px; background:#111a; color:#fff; backdrop-filter: blur(6px); border:1px solid #fff3; padding:8px 12px; border-radius:8px; font-weight:700; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; }
@@ -718,14 +722,21 @@
           display: flex;
           flex: 0 0 auto;
         }
+        /* ツールバー入力欄の共通スタイル */
+        .adv-select, .adv-input {
+          background-color:var(--modal-input-bg,#202327);
+          border:1px solid var(--modal-input-border,#38444d);
+          border-radius:8px;
+          padding:6px 10px;
+          color:var(--modal-text-primary,#e7e9ea);
+        }
         /* 検索ボックスとセレクトボックスのスタイル（.adv-folder-toolbar内と共通化） */
+        /* 共通スタイルは .adv-input, .adv-select が担当 */
         .adv-tab-toolbar .adv-input {
-          background-color:var(--modal-input-bg,#202327); border:1px solid var(--modal-input-border,#38444d); border-radius:8px; padding:6px 10px; color:var(--modal-text-primary,#e7e9ea);
           flex: 1;
           min-width: 80px;
         }
         .adv-tab-toolbar .adv-select {
-          background-color:var(--modal-input-bg,#202327); border:1px solid var(--modal-input-border,#38444d); border-radius:8px; padding:6px 10px; color:var(--modal-text-primary,#e7e9ea);
           flex: 0 1 auto;
         }
 
@@ -883,7 +894,6 @@
         .adv-folder-actions { display:flex; gap:6px; }
         .adv-folder-toolbar { display:flex; gap:8px; align-items:center; margin:0 0 12px; padding:0 2px; }
         .adv-folder-toolbar input[type="text"] { flex:1; min-width:80px; }
-        .adv-select, .adv-input { background-color:var(--modal-input-bg,#202327); border:1px solid var(--modal-input-border,#38444d); border-radius:8px; padding:6px 10px; color:var(--modal-text-primary,#e7e9ea); }
         .adv-folder-collapsed .adv-list { display:none; }
 
         /* ▶ Folder headers: show grab cursor except on action buttons */
