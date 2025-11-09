@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.0.7
+// @version      5.0.8
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -2000,15 +2000,6 @@
                 parseQueryAndApplyToModal(si ? si.value : '');
                 applyScopesToControls(readScopesFromURL());
                 updateSaveButtonState();
-            },
-            applyFromModalToSearch: () => {
-                if (isUpdating) return;
-                isUpdating = true;
-                const finalQuery = buildQueryStringFromModal();
-                const si = getActiveSearchInput();
-                if (si) { syncControlledInput(si, finalQuery); }
-                isUpdating = false;
-                updateSaveButtonState();
             }
         };
 
@@ -3678,21 +3669,6 @@
           return row;
         }
 
-        function loadSectionsOrder(key, folders) {
-          const saved = (()=>{
-            try { return JSON.parse(GM_getValue(key, 'null')); } catch(_) { return null; }
-          })();
-          const ids = ['__UNASSIGNED__', ...folders.map(f=>f.id)];
-          if (!Array.isArray(saved)) return ids;
-          const set = new Set(saved);
-          const ordered = saved.filter(id => ids.includes(id));
-         ids.forEach(id => { if (!set.has(id)) ordered.push(id); });
-          return ordered;
-        }
-        function saveSectionsOrder(key, order) {
-         try { GM_setValue(key, JSON.stringify(order)); } catch(_) {}
-        }
-
         function renderAccounts() {
           ensureFolderToolbars();
 
@@ -3773,9 +3749,6 @@
         const LISTS_FOLDERS_KEY    = 'advListsFolders_v1';
         // ▼ セクション（フォルダー + Unassigned）の並び順を永続化するキー
         const SAVED_FOLDERS_KEY    = 'advSavedFolders_v1'
-        const ACCOUNTS_SECTIONS_ORDER_KEY = 'advAccountsSectionsOrder_v1';
-        const LISTS_SECTIONS_ORDER_KEY    = 'advListsSectionsOrder_v1';
-        const SAVED_SECTIONS_ORDER_KEY    = 'advSavedSectionsOrder_v1';
 
         function loadFolders(key, _defaultName="") {
           const raw = loadJSON(key, null);
@@ -3915,7 +3888,6 @@
           showToast(i18n.t('toastDeleted'));
         };
 
-        const accountsEmptyEl = document.getElementById('adv-accounts-empty');
         const accountsListEl  = document.getElementById('adv-accounts-list');
         const advSavedListEl  = document.getElementById('adv-saved-list');
 
@@ -4173,7 +4145,6 @@
           showToast(i18n.t('toastDeleted'));
         };
 
-        const advListsEmptyEl = document.getElementById('adv-lists-empty');
         const advListsListEl  = document.getElementById('adv-lists-list');
 
         // ===== FOLDER MIGRATION =====
