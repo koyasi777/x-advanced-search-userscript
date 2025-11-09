@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.0.6
+// @version      5.0.7
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -2519,7 +2519,7 @@
             row.querySelector('[data-action="run"]').addEventListener('click', () => {
               parseQueryAndApplyToModal(item.q);
               applyScopesToControls({ pf: !!item.pf, lf: !!item.lf });
-              activateTab('search');
+              // activateTab('search');
               executeSearch({ pf: item.pf, lf: item.lf });
             });
 
@@ -2547,44 +2547,6 @@
 
         const savedEmptyEl = document.getElementById('adv-saved-empty');
         const savedListEl = document.getElementById('adv-saved-list');
-
-        // renderListRow に相当する関数を renderSaved の内部ヘルパーとして定義
-        function renderSavedRow(item) {
-          const row = document.createElement('div');
-          row.className = 'adv-item';
-          row.draggable = true;
-          row.dataset.id = item.id;
-          row.innerHTML = `
-            <div class="adv-item-handle" title="Drag">≡</div>
-            <div class="adv-item-main">
-              <div class="adv-item-title">${escapeHTML(item.q)}</div>
-              <div class="adv-item-sub">
-                <span>${fmtTime(item.ts)}</span>
-                ${scopeChipsHTML(!!item.pf, !!item.lf)}
-              </div>
-            </div>
-            <div class="adv-item-actions">
-              <button class="adv-chip primary" data-action="run">${i18n.t('run')}</button>
-              <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
-            </div>
-          `;
-          row.querySelector('[data-action="run"]').addEventListener('click', ()=>{
-            parseQueryAndApplyToModal(item.q);
-            applyScopesToControls({pf:!!item.pf, lf:!!item.lf});
-            activateTab('search');
-            executeSearch({pf:item.pf, lf:item.lf});
-          });
-          row.querySelector('[data-action="delete"]').addEventListener('click', ()=> deleteSaved(item.id));
-
-          row.addEventListener('dragstart', (ev) => {
-            row.classList.add('dragging');
-            ev.dataTransfer.setData('text/plain', item.id);
-            ev.dataTransfer.effectAllowed = 'move';
-          });
-          row.addEventListener('dragend', () => row.classList.remove('dragging'));
-
-          return row;
-        }
 
         const renderSaved = () => {
           ensureFolderToolbars();
@@ -2627,7 +2589,7 @@
               row.querySelector('[data-action="run"]').addEventListener('click', ()=>{
                 parseQueryAndApplyToModal(item.q);
                 applyScopesToControls({pf:!!item.pf, lf:!!item.lf});
-                activateTab('search');
+                // activateTab('search');
                 executeSearch({pf:item.pf, lf:item.lf});
               });
               row.querySelector('[data-action="delete"]').addEventListener('click', ()=> deleteSaved(item.id));
