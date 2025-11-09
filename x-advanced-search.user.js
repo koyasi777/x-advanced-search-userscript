@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.0.3
+// @version      5.0.4
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -193,7 +193,7 @@
                 folderDelete: "Delete",
                 folderDeleteTitle: "Delete folder",
                 promptNewFolder: "New folder name",
-                confirmDeleteFolder: "Delete this folder? Items will become Unassigned.",
+                confirmDeleteFolder: "Delete this folder and all items inside it? This cannot be undone.",
                 optListsAll: "Lists",
                 defaultSavedFolders: "Saved Searches",
             },
@@ -343,7 +343,7 @@
                 folderDelete: "削除",
                 folderDeleteTitle: "フォルダーを削除",
                 promptNewFolder: "新しいフォルダー名",
-                confirmDeleteFolder: "このフォルダーを削除しますか？中のアイテムは未分類に戻ります。",
+                confirmDeleteFolder: "このフォルダーと中のすべてのアイテムを完全に削除しますか？この操作は元に戻せません。",
                 optListsAll: "リスト",
                 defaultSavedFolders: "保存済み検索",
             },
@@ -2940,10 +2940,29 @@
             });
             actions.querySelector('[data-action="delete"]').addEventListener('click', ()=>{
               if (!confirm(i18n.t('confirmDeleteFolder'))) return;
+
+                // 1. 削除対象のアイテムIDセットを取得
+                const itemsToDelete = new Set(folder.order || []);
+
+                // 2. アイテムのマスターリストから該当アイテムを削除
+                if (itemsToDelete.size > 0) {
+                    try {
+                        const allItems = loadItems(); // 親スコープの loadItems を使用
+                        const nextItems = allItems.filter(item => !itemsToDelete.has(item.id));
+                        saveItems(nextItems); // 親スコープの saveItems を使用
+                    } catch (e) {
+                        console.error('Failed to delete items in folder:', e);
+                        // アイテム削除に失敗しても、フォルダ削除は続行
+                    }
+                }
+
+              // 3. フォルダ自体を削除
               let fArr = loadFoldersFn(foldersKey, defaultFolderName);
               const idx = fArr.findIndex(x=>x.id===folder.id); if (idx<0) return;
               fArr.splice(idx,1);
               saveFoldersFn(foldersKey, fArr);
+
+              // 4. 再描画
               renderFolderedCollection(cfg); showToast(i18n.t('toastDeleted'));
             });
 
