@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.9.8
+// @version      4.9.9
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -136,8 +136,8 @@
                 chipNearby: "Nearby",
 
                 labelSearchTarget: "Search target",
-                labelHitName: "Exclude hits in display name",
-                labelHitHandle: "Exclude hits in username (@handle)",
+                labelHitName: "Exclude hits only in display name",
+                labelHitHandle: "Exclude hits only in username (@handle)",
                 hintSearchTarget: "Hide posts that only match in name or handle (not in body).",
                 hintName: "If a keyword appears only in the display name, hide it.",
                 hintHandle: "If a keyword appears only in @username, hide it. Exception: when the query explicitly uses from:/to:/@ with the same word.",
@@ -269,8 +269,8 @@
                 chipNearby: "近く",
 
                 labelSearchTarget: "検索対象",
-                labelHitName: "表示名（名前）でのヒットは除外",
-                labelHitHandle: "ユーザー名（@）でのヒットは除外",
+                labelHitName: "表示名（名前）のみのヒットは除外",
+                labelHitHandle: "ユーザー名（@）のみのヒットは除外",
                 hintSearchTarget: "本文ではなく、名前/ユーザー名のみに一致した投稿を非表示にします。",
                 hintName: "キーワードが表示名のみに含まれる場合は非表示にします。",
                 hintHandle: "キーワードが @ユーザー名のみに含まれる場合は非表示にします。例外: 同じ語を from:/to:/@ で明示しているときは表示します。",
