@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.9.7
+// @version      4.9.8
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -894,7 +894,7 @@
           display:flex; justify-content:space-between; align-items:center;
           padding:8px 10px; background:var(--modal-input-bg,#202327); border-bottom:1px solid var(--modal-input-border,#38444d);
         }
-        .adv-folder-header[data-drop="1"] { outline:2px dashed var(--modal-primary-color); outline-offset:-4px; }
+        .adv-folder[data-drop="1"] { outline:2px dashed var(--modal-primary-color); outline-offset:-2px; }
         .adv-folder-title { display:flex; gap:8px; align-items:baseline; }
         .adv-folder-actions { display:flex; gap:6px; }
         .adv-folder-toolbar { display:flex; gap:8px; align-items:center; margin:0 0 12px; padding:0 2px; }
@@ -2870,12 +2870,20 @@
             // フォルダ見出しにドロップ → そのフォルダへ移動
             header.addEventListener('dragover', ev => {
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
-              ev.preventDefault(); header.dataset.drop='1';
+              ev.preventDefault();
+              // 排他制御: 他のフォルダのハイライトを消す
+              document.querySelectorAll('.adv-folder[data-drop="1"]').forEach(el => {
+                if (el !== section) delete el.dataset.drop;
+              });
+              section.dataset.drop='1';
             });
-            header.addEventListener('dragleave', () => { delete header.dataset.drop; });
+            header.addEventListener('dragleave', (ev) => {
+              // 子要素への移動でも一旦消すが、dragoverですぐ復活する
+              delete section.dataset.drop;
+            });
             header.addEventListener('drop', ev => {
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
-              ev.preventDefault(); delete header.dataset.drop;
+              ev.preventDefault(); delete section.dataset.drop;
               const draggedId = ev.dataTransfer.getData('text/plain');
               if (!draggedId) return;
               onMoveToFolder(draggedId, folder.id);
@@ -2891,6 +2899,13 @@
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return; // ガード追加
               ev.preventDefault();
               ev.stopPropagation(); // 伝播停止も追加
+
+              // 排他制御: 他のフォルダのハイライトを消す
+              document.querySelectorAll('.adv-folder[data-drop="1"]').forEach(el => {
+                if (el !== section) delete el.dataset.drop;
+              });
+              section.dataset.drop='1';
+
               const dragging = document.querySelector('.adv-item.dragging');
               if (!dragging) return;
               const after = getDragAfterElement(list, ev.clientY);
@@ -2898,10 +2913,18 @@
               else list.insertBefore(dragging, after);
             });
 
+            list.addEventListener('dragleave', ev => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
+              ev.stopPropagation();
+              // 子要素への移動でも一旦消すが、dragoverですぐ復活する
+              delete section.dataset.drop;
+            });
+
             // 並び確定（かつ別フォルダ→このフォルダへの“移動”も吸収）
             list.addEventListener('drop', (ev) => {
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return; // ガード追加
               ev.preventDefault(); ev.stopPropagation();
+              delete section.dataset.drop;
               const draggedId = ev.dataTransfer.getData('text/plain');
               if (!draggedId) return;
 
