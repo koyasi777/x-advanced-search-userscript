@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.9.5
+// @version      4.9.6
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -1319,45 +1319,54 @@
         const setupBackgroundDrop = (panel, host, unassignFunction) => {
             const feedbackClass = 'adv-bg-drop-active';
             const SECT_MIME = 'adv/folder'; // フォルダ並び替えD&DのMIME
-            const targets = [panel, host].filter(Boolean); // ★ パネルとホストの両方を対象にする
+
+            // panel 内の .adv-zoom-root もイベントの対象に追加
+            const zoomRoot = panel?.querySelector('.adv-zoom-root');
+            const eventTargets = [panel, host, zoomRoot].filter(Boolean); // イベントをリッスンする対象
+
+            // ★ 修正: 破線を表示する対象は panel のみとする
+            const feedbackTargets = [panel].filter(Boolean); // 破線を表示する対象
 
             const onDragEnter = (ev) => {
                 // アイテム（text/plain）であり、セクション（adv/folder）ではない
                 if (ev.dataTransfer.types && !ev.dataTransfer.types.includes(SECT_MIME) && ev.dataTransfer.types.includes('text/plain')) {
-                    // ターゲットがパネル自身またはホスト自身（＝子要素の上ではない）
-                    if (targets.includes(ev.target)) {
-                        ev.target.classList.add(feedbackClass);
+                    // ターゲットが panel, host, zoomRoot のいずれか
+                    if (eventTargets.includes(ev.target)) {
+                        // 破線は feedbackTargets に付ける (今回は panel のみ)
+                        feedbackTargets.forEach(t => t.classList.add(feedbackClass));
                     }
                 }
             };
 
             const onDragLeave = (ev) => {
                 // ターゲット自身から離れた時だけフィードバックを消す
-                if (targets.includes(ev.target)) {
-                    ev.target.classList.remove(feedbackClass);
+                if (eventTargets.includes(ev.target)) {
+                    // 破線は feedbackTargets から消す
+                    feedbackTargets.forEach(t => t.classList.remove(feedbackClass));
                 }
             };
 
             const onDragOver = (ev) => {
                 // dropイベントを発火させるために、dragoverでpreventDefaultが必要
-                // アイテムであり、ターゲットがパネル/ホスト自身の場合のみ許可
-                if (targets.includes(ev.target) && ev.dataTransfer.types && !ev.dataTransfer.types.includes(SECT_MIME) && ev.dataTransfer.types.includes('text/plain')) {
+                // アイテムであり、ターゲットが panel/host/zoomRoot 自身の場合のみ許可
+                if (eventTargets.includes(ev.target) && ev.dataTransfer.types && !ev.dataTransfer.types.includes(SECT_MIME) && ev.dataTransfer.types.includes('text/plain')) {
                     ev.preventDefault();
                     ev.stopPropagation();
-                    ev.target.classList.add(feedbackClass); // 継続してハイライト
+                    // 破線は feedbackTargets に付け続ける
+                    feedbackTargets.forEach(t => t.classList.add(feedbackClass));
                 } else {
                     // 子要素（フォルダなど）の上に来たら背景ハイライトは消す
-                    targets.forEach(t => t.classList.remove(feedbackClass));
+                    feedbackTargets.forEach(t => t.classList.remove(feedbackClass));
                     // 残っているフォルダー見出しの破線を確実に解除
                     document.querySelectorAll('.adv-folder-header[data-drop="1"]').forEach(el => { delete el.dataset.drop; });
                 }
             };
 
             const onDrop = (ev) => {
-                targets.forEach(t => t.classList.remove(feedbackClass)); // ドロップ時は常にハイライト解除
+                feedbackTargets.forEach(t => t.classList.remove(feedbackClass)); // ドロップ時は常にハイライト解除
 
-                // 最終チェック：アイテムであり、パネル/ホスト自身へのドロップ
-                if (targets.includes(ev.target) && ev.dataTransfer.types && !ev.dataTransfer.types.includes(SECT_MIME) && ev.dataTransfer.types.includes('text/plain')) {
+                // 最終チェック：アイテムであり、パネル/ホスト/zoomRoot 自身へのドロップ
+                if (eventTargets.includes(ev.target) && ev.dataTransfer.types && !ev.dataTransfer.types.includes(SECT_MIME) && ev.dataTransfer.types.includes('text/plain')) {
                     ev.preventDefault();
                     ev.stopPropagation();
 
@@ -1368,7 +1377,8 @@
                 }
             };
 
-            targets.forEach(target => {
+            // イベントは eventTargets に登録する
+            eventTargets.forEach(target => {
                 if (!target) return; // hostがまだ存在しない場合など
                 target.addEventListener('dragenter', onDragEnter);
                 target.addEventListener('dragleave', onDragLeave);
