@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      4.9.3
+// @version      4.9.4
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -970,16 +970,29 @@
         /* タブ背景およびリストコンテナ背景へのドロップハイライト */
         #adv-tab-accounts.adv-bg-drop-active,
         #adv-tab-lists.adv-bg-drop-active,
+        #adv-tab-saved.adv-bg-drop-active,
         #adv-accounts-list.adv-bg-drop-active,
-        #adv-lists-list.adv-bg-drop-active {
+        #adv-lists-list.adv-bg-drop-active,
+        #adv-saved-list.adv-bg-drop-active {
           outline: 2px dashed var(--modal-primary-color, #1d9bf0);
           /* リストコンテナ側はパディングが無いためオフセットを小さく */
           outline-offset: -4px;
         }
         /* タブパネル（上部余白）側は既存のオフセットを維持 */
         #adv-tab-accounts.adv-bg-drop-active,
-        #adv-tab-lists.adv-bg-drop-active {
+        #adv-tab-lists.adv-bg-drop-active,
+        #adv-tab-saved.adv-bg-drop-active {
           outline-offset: -8px;
+        }
+
+        /* 背景（Unassigned 宛て）をドロップ中は、フォルダー内の“薄い残像”を消す */
+        #adv-tab-accounts.adv-bg-drop-active .adv-list .adv-item.dragging,
+        #adv-accounts-list.adv-bg-drop-active .adv-list .adv-item.dragging,
+        #adv-tab-lists.adv-bg-drop-active .adv-list .adv-item.dragging,
+        #adv-lists-list.adv-bg-drop-active .adv-list .adv-item.dragging,
+        #adv-tab-saved.adv-bg-drop-active .adv-list .adv-item.dragging,
+        #adv-saved-list.adv-bg-drop-active .adv-list .adv-item.dragging {
+          display: none !important;
         }
 
         /* === Tab Drag & Drop === */
@@ -1323,6 +1336,8 @@
                 } else {
                     // 子要素（フォルダなど）の上に来たら背景ハイライトは消す
                     targets.forEach(t => t.classList.remove(feedbackClass));
+                    // 残っているフォルダー見出しの破線を確実に解除
+                    document.querySelectorAll('.adv-folder-header[data-drop="1"]').forEach(el => { delete el.dataset.drop; });
                 }
             };
 
@@ -1613,9 +1628,9 @@
         // Get tab panels for background drop
         const tabAccountsPanel = document.getElementById('adv-tab-accounts');
         const tabListsPanel = document.getElementById('adv-tab-lists');
+        const tabSavedPanel    = document.getElementById('adv-tab-saved');
 
         // タブの順序を読み込んで適用
-        const tabSavedPanel = document.getElementById('adv-tab-saved');
         (function applyTabsOrder() {
           const tabsContainer = document.querySelector('.adv-tabs');
           if (!tabsContainer) return;
@@ -3706,6 +3721,7 @@
 
         const accountsEmptyEl = document.getElementById('adv-accounts-empty');
         const accountsListEl  = document.getElementById('adv-accounts-list');
+        const advSavedListEl  = document.getElementById('adv-saved-list');
 
         function getProfileHandleFromURL(href = location.href) {
           try {
@@ -4431,10 +4447,10 @@
         setupObservers();
 
         // ▼ Setup background drop zones ▼
-        // (advSavedListEl は renderSaved の置換時にグローバルスコープに移動済み)
-        setupBackgroundDrop(tabAccountsPanel, accountsListEl, unassignAccount);
-        setupBackgroundDrop(tabListsPanel, advListsListEl, unassignList);
-        setupBackgroundDrop(tabSavedPanel, savedListEl, unassignSaved);
+        // （このブロックは、最初の renderAccounts / renderLists / renderSaved を呼ぶ前に置く）
+        setupBackgroundDrop(tabAccountsPanel, accountsListEl,  unassignAccount);
+        setupBackgroundDrop(tabListsPanel,    advListsListEl,  unassignList);
+        setupBackgroundDrop(tabSavedPanel,    advSavedListEl,  unassignSaved);
 
         renderHistory();
         renderSaved();
