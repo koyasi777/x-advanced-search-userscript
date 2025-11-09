@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.0.5
+// @version      5.0.6
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -4067,6 +4067,13 @@
           const parent = moreBtn.parentElement;
           if (!parent) return; // 親コンテナがなければ挿入もできない
 
+          // 状態（追加済みか）を先に判定
+          const h_lower = handle.toLowerCase();
+          const accounts = loadAccounts();
+          const existingAccount = accounts.find(x => x.handle.toLowerCase() === h_lower);
+          const isAdded = !!existingAccount;
+          const accountId = existingAccount?.id || null;
+
           // 既存のボタンが残っていれば、ハンドルに関わらず強制的に削除する
           const existingBtn = parent.querySelector('#adv-add-account-btn');
           if (existingBtn) {
@@ -4089,8 +4096,10 @@
           // 将来のテーマ切替／hover などで X が style/class を書き換えたら追従
           const visMo = new MutationObserver(() => syncVisual(btn, moreBtn));
           visMo.observe(moreBtn, { attributes: true, attributeFilter: ['class', 'style'] });
-          btn.setAttribute('aria-label', i18n.t('buttonAddAccount'));
-          btn.title = i18n.t('buttonAddAccount');
+          // 状態に応じてラベルを変更
+          const label = i18n.t(isAdded ? 'delete' : 'buttonAddAccount'); // 「削除」キーを流用
+          btn.setAttribute('aria-label', label);
+          btn.title = label;
           // ▼ 内側の div / svg / span から「class と inline style」を抽出
           const innerDiv   = moreBtn.querySelector('div[dir="ltr"]') || moreBtn.querySelector('div');
           const innerCls   = innerDiv?.getAttribute('class') || innerDiv?.classList?.value || '';
@@ -4099,6 +4108,12 @@
           const svgCls     = svgEl?.getAttribute('class') || svgEl?.classList?.value || '';
           const spanEl     = innerDiv?.querySelector('span') || moreBtn.querySelector('span');
           const spanCls    = spanEl?.getAttribute('class') || spanEl?.classList?.value || '';
+
+          // 状態に応じてSVGパスを切り替え
+          const ICON_PATH_ADD = 'M18 5h2v3h3v2h-3v3h-2V10h-3V8h3V5z';
+          const ICON_PATH_CHECK = 'M23 8l-5 5-3-3 1.5-1.5L18 10l3.5-3.5L23 8z'; // 右上に配置したチェック
+          const iconPath = isAdded ? ICON_PATH_CHECK : ICON_PATH_ADD;
+
           btn.innerHTML = `
             <div dir="ltr" class="${innerCls}" style="${innerStyle}">
               <svg
@@ -4108,29 +4123,33 @@
                 class="${svgCls}"
                 fill="currentColor"
               >
-                <!-- Head (aligned to 24px grid; center (10,7.5), r=3.5) -->
                 <circle cx="10" cy="7.5" r="3.5"></circle>
-
-                <!-- Body (smooth shoulder curve; designed for 24px grid) -->
                 <path d="M3.5 18.5C3.5 15.46 6.79 13 10 13s6.5 2.46 6.5 5.5V20H3.5v-1.5z"></path>
-
-                <!-- Plus (no circle; balanced stroke-equivalent thickness in fill) -->
-                <path d="M18 5h2v3h3v2h-3v3h-2V10h-3V8h3V5z"></path>
+                <path d="${iconPath}"></path>
               </svg>
               <span class="${spanCls}"></span>
             </div>
           `;
 
           btn.addEventListener('click', () => {
-            const { name, avatar } = collectProfileMeta(handle);
-            const ret = addAccount({ handle, name, avatar });
-            if (ret === 'ok') showToast(i18n.t('toastAccountAdded'));
-            else if (ret === 'updated') showToast(i18n.t('updated'));
-            else if (ret === 'exists') showToast(i18n.t('toastAccountExists'));
+            if (isAdded) {
+              // 追加済みの場合：削除
+              if (accountId) {
+                deleteAccount(accountId); // deleteAccount は toast を内蔵している
+              }
+            } else {
+              // 未追加の場合：追加
+              const { name, avatar } = collectProfileMeta(handle);
+              const ret = addAccount({ handle, name, avatar });
+              if (ret === 'ok') showToast(i18n.t('toastAccountAdded'));
+              else if (ret === 'updated') showToast(i18n.t('updated'));
+              else if (ret === 'exists') showToast(i18n.t('toastAccountExists'));
+            }
+            // 状態が変わったので、ボタンを即座に再描画（アイコンを切り替え）
+            ensureProfileAddButton(true); // force=true で再実行
           });
-
           // moreBtn.parentElement?.insertBefore(btn, moreBtn);
-        parent.insertBefore(btn, moreBtn); // parent変数を使用
+          parent.insertBefore(btn, moreBtn); // parent変数を使用
           profileButtonInstalledFor = handle;
 
           // プロフィールに来たタイミングで自動同期
