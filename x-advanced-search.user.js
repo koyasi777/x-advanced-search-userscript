@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.0.0
+// @version      5.0.1
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -82,6 +82,8 @@
                 labelLinks: "Links",
                 labelImages: "Images",
                 labelVideos: "Videos",
+                labelReposts: "Reposts",
+                labelTimelineHashtags: "Hashtags (#)",
                 checkInclude: "Include",
                 checkExclude: "Exclude",
                 labelReplies: "Replies",
@@ -215,6 +217,8 @@
                 labelLinks: "リンク",
                 labelImages: "画像",
                 labelVideos: "動画",
+                labelReposts: "リポスト",
+                labelTimelineHashtags: "ハッシュタグ (#)",
                 checkInclude: "含む",
                 checkExclude: "含まない",
                 labelReplies: "返信",
@@ -1072,6 +1076,8 @@
                                 <div class="adv-checkbox-group"><span data-i18n="labelLinks"></span><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-links-include"><label for="adv-filter-links-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-links-exclude"><label for="adv-filter-links-exclude" data-i18n="checkExclude"></label></div></div>
                                 <div class="adv-checkbox-group"><span data-i18n="labelImages"></span><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-images-include"><label for="adv-filter-images-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-images-exclude"><label for="adv-filter-images-exclude" data-i18n="checkExclude"></label></div></div>
                                 <div class="adv-checkbox-group"><span data-i18n="labelVideos"></span><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-videos-include"><label for="adv-filter-videos-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-videos-exclude"><label for="adv-filter-videos-exclude" data-i18n="checkExclude"></label></div></div>
+                                <div class="adv-checkbox-group"><span data-i18n="labelReposts"></span><div class="adv-checkbox-item" style="display: none;"><input type="checkbox" id="adv-filter-reposts-include" disabled><label for="adv-filter-reposts-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-reposts-exclude"><label for="adv-filter-reposts-exclude" data-i18n="checkExclude"></label></div></div>
+                                <div class="adv-checkbox-group"><span data-i18n="labelTimelineHashtags"></span><div class="adv-checkbox-item" style="display: none;"><input type="checkbox" id="adv-filter-hashtags-include" disabled><label for="adv-filter-hashtags-include" data-i18n="checkInclude"></label></div><div class="adv-checkbox-item"><input type="checkbox" id="adv-filter-hashtags-exclude"><label for="adv-filter-hashtags-exclude" data-i18n="checkExclude"></label></div></div>
                             </div>
                         </div>
 
@@ -1291,25 +1297,40 @@
 
         const EXC_NAME_KEY   = 'advExcludeHitName_v1';
         const EXC_HANDLE_KEY = 'advExcludeHitHandle_v1';
+        const EXC_REPOSTS_KEY = 'advExcludeReposts_v1';
+        const EXC_HASHTAGS_KEY = 'advExcludeTimelineHashtags_v1';
         const excNameEl   = document.getElementById('adv-exclude-hit-name');
         const excHandleEl = document.getElementById('adv-exclude-hit-handle');
+        const excRepostsEl = document.getElementById('adv-filter-reposts-exclude');
+        const excHashtagsEl = document.getElementById('adv-filter-hashtags-exclude');
         const loadExcludeFlags = () => ({
             name: kv.get(EXC_NAME_KEY, '1') === '1',
             handle: kv.get(EXC_HANDLE_KEY, '1') === '1',
+            reposts: kv.get(EXC_REPOSTS_KEY, '0') === '1',
+            hashtags: kv.get(EXC_HASHTAGS_KEY, '0') === '1',
         });
         const saveExcludeFlags = (v) => {
             kv.set(EXC_NAME_KEY, v.name ? '1':'0');
             kv.set(EXC_HANDLE_KEY, v.handle ? '1':'0');
+            kv.set(EXC_REPOSTS_KEY, v.reposts ? '1':'0');
+            kv.set(EXC_HASHTAGS_KEY, v.hashtags ? '1':'0');
         };
-        {
+{
             const st = loadExcludeFlags();
             if (excNameEl) excNameEl.checked = st.name;
             if (excHandleEl) excHandleEl.checked = st.handle;
+            if (excRepostsEl) excRepostsEl.checked = st.reposts;
+            if (excHashtagsEl) excHashtagsEl.checked = st.hashtags;
         }
-        [excNameEl, excHandleEl].forEach(el=>{
+        [excNameEl, excHandleEl, excRepostsEl, excHashtagsEl].forEach(el=>{
             if (!el) return;
             el.addEventListener('change', ()=>{
-                saveExcludeFlags({ name: excNameEl.checked, handle: excHandleEl.checked });
+                saveExcludeFlags({
+                    name: excNameEl?.checked ?? false,
+                    handle: excHandleEl?.checked ?? false,
+                    reposts: excRepostsEl?.checked ?? false,
+                    hashtags: excHashtagsEl?.checked ?? false,
+                });
                 scanAndFilterTweets();
             });
         });
@@ -2031,8 +2052,12 @@
               const st = loadExcludeFlags();
               const nameEl   = document.getElementById('adv-exclude-hit-name');
               const handleEl = document.getElementById('adv-exclude-hit-handle');
+              const repostsEl = document.getElementById('adv-filter-reposts-exclude');
+              const hashtagsEl = document.getElementById('adv-filter-hashtags-exclude');
               if (nameEl)   { nameEl.checked = nameEl.defaultChecked = !!st.name; }
               if (handleEl) { handleEl.checked = handleEl.defaultChecked = !!st.handle; }
+              if (repostsEl) { repostsEl.checked = repostsEl.defaultChecked = !!st.reposts; }
+              if (hashtagsEl) { hashtagsEl.checked = hashtagsEl.defaultChecked = !!st.hashtags; }
             } catch (_) {}
 
             // クエリを正規化（スマート引用・%xx・空白）
@@ -3313,6 +3338,8 @@
             const flags = {
               name:   document.getElementById('adv-exclude-hit-name')?.checked ?? true,
               handle: document.getElementById('adv-exclude-hit-handle')?.checked ?? true,
+              reposts: document.getElementById('adv-filter-reposts-exclude')?.checked ?? false,
+              hashtags: document.getElementById('adv-filter-hashtags-exclude')?.checked ?? false,
             };
 
             const masterOn = loadMuteMaster();
@@ -3322,31 +3349,59 @@
             const muteCI = enabledMuted.length ? new Set(enabledMuted.filter(m => !m.cs).map(m => m.word.toLowerCase())) : new Set();
             const muteCS = enabledMuted.length ? enabledMuted.filter(m => m.cs).map(m => m.word) : [];
 
-            if (!flags.name && !flags.handle && !hasMute) return;
+            // ▼ フィルタリングが何も有効でないなら即時リターン
+            if (!flags.name && !flags.handle && !hasMute && !flags.reposts && !flags.hashtags) {
+              // 非表示属性が残っている可能性があるので、全解除だけ試みる
+              document.querySelectorAll('[data-adv-hidden]').forEach(cell => {
+                cell.removeAttribute('data-adv-hidden');
+              });
+              cleanupAdjacentSeparators();
+              return;
+            }
 
-            const tokens = parseSearchTokens();
+            const tokens = (flags.name || flags.handle) ? parseSearchTokens() : null; // 名前/ハンドル除外が有効な時だけトークンをパース
             const list = document.querySelectorAll('article[data-testid="tweet"]');
 
             for (const art of list) {
               const cell = getTweetCell(art);
+              const reasons = [];
+              let tweetBodyText = null; // 本文テキストのキャッシュ用
 
-              const hideByNameHandle = shouldHideTweetByNameHandle(art, flags, tokens);
+              // 1. 名前/ハンドル除外
+              if ((flags.name || flags.handle) && tokens) {
+                const hideByNameHandle = shouldHideTweetByNameHandle(art, flags, tokens);
+                if (hideByNameHandle) reasons.push('name_handle_only');
+              }
 
-              let hideByMute = false;
+              // 2. ミュートワード除外
               if (hasMute) {
-                const body = (art.querySelector('[data-testid="tweetText"]')?.innerText || '');
-                const bodyCI = body.toLowerCase();
-
+                tweetBodyText = tweetBodyText ?? (art.querySelector('[data-testid="tweetText"]')?.innerText || '');
+                const bodyCI = tweetBodyText.toLowerCase();
+                let hideByMute = false;
                 for (const w of muteCI) { if (w && bodyCI.includes(w)) { hideByMute = true; break; } }
                 if (!hideByMute) {
-                  for (const w of muteCS) { if (w && body.includes(w)) { hideByMute = true; break; } }
+                  for (const w of muteCS) { if (w && tweetBodyText.includes(w)) { hideByMute = true; break; } }
+                }
+                if (hideByMute) reasons.push('muted_word');
+              }
+
+              // 3. リポスト除外
+              if (flags.reposts) {
+                if (art.querySelector('[data-testid="socialContext"]')) {
+                  reasons.push('repost');
                 }
               }
 
-              const reasons = [];
-              if (hideByMute) reasons.push('muted_word');
-              if (hideByNameHandle) reasons.push('name_handle_only');
+              // 4. ハッシュタグ除外
+              if (flags.hashtags) {
+                tweetBodyText = tweetBodyText ?? (art.querySelector('[data-testid="tweetText"]')?.innerText || '');
+                // 本文中にハッシュタグ記号があるか
+                if (tweetBodyText.includes('#')) {
+                  reasons.push('hashtag');
+                }
+              }
 
+              // 最終判定
               if (reasons.length > 0) {
                 cell.setAttribute('data-adv-hidden', reasons.join(' '));
               } else {
