@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.1.0
+// @version      5.1.1
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -718,7 +718,7 @@
         @media (max-width: 480px) { .adv-form-row.two-cols { grid-template-columns:1fr; } }
 
         .adv-tabs { display:flex; border-bottom:1px solid var(--modal-border,#333); padding:0 8px; gap:6px; align-items:stretch; }
-        .adv-tab-btn { appearance:none; border:none; background:transparent; color:var(--modal-text-secondary,#8b98a5); padding:10px 12px; cursor:pointer; font-weight:700; border-radius:8px 8px 0 0; font-size:12.5px; }
+        .adv-tab-btn { appearance:none; border:none; background:transparent; color:var(--modal-text-secondary,#8b98a5); padding:10px 12px; cursor:pointer; font-weight:700; border-radius:8px 8px 0 0; font-size:0.78rem; }
         .adv-tab-btn.active { color:var(--modal-text-primary,#e7e9ea); background-color:var(--modal-input-bg,#202327); border:1px solid var(--modal-input-border,#38444d); border-bottom:none; }
         .adv-tab-content { display:none; }
         .adv-tab-content.active { display:block; }
