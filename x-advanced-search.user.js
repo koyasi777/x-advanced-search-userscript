@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.0.9
+// @version      5.1.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -638,6 +638,10 @@
     let isUpdating = false;
     let manualOverrideOpen = false;
     const lastHistory = { q: null, pf: null, lf: null, ts: 0 };
+
+    // ▼ パース結果をキャッシュ（スクロール時の再パース防止）
+    let __cachedSearchTokens = null;
+    let __cachedSearchQuery = null; // このクエリ文字列で __cachedSearchTokens が生成された
 
     // ▼ 入力中ガード（IME合成を含めてカバー）
     let __typingGuardUntil = 0;
@@ -3072,6 +3076,14 @@
             qRaw = buildQueryStringFromModal() || '';
           }
 
+          // 取得したクエリ文字列がキャッシュと同一なら、パースせずキャッシュを返す
+          if (__cachedSearchQuery === qRaw && __cachedSearchTokens) {
+              return __cachedSearchTokens;
+          }
+          // クエリが異なるため、パースを続行
+          __cachedSearchQuery = qRaw; // 新しいクエリをキャッシュ
+          __cachedSearchTokens = null; // 古いトークンを破棄（パース失敗に備える）
+
           // 正規化（%xx/スマート引用/空白整形）
           const rawNorm0 = normalizeForParse(qRaw);
           let q = ` ${rawNorm0} `;
@@ -3183,13 +3195,16 @@
           );
 
           // 14) 返却（requiredはSet、orGroupsは配列の配列）
-          return {
+          const result = {
             requiredTerms: new Set(requiredTermsArr),
             orGroups,                  // [ ['ente','セール'], ['foo','bar'] , ... ]
             includeTerms,              // AND/ORすべてを平坦化した包含語集合
             opUsers,
             hashtagSet,
           };
+
+          __cachedSearchTokens = result; // ★ パース結果をキャッシュに保存
+          return result;
         }
         function pickTweetFields(article) {
             const body = article.querySelector('[data-testid="tweetText"]')?.innerText || '';
