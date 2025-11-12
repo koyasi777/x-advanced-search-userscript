@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.1.5
+// @version      5.1.6
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -2809,14 +2809,77 @@
               else list.insertBefore(dragging, after);
             });
 
-            // Unassigned への drop = 未所属化
+            // ▼「未分類化」ハンドラ（セクション背景用）
+            // フォルダからドロップされた場合に "先頭に移動" させる。
             const dropToUnassign = (ev) => {
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
               ev.preventDefault(); ev.stopPropagation();
               const draggedId = ev.dataTransfer.getData('text/plain');
-              if (draggedId) onUnassign(draggedId);
+              if (draggedId) onUnassign(draggedId); // onUnassign は "先頭に移動" する
             };
-            list.addEventListener('drop', dropToUnassign);
+
+            // ▼「未分類アイテムの並び替え」ハンドラ（リスト本体用）
+            // 未分類リスト内での並び替え、またはフォルダから特定位置へのドロップ。
+            const dropToReorderUnassigned = (ev) => {
+              if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
+              ev.preventDefault(); ev.stopPropagation();
+              const draggedId = ev.dataTransfer.getData('text/plain');
+              if (!draggedId) return;
+
+              // 1. DOMの視覚的な順序（dragoverで変更済み）をID配列として読み取る
+              const newOrderIdsInList = [...list.querySelectorAll('.adv-item')].map(el => el.dataset.id);
+
+              // 2. マスターリスト（全アイテム）とフォルダ内アイテムの情報をロード
+              const allItems = loadItems();
+              const allItemsMap = new Map(allItems.map(it => [it.id, it]));
+              const allFolderItems = new Set(folders.flatMap(f => f.order));
+
+              // 3. 新しいマスターリストを構築
+              const nextMasterList = [];
+              const seen = new Set();
+
+              // 3a. まず、DOMから読み取った「未分類の新しい順序」でアイテムを追加
+              for (const id of newOrderIdsInList) {
+                // このリストにあるべきアイテム（＝マスターに存在し、フォルダに属さない）のみ
+                if (id && allItemsMap.has(id) && !allFolderItems.has(id)) {
+                  nextMasterList.push(allItemsMap.get(id));
+                  seen.add(id);
+                }
+              }
+
+              // 3b. 次に、残りのアイテム（全フォルダ内のアイテム＋何らかの理由で漏れた未分類アイテム）を追加
+              // これにより、マスターリストの順序は「未分類の並び替え順」＋「それ以外」となる
+              for (const item of allItems) {
+                if (!seen.has(item.id)) {
+                  nextMasterList.push(item);
+                }
+              }
+
+              // 4. マスターリストを保存
+              saveItems(nextMasterList);
+
+              // 5. もしアイテムがフォルダから移動してきた場合、フォルダから削除（クリーンアップ）
+              const fs = loadFoldersFn(foldersKey, defaultFolderName);
+              let folderChanged = false;
+              for (const f of fs) {
+                const before = f.order.length;
+                f.order = f.order.filter(id => id !== draggedId);
+                if (f.order.length !== before) { f.ts = Date.now(); folderChanged = true; }
+              }
+
+              if (folderChanged) {
+                saveFoldersFn(foldersKey, fs);
+                // フォルダ構成が変わった場合は、リスト全体を再描画
+                showToast(i18n.t('toastReordered'));
+                renderFolderedCollection(cfg);
+              } else {
+                // 未分類内での移動だけなら再描画は不要（DOMは更新済み）
+                showToast(i18n.t('toastReordered'));
+              }
+            };
+
+            // ▼ リスト本体には「並び替え」を、セクション背景には「未分類化」を割り当てる
+            list.addEventListener('drop', dropToReorderUnassigned);
             sec.addEventListener('dragover', ev => { if (!(ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME))) { ev.preventDefault(); ev.stopPropagation(); }});
             sec.addEventListener('drop', dropToUnassign);
 
