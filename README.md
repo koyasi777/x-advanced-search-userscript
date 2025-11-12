@@ -54,7 +54,7 @@
 * [Tampermonkey](https://www.tampermonkey.net/) / [Violentmonkey](https://violentmonkey.github.io/)
 
 2. スクリプトをインストール
-   👉 **[Install this script](https://raw.githubusercontent.com/koyasi777/x-advanced-search-userscript/main/x-advanced-search.user.js)**
+   👉 **[Install this script](https://raw.githubusercontent.com/koyasi777/x-advanced-search/main/x-advanced-search.user.js)**
 
 対応ドメイン：`https://x.com/*` / `https://twitter.com/*`
 実行タイミング：`@run-at document-idle`
@@ -212,8 +212,8 @@ https://twitter.com/*
 
 ## サポート / ライセンス
 
-* 🐛 バグ報告・要望：**[GitHub Issues](https://github.com/koyasi777/x-advanced-search-userscript/issues)**
-* 🏠 ホーム：**[Repository](https://github.com/koyasi777/x-advanced-search-userscript)**
+* 🐛 バグ報告・要望：**[GitHub Issues](https://github.com/koyasi777/x-advanced-search/issues)**
+* 🏠 ホーム：**[Repository](https://github.com/koyasi777/x-advanced-search)**
 * 📜 ライセンス：**MIT**
 
 > **One click to power-search.**
