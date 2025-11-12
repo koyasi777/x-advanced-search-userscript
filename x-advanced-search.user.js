@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.1.6
+// @version      5.1.7
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -3999,10 +3999,23 @@
           return 'unchanged';
         };
         const deleteAccount = (id) => {
-          const next = loadAccounts().filter(x => x.id !== id);
-          saveAccounts(next);
-          renderAccounts();
-          showToast(i18n.t('toastDeleted'));
+            // ▼ 削除対象のハンドルを保持しておく
+            const accounts = loadAccounts();
+            const deletedAccount = accounts.find(x => x.id === id);
+            const deletedHandle = deletedAccount?.handle.toLowerCase();
+
+            const next = accounts.filter(x => x.id !== id); // accounts変数を使用
+            saveAccounts(next);
+            renderAccounts();
+            showToast(i18n.t('toastDeleted'));
+
+            // ▼ ページ上のボタンを強制再描画
+            // 現在のページハンドルを取得
+            const currentHandle = getProfileHandleFromURL()?.toLowerCase();
+            // もし削除したアカウントのページに今まさに居るなら、ボタンを強制更新
+            if (deletedHandle && currentHandle === deletedHandle) {
+                ensureProfileAddButton(true);
+            }
         };
 
         const accountsListEl  = document.getElementById('adv-accounts-list');
@@ -4256,10 +4269,25 @@
         };
 
         const deleteList = (id) => {
-          const next = loadLists().filter(x => x.id !== id);
-          saveLists(next);
-          renderLists();
-          showToast(i18n.t('toastDeleted'));
+            // ▼ 削除対象のURLを保持しておく
+            const lists = loadLists();
+            const deletedList = lists.find(x => x.id === id);
+            const deletedUrl = deletedList?.url;
+
+            const next = lists.filter(x => x.id !== id); // lists変数を使用
+            saveLists(next);
+            renderLists();
+            showToast(i18n.t('toastDeleted'));
+
+            // ▼ ページ上のボタンを強制再描画
+            // 現在がリストページか、そのURLは何かを取得
+            if (isListPath()) {
+                const { url: currentUrl } = getListMeta();
+                // もし削除したリストのページに今まさに居るなら、ボタンを強制更新
+                if (deletedUrl && currentUrl === deletedUrl) {
+                    ensureListAddButton(true);
+                }
+            }
         };
 
         const advListsListEl  = document.getElementById('adv-lists-list');
@@ -4402,6 +4430,16 @@
         const parent = shareBtn.parentElement;
         if (!parent) return;
 
+        // ▼ 状態判定ロジックを追加
+        const { name: currentName, url: currentUrl } = getListMeta();
+        // リスト名やURLが取得できない（＝リストページではない）場合はボタンを追加しない
+        if (!currentName || !currentUrl) return;
+
+        const lists = loadLists();
+        const existingList = lists.find(x => x.url === currentUrl);
+        const isAdded = !!existingList;
+        const listId = existingList?.id || null;
+
         // 既存のボタンが残っていれば、強制的に削除する
         const existingBtn = parent.querySelector('#adv-add-list-btn');
         if (existingBtn) {
@@ -4423,8 +4461,10 @@
           const visMo = new MutationObserver(() => syncVisual(btn, shareBtn));
           visMo.observe(shareBtn, { attributes: true, attributeFilter: ['class', 'style'] });
 
-          btn.setAttribute('aria-label', i18n.t('buttonAddList'));
-          btn.title = i18n.t('buttonAddList');
+          // ▼ isAdded に応じてラベルを変更（"削除"キーを流用）
+          const label = i18n.t(isAdded ? 'delete' : 'buttonAddList');
+          btn.setAttribute('aria-label', label);
+          btn.title = label;
 
           const innerDiv   = shareBtn.querySelector('div[dir="ltr"]') || shareBtn.querySelector('div');
           const innerCls   = innerDiv?.getAttribute('class') || innerDiv?.classList?.value || '';
@@ -4434,20 +4474,39 @@
           const spanEl     = innerDiv?.querySelector('span') || shareBtn.querySelector('span');
           const spanCls    = spanEl?.getAttribute('class') || spanEl?.classList?.value || '';
 
+          // ▼ アイコンパスを定義
+          const ICON_PATH_ADD = 'M12 5c.55 0 1 .45 1 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H6a1 1 0 110-2h5V6c0-.55.45-1 1-1z';
+          // アカウントボタンとは異なり、シンプルなチェックマークを使用
+          const ICON_PATH_CHECK = 'M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z';
+          const iconPath = isAdded ? ICON_PATH_CHECK : ICON_PATH_ADD;
+
+          // ▼ iconPath を使用するように innerHTML を変更
           btn.innerHTML = `
-            <div dir="ltr" class="${innerCls}" style="${innerStyle}">
-              <svg viewBox="0 0 24 24" aria-hidden="true" class="${svgCls}" fill="currentColor">
-                <g><path d="M12 5c.55 0 1 .45 1 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H6a1 1 0 110-2h5V6c0-.55.45-1 1-1z"></path></g>
-              </svg>
-              <span class="${spanCls}"></span>
-            </div>
+              <div dir="ltr" class="${innerCls}" style="${innerStyle}">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" class="${svgCls}" fill="currentColor">
+                      <g><path d="${iconPath}"></path></g>
+                  </svg>
+                  <span class="${spanCls}"></span>
+              </div>
           `;
 
+          // ▼ クリックイベントのロジックをトグルに変更
           btn.addEventListener('click', () => {
-            const { name, url } = getListMeta();
-            const ret = addList({ name, url });
-            if (ret === 'ok') showToast(i18n.t('toastListAdded'));
-            else if (ret === 'exists') showToast(i18n.t('toastListExists'));
+              if (isAdded) {
+                  // 既に登録済みの場合：削除
+                  if (listId) {
+                      deleteList(listId); // deleteList は内部で toastDeleted を呼び出します
+                  }
+              } else {
+                  // 未登録の場合：追加
+                  // (関数冒頭で取得した currentName, currentUrl を使用)
+                  const ret = addList({ name: currentName, url: currentUrl });
+                  if (ret === 'ok') showToast(i18n.t('toastListAdded'));
+                  else if (ret === 'exists') showToast(i18n.t('toastListExists'));
+              }
+
+              // 状態が変わったため、ボタンを強制的に再描画（アイコンを即時切替）
+              ensureListAddButton(true);
           });
 
           // 左隣に設置
