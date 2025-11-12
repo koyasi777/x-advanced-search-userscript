@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.1.7
+// @version      5.1.8
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -22,7 +22,7 @@
 // @description:de   Fügt X.com (Twitter) ein modales Fenster für erweiterte Suche hinzu, synchronisiert mit der Suchleiste und speichert Position/Zustand. Das Suchsymbol oben rechts ist per Drag & Drop verschiebbar und bleibt gespeichert.
 // @description:pt-BR Adiciona um modal de busca avançada flutuante no X.com (Twitter), sincronizado com a caixa de busca e com estado salvo. O ícone de busca no canto superior direito é arrastável com posição persistente.
 // @description:ru   Добавляет модальное окно расширенного поиска на X.com (Twitter). Синхронизируется с поисковой строкой и запоминает состояние. Кнопку поиска в правом верхнем углу можно перетаскивать; её положение сохраняется.
-// @namespace    https://github.com/koyasi777/x-advanced-search-userscript
+// @namespace    https://github.com/koyasi777/x-advanced-search
 // @author       koyasi777
 // @match        https://x.com/*
 // @match        https://twitter.com/*
@@ -35,8 +35,8 @@
 // @grant        GM_deleteValue
 // @run-at       document-idle
 // @license      MIT
-// @homepageURL  https://github.com/koyasi777/x-advanced-search-userscript
-// @supportURL   https://github.com/koyasi777/x-advanced-search-userscript/issues
+// @homepageURL  https://github.com/koyasi777/x-advanced-search
+// @supportURL   https://github.com/koyasi777/x-advanced-search/issues
 // ==/UserScript==
 
 (function() {
