@@ -10,7 +10,7 @@
 // @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
 // @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
 // @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.1.3
+// @version      5.1.4
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -2749,7 +2749,7 @@
             const order = [...host.querySelectorAll('.adv-folder, .adv-unassigned')].map(sec => sec.dataset.folderId);
 
             // フォルダ順（Unassigned を除いた順序で保存）
-            const newFolderOrderIds = order.filter(id => id !== '__UNASSIGNED__');
+            const newFolderOrderIds = [...new Set(order.filter(id => id !== '__UNASSIGNED__'))];
             let fs = loadFoldersFn(foldersKey, defaultFolderName);
             const map = Object.fromEntries(fs.map(f => [f.id, f]));
             const reordered = newFolderOrderIds.map(id => map[id]).filter(Boolean);
@@ -2870,12 +2870,6 @@
                 else host.insertBefore(dragging, after);
               }
             });
-            host.addEventListener('drop', (ev) => {
-              if (!(ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME))) return;
-              ev.preventDefault();
-              persistSectionsFromDOM();
-              renderFolderedCollection(cfg);
-            }, { once:true });
 
             // 折りたたみ
             const collapseToggle = () => {
@@ -3027,6 +3021,33 @@
               if (f) host.appendChild(renderFolderSection(f));
             }
           });
+
+          if (!host._advFolderDropAttached) { // 多重登録防止フラグ
+              host._advFolderDropAttached = true;
+
+              host.addEventListener('drop', (ev) => {
+                  const SECT_MIME = 'adv/folder';
+                  if (!(ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME))) {
+                      // アイテムのドロップ (text/plain) は他のリスナーが処理するため無視
+                      return;
+                  }
+
+                  // セクション並び替え (adv/folder) の drop イベント
+                  const sectionEl = ev.target.closest('.adv-folder, .adv-unassigned');
+
+                  // イベントが host (コンテナ) またはその直下の子セクションで発生した場合のみ処理
+                  if (ev.target === host || (sectionEl && sectionEl.parentElement === host)) {
+                      ev.preventDefault();
+                      ev.stopPropagation();
+
+                      // dragover で DOM は既に入れ替わっているはず
+                      persistSectionsFromDOM(); // DOMの現在の順序を保存
+
+                      // 保存後に再描画
+                      renderFolderedCollection(cfg);
+                  }
+              });
+          }
         }
 
         // タブ並び替え（水平）用のヘルパー
