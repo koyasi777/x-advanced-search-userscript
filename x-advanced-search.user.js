@@ -5113,24 +5113,24 @@
           const shareBtn = document.querySelector('button[data-testid="share-button"]');
           if (!shareBtn) return;
 
-        const parent = shareBtn.parentElement;
-        if (!parent) return;
+          const parent = shareBtn.parentElement;
+          if (!parent) return;
 
-        // ▼ 状態判定ロジックを追加
-        const { name: currentName, url: currentUrl } = getListMeta();
-        // リスト名やURLが取得できない（＝リストページではない）場合はボタンを追加しない
-        if (!currentName || !currentUrl) return;
+          // ▼ 状態判定ロジックを追加
+          const { name: currentName, url: currentUrl } = getListMeta();
+          // リスト名やURLが取得できない（＝リストページではない）場合はボタンを追加しない
+          if (!currentName || !currentUrl) return;
 
-        const lists = loadLists();
-        const existingList = lists.find(x => x.url === currentUrl);
-        const isAdded = !!existingList;
-        const listId = existingList?.id || null;
+          const lists = loadLists();
+          const existingList = lists.find(x => x.url === currentUrl);
+          const isAdded = !!existingList;
+          const listId = existingList?.id || null;
 
-        // 既存のボタンが残っていれば、強制的に削除する
-        const existingBtn = parent.querySelector('#adv-add-list-btn');
-        if (existingBtn) {
-            existingBtn.remove();
-        }
+          // 既存のボタンが残っていれば、強制的に削除する
+          const existingBtn = parent.querySelector('#adv-add-list-btn');
+          if (existingBtn) {
+              existingBtn.remove();
+          }
 
           const btn = document.createElement('button');
           btn.id = 'adv-add-list-btn';
@@ -5197,7 +5197,7 @@
 
           // 左隣に設置
           // shareBtn.parentElement?.insertBefore(btn, shareBtn);
-        parent.insertBefore(btn, shareBtn); // parent変数を使用
+          parent.insertBefore(btn, shareBtn); // parent変数を使用
 
           listButtonInstalledAt = location.pathname;
         }
