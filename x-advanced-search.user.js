@@ -10,7 +10,7 @@
 // @name:de      Search Hub for X (Twitter) 🔍
 // @name:pt-BR   Search Hub for X (Twitter) 🔍
 // @name:ru      Search Hub for X (Twitter) 🔍
-// @version      5.1.9
+// @version      5.2.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -196,6 +196,21 @@
                 confirmDeleteFolder: "Delete this folder and all items inside it? This cannot be undone.",
                 optListsAll: "Lists",
                 defaultSavedFolders: "Saved Searches",
+
+                /* Settings */
+                settingsTitle: "Settings",
+                buttonClose: "Close",
+                labelUILang: "Interface language",
+                optUILangAuto: "Auto",
+                labelImportExport: "Import / Export",
+                placeholderSettingsJSON: "Paste backup JSON here...",
+                tooltipSettings: "Open settings",
+                toastImported: "Imported.",
+                toastExported: "Exported to file.",
+                buttonReset: "Reset all data",
+                confirmResetAll: "Reset all data? This cannot be undone.",
+                toastReset: "All data has been reset.",
+                buttonImportSuccess: "Imported successfully 👍️",
             },
             'ja': {
                 modalTitle: "高度な検索",
@@ -346,6 +361,21 @@
                 confirmDeleteFolder: "このフォルダーと中のすべてのアイテムを完全に削除しますか？この操作は元に戻せません。",
                 optListsAll: "リスト",
                 defaultSavedFolders: "保存済み検索",
+
+                /* Settings */
+                settingsTitle: "設定",
+                buttonClose: "閉じる",
+                labelUILang: "UI 言語",
+                optUILangAuto: "自動判定",
+                labelImportExport: "インポート / エクスポート",
+                placeholderSettingsJSON: "ここにバックアップ JSON を貼り付けてください...",
+                tooltipSettings: "設定を開く",
+                toastImported: "インポートしました。",
+                toastExported: "ファイルにエクスポートしました。",
+                buttonReset: "すべて初期化",
+                confirmResetAll: "すべてのデータを初期化しますか？この操作は元に戻せません。",
+                toastReset: "すべてのデータを初期化しました。",
+                buttonImportSuccess: "インポートに成功しました👍️",
             },
             'zh-CN': {},
             'ko': {},
@@ -378,6 +408,22 @@
       <line x1="16.65" y1="16.65" x2="22" y2="22"
             stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
     </svg>`;
+
+    const SETTINGS_SVG = `
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        fill="currentColor"
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 00-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 00-2.282.819l-.922 1.597a1.875 1.875 0 00.432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 000 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 00-.432 2.385l.922 1.597a1.875 1.875 0 002.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 002.28-.819l.923-1.597a1.875 1.875 0 00-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 000-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 00-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 00-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 00-1.85-1.567h-1.843zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z"
+      />
+    </svg>
+    `;
 
     const FOLDER_TOGGLE_OPEN_SVG = `
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -661,7 +707,27 @@
         #advanced-search-trigger:hover { transform:scale(1.1); background-color:var(--modal-primary-color-hover); }
         #advanced-search-modal { position:fixed; z-index:10000; width:450px; display:none; flex-direction:column; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background-color:var(--modal-bg, #000); color:var(--modal-text-primary, #e7e9ea); border:1px solid var(--modal-border, #333); border-radius:16px; box-shadow:0 8px 24px rgba(29,155,240,.2); transition:background-color .2s,color .2s,border-color .2s; }
         .adv-modal-header{padding:12px 16px;border-bottom:1px solid var(--modal-border,#333);cursor:move;display:flex;justify-content:space-between;align-items:center}
+        .adv-modal-title-left{display:flex;align-items:center;gap:8px;}
         .adv-modal-header h2{margin:0;font-size:18px;font-weight:700}
+        .adv-settings-btn{
+          margin-left:6px;
+          width:26px;height:26px;
+          border-radius:9999px;
+          border:1px solid var(--modal-input-border,#38444d);
+          background:var(--modal-input-bg,#202327);
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          cursor:pointer;
+          padding:0;
+        }
+        .adv-settings-btn:hover{
+          background-color:var(--modal-button-hover-bg,rgba(231,233,234,.1));
+        }
+        .adv-settings-btn svg{
+          width:14px;
+          height:14px;
+        }
         .adv-modal-close{background:0 0;border:none;color:var(--modal-close-color,#e7e9ea);font-size:24px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background-color .2s}
         .adv-modal-close:hover{background-color:var(--modal-close-hover-bg,rgba(231,233,234,.1))}
         .adv-modal-body{flex:1;overflow-y:auto;padding:0}
@@ -697,6 +763,7 @@
         }
         .adv-modal-button.primary:hover{background-color:var(--modal-primary-color-hover)}
         .adv-modal-button[disabled]{opacity:.5; cursor:not-allowed;}
+        #adv-settings-import.adv-modal-button[disabled]{opacity:1;}
         .adv-modal-body::-webkit-scrollbar{width:8px}
         .adv-modal-body::-webkit-scrollbar-track{background:var(--modal-scrollbar-track,#202327)}
         .adv-modal-body::-webkit-scrollbar-thumb{background:var(--modal-scrollbar-thumb,#536471);border-radius:4px}
@@ -744,6 +811,13 @@
         .adv-item-actions { display:flex; gap:6px; align-items:center; align-self:center; }
         .adv-chip { border:1px solid var(--modal-input-border,#38444d); background:transparent; color:var(--modal-text-primary,#e7e9ea); padding:4px 8px; border-radius:9999px; font-size:12px; cursor:pointer; }
         .adv-chip.danger { border-color:#8b0000; color:#ffb3b3; }
+        .adv-modal-button.danger {
+          border-color:#8b0000;
+          color:#ffb3b3;
+        }
+        .adv-modal-button.danger:hover{
+          background-color:rgba(139,0,0,0.2);
+        }
         .adv-chip.scope { padding:2px 6px; font-size:11px; line-height:1.2; opacity:0.95; }
 
         .adv-toast { position:fixed; z-index:10001; left:50%; transform:translateX(-50%); bottom:24px; background:#111a; color:#fff; backdrop-filter: blur(6px); border:1px solid #fff3; padding:8px 12px; border-radius:8px; font-weight:700; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; }
@@ -1047,6 +1121,101 @@
           display: none !important;
         }
 
+        /* === Settings modal === */
+        #adv-settings-modal.adv-settings-modal{
+          position:fixed;
+          inset:0;
+          z-index:10001;
+          display:none;
+          align-items:center;
+          justify-content:center;
+          background:rgba(0,0,0,.5);
+        }
+        .adv-settings-dialog{
+          width:420px;
+          max-width:90vw;
+          max-height:80vh;
+          background-color:var(--modal-bg,#000);
+          color:var(--modal-text-primary,#e7e9ea);
+          border-radius:16px;
+          border:1px solid var(--modal-border,#333);
+          box-shadow:0 8px 24px rgba(0,0,0,.3);
+          display:flex;
+          flex-direction:column;
+          overflow:hidden;
+          font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+        }
+        .adv-settings-header{
+          padding:12px 16px;
+          border-bottom:1px solid var(--modal-border,#333);
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+        }
+        .adv-settings-title{
+          margin:0;
+          font-size:16px;
+          font-weight:700;
+        }
+        .adv-settings-close{
+          border:none;
+          background:transparent;
+          color:var(--modal-close-color,#e7e9ea);
+          font-size:20px;
+          width:32px;
+          height:32px;
+          border-radius:50%;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          cursor:pointer;
+        }
+        .adv-settings-close:hover{
+          background-color:var(--modal-close-hover-bg,rgba(231,233,234,.1));
+        }
+        .adv-settings-body{
+          padding:12px 16px;
+          overflow-y:auto;
+          display:flex;
+          flex-direction:column;
+          gap:16px;
+        }
+        .adv-settings-group label{
+          display:block;
+          margin-bottom:4px;
+          font-size:14px;
+          font-weight:700;
+          color:var(--modal-text-secondary,#8b98a5);
+        }
+        .adv-settings-group select,
+        .adv-settings-group textarea{
+          width:100%;
+          background-color:var(--modal-input-bg,#202327);
+          border:1px solid var(--modal-input-border,#38444d);
+          border-radius:8px;
+          padding:8px 10px;
+          color:var(--modal-text-primary,#e7e9ea);
+          font-size:14px;
+          box-sizing:border-box;
+        }
+        .adv-settings-group textarea{
+          resize:vertical;
+          min-height:80px;
+        }
+        .adv-settings-actions-inline{
+          display:flex;
+          gap:8px;
+          margin-top:6px;
+          flex-wrap:wrap;
+        }
+        .adv-settings-footer{
+          padding:10px 16px;
+          border-top:1px solid var(--modal-border,#333);
+          display:flex;
+          justify-content:flex-end;
+          gap:8px;
+        }
+
         /* === Tab Drag & Drop === */
         .adv-tab-btn {
           user-select: none;
@@ -1063,7 +1232,12 @@
     const modalHTML = `
         <div id="advanced-search-modal">
             <div class="adv-modal-header">
-                <h2 data-i18n="modalTitle"></h2>
+                <div class="adv-modal-title-left">
+                    <h2 data-i18n="modalTitle"></h2>
+                    <button id="adv-settings-button" class="adv-settings-btn" type="button" data-i18n-title="tooltipSettings">
+                        ${SETTINGS_SVG}
+                    </button>
+                </div>
                 <div class="adv-secret-wrap">
                     <button id="adv-secret-btn" class="adv-secret-btn off" data-i18n-title="tooltipSecret" title="">
                         <span class="dot" aria-hidden="true"></span>
@@ -1073,6 +1247,7 @@
                     <button class="adv-modal-close" data-i18n-title="tooltipClose">&times;</button>
                 </div>
             </div>
+
             <div class="adv-modal-body">
                 <div class="adv-tabs">
                     <button class="adv-tab-btn active" data-tab="search" data-i18n="tabSearch"></button>
@@ -1278,6 +1453,48 @@
         </div>
 
         <div id="adv-toast" class="adv-toast" role="status" aria-live="polite"></div>
+            <div id="adv-settings-modal" class="adv-settings-modal">
+            <div class="adv-settings-dialog">
+                <div class="adv-settings-header">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <h3 class="adv-settings-title" data-i18n="settingsTitle"></h3>
+                        <button id="adv-settings-reset" type="button" class="adv-chip danger" data-i18n="buttonReset"></button>
+                    </div>
+                    <button id="adv-settings-close" type="button" class="adv-settings-close" data-i18n-title="tooltipClose">&times;</button>
+                </div>
+                <div class="adv-settings-body">
+                    <div class="adv-settings-group">
+                        <label for="adv-settings-lang" data-i18n="labelUILang"></label>
+                        <select id="adv-settings-lang">
+                            <option value="" data-i18n="optUILangAuto"></option>
+                            <option value="en">English</option>
+                            <option value="ja">日本語</option>
+                            <option value="fr">Français</option>
+                            <option value="es">Español</option>
+                            <option value="de">Deutsch</option>
+                            <option value="pt-BR">Português (Brasil)</option>
+                            <option value="ru">Русский</option>
+                            <option value="ko">한국어</option>
+                            <option value="zh-CN">简体中文</option>
+                            <option value="zh-TW">繁體中文</option>
+                        </select>
+                    </div>
+                    <div class="adv-settings-group">
+                        <label data-i18n="labelImportExport"></label>
+                        <div class="adv-settings-actions-inline">
+                            <button id="adv-settings-export" type="button" class="adv-modal-button" data-i18n="buttonExport"></button>
+                            <button id="adv-settings-import" type="button" class="adv-modal-button primary" data-i18n="buttonImport"></button>
+                            <!-- ファイルインポート用（非表示） -->
+                            <input id="adv-settings-file-input" type="file" accept="application/json" style="display:none">
+                        </div>
+                    </div>
+
+                </div>
+                <div class="adv-settings-footer">
+                    <button id="adv-settings-close-footer" type="button" class="adv-modal-button" data-i18n="buttonClose"></button>
+                </div>
+            </div>
+        </div>
     `;
 
     const initialize = async () => {
@@ -1297,6 +1514,15 @@
         const saveJSON = (key, value) => {
             try { kv.set(key, JSON.stringify(value)); } catch(_) {}
         };
+
+        const LANG_OVERRIDE_KEY = 'advUILang_v1';
+        // Settings で指定された UI 言語があれば、検出結果より優先して適用
+        try {
+            const overrideLang = kv.get(LANG_OVERRIDE_KEY, '');
+            if (overrideLang && i18n.translations[overrideLang]) {
+                i18n.lang = overrideLang;
+            }
+        } catch (_) {}
 
         const trigger = document.createElement('button');
         const HISTORY_SORT_KEY = 'advHistorySort_v1';
@@ -1324,6 +1550,16 @@
         const toastEl = document.getElementById('adv-toast');
         const secretBtn = document.getElementById('adv-secret-btn');
         const secretStateEl = document.getElementById('adv-secret-state');
+
+        const settingsModal = document.getElementById('adv-settings-modal');
+        const settingsLangSel = document.getElementById('adv-settings-lang');
+        const settingsFileInput = document.getElementById('adv-settings-file-input');
+        const settingsOpenBtn = document.getElementById('adv-settings-button');
+        const settingsCloseBtn = document.getElementById('adv-settings-close');
+        const settingsCloseFooterBtn = document.getElementById('adv-settings-close-footer');
+        const settingsExportBtn = document.getElementById('adv-settings-export');
+        const settingsImportBtn = document.getElementById('adv-settings-import');
+        const settingsResetBtn = document.getElementById('adv-settings-reset');
 
         const historyClearAllBtn = document.getElementById('adv-history-clear-all');
         historyClearAllBtn.textContent = i18n.t('historyClearAll');
@@ -1754,6 +1990,212 @@
           renderMuted();
           scanAndFilterTweets();
         };
+
+        const SETTINGS_EXPORT_VERSION = 2;
+        function buildSettingsExportJSON() {
+          // タブごとのズーム
+          const zoom = {};
+          try {
+            for (const [tab, key] of Object.entries(ZOOM_KEYS)) {
+              zoom[tab] = kv.get(key, '1');
+            }
+          } catch (_) {}
+
+          const safeParse = (key, def) => {
+            try { return JSON.parse(kv.get(key, JSON.stringify(def))); } catch (_) { return def; }
+          };
+
+          const data = {
+            v: SETTINGS_EXPORT_VERSION,
+
+            // 言語・除外設定・ミュート
+            lang: kv.get(LANG_OVERRIDE_KEY, ''),
+            excludeFlags: loadExcludeFlags(),
+            muteMaster: loadMuteMaster(),
+            muted: loadMuted(),
+
+            // 検索履歴・保存済み検索
+            history: loadJSON(HISTORY_KEY, []),
+            saved: loadJSON(SAVED_KEY, []),
+
+            // シークレットモード・履歴ソート
+            secret: kv.get(SECRET_KEY, '0') === '1',
+            historySort: kv.get(HISTORY_SORT_KEY, 'newest'),
+
+            // タブ状態
+            tabs: {
+              last: kv.get(LAST_TAB_KEY, 'search'),
+              order: loadJSON(TABS_ORDER_KEY, []),
+            },
+
+            // モーダル／トリガー位置・サイズ
+            modalState: safeParse(MODAL_STATE_KEY, null),
+            triggerState: safeParse(TRIGGER_STATE_KEY, null),
+
+            // ズーム
+            zoom,
+
+            // アカウント・リスト・各フォルダ
+            accounts: (typeof loadAccounts === 'function') ? loadAccounts() : [],
+            lists: (typeof loadLists === 'function') ? loadLists() : [],
+            folders: {
+              accounts: (typeof loadFolders === 'function' && typeof ACCOUNTS_FOLDERS_KEY !== 'undefined')
+                ? loadFolders(ACCOUNTS_FOLDERS_KEY, '')
+                : [],
+              lists: (typeof loadFolders === 'function' && typeof LISTS_FOLDERS_KEY !== 'undefined')
+                ? loadFolders(LISTS_FOLDERS_KEY, '')
+                : [],
+              saved: (typeof loadFolders === 'function' && typeof SAVED_FOLDERS_KEY !== 'undefined')
+                ? loadFolders(SAVED_FOLDERS_KEY, i18n.t('defaultSavedFolders'))
+                : [],
+            },
+
+            // Unassigned の挿入位置
+            unassignedIndex: {
+              saved: parseInt(kv.get('advSavedUnassignedIndex_v1', '0'), 10) || 0,
+              accounts: parseInt(kv.get('advAccountsUnassignedIndex_v1', '0'), 10) || 0,
+              lists: parseInt(kv.get('advListsUnassignedIndex_v1', '0'), 10) || 0,
+            },
+          };
+
+          return JSON.stringify(data, null, 2);
+        }
+
+        function applySettingsImportJSON(text) {
+          let data;
+          try {
+            data = JSON.parse(text);
+          } catch (_) {
+            alert('Invalid JSON');
+            return false;
+          }
+          if (!data || typeof data !== 'object') {
+            alert('Invalid JSON');
+            return false;
+          }
+
+          // --- 基本設定（v1/v2 共通） ---
+          if (data.lang !== undefined) {
+            try { kv.set(LANG_OVERRIDE_KEY, data.lang || ''); } catch (_) {}
+          }
+
+          if (data.excludeFlags) {
+            saveExcludeFlags({
+              name: !!data.excludeFlags.name,
+              handle: !!data.excludeFlags.handle,
+              reposts: !!data.excludeFlags.reposts,
+              hashtags: !!data.excludeFlags.hashtags,
+            });
+          }
+
+          if (Array.isArray(data.muted)) {
+            saveMuted(data.muted);
+          }
+
+          if (typeof data.muteMaster === 'boolean') {
+            saveMuteMaster(data.muteMaster);
+          }
+
+          // --- v2 以降で追加された保存データ（存在する場合のみ適用） ---
+          if (Array.isArray(data.history)) {
+            saveJSON(HISTORY_KEY, data.history);
+          }
+          if (Array.isArray(data.saved)) {
+            saveJSON(SAVED_KEY, data.saved);
+          }
+          if (typeof data.secret === 'boolean') {
+            try { kv.set(SECRET_KEY, data.secret ? '1' : '0'); } catch (_) {}
+          }
+          if (data.historySort) {
+            try { kv.set(HISTORY_SORT_KEY, data.historySort); } catch (_) {}
+          }
+          if (data.tabs && typeof data.tabs === 'object') {
+            if (data.tabs.last) {
+              try { kv.set(LAST_TAB_KEY, data.tabs.last); } catch (_) {}
+            }
+            if (Array.isArray(data.tabs.order)) {
+              saveJSON(TABS_ORDER_KEY, data.tabs.order);
+            }
+          }
+          if (data.modalState) {
+            try { kv.set(MODAL_STATE_KEY, JSON.stringify(data.modalState)); } catch (_) {}
+          }
+          if (data.triggerState) {
+            try { kv.set(TRIGGER_STATE_KEY, JSON.stringify(data.triggerState)); } catch (_) {}
+          }
+          if (data.zoom && typeof data.zoom === 'object') {
+            try {
+              for (const [tab, key] of Object.entries(ZOOM_KEYS)) {
+                if (data.zoom[tab] != null) {
+                  kv.set(key, String(data.zoom[tab]));
+                }
+              }
+            } catch (_) {}
+          }
+
+          if (Array.isArray(data.accounts) && typeof saveAccounts === 'function') {
+            try { saveAccounts(data.accounts); } catch (_) {}
+          }
+          if (Array.isArray(data.lists) && typeof saveLists === 'function') {
+            try { saveLists(data.lists); } catch (_) {}
+          }
+
+          if (data.folders && typeof data.folders === 'object') {
+            if (Array.isArray(data.folders.accounts) &&
+                typeof saveFolders === 'function' &&
+                typeof ACCOUNTS_FOLDERS_KEY !== 'undefined') {
+              try { saveFolders(ACCOUNTS_FOLDERS_KEY, data.folders.accounts); } catch (_) {}
+            }
+            if (Array.isArray(data.folders.lists) &&
+                typeof saveFolders === 'function' &&
+                typeof LISTS_FOLDERS_KEY !== 'undefined') {
+              try { saveFolders(LISTS_FOLDERS_KEY, data.folders.lists); } catch (_) {}
+            }
+            if (Array.isArray(data.folders.saved) &&
+                typeof saveFolders === 'function' &&
+                typeof SAVED_FOLDERS_KEY !== 'undefined') {
+              try { saveFolders(SAVED_FOLDERS_KEY, data.folders.saved); } catch (_) {}
+            }
+          }
+
+          if (data.unassignedIndex && typeof data.unassignedIndex === 'object') {
+            if ('saved' in data.unassignedIndex) {
+              try { kv.set('advSavedUnassignedIndex_v1', String(data.unassignedIndex.saved | 0)); } catch (_) {}
+            }
+            if ('accounts' in data.unassignedIndex) {
+              try { kv.set('advAccountsUnassignedIndex_v1', String(data.unassignedIndex.accounts | 0)); } catch (_) {}
+            }
+            if ('lists' in data.unassignedIndex) {
+              try { kv.set('advListsUnassignedIndex_v1', String(data.unassignedIndex.lists | 0)); } catch (_) {}
+            }
+          }
+
+          // 言語を再適用
+          try {
+            const override = kv.get(LANG_OVERRIDE_KEY, '');
+            if (override && i18n.translations[override]) {
+              i18n.lang = override;
+            } else if (!override) {
+              i18n.init();
+            }
+          } catch (_) {}
+
+          try {
+            i18n.apply(document.getElementById('advanced-search-modal'));
+            i18n.apply(document.getElementById('adv-settings-modal'));
+          } catch (_) {}
+
+          try { applySecretBtn(); } catch (_) {}
+          try { renderHistory(); } catch (_) {}
+          try { renderSaved(); } catch (_) {}
+          try { renderLists(); } catch (_) {}
+          try { renderAccounts(); } catch (_) {}
+          try { renderMuted(); } catch (_) {}
+          try { scanAndFilterTweets(); } catch (_) {}
+
+          showToast(i18n.t('toastImported'));
+          return true;
+        }
 
         // マスターON/OFF（全体の適用を止めるだけ。各エントリの enabled は保持）
         const MUTE_MASTER_KEY = 'advMuteMasterEnabled_v1';
@@ -2273,6 +2715,252 @@
             toastEl.classList.add('show');
             setTimeout(()=> toastEl.classList.remove('show'), 1500);
         };
+
+        function openSettingsModal() {
+          if (!settingsModal) return;
+          settingsModal.style.display = 'flex';
+          try {
+            const override = kv.get(LANG_OVERRIDE_KEY, '');
+            if (settingsLangSel) settingsLangSel.value = override || '';
+          } catch (_) {}
+
+          try {
+            const dialog = settingsModal.querySelector('.adv-settings-dialog');
+            themeManager.applyTheme(dialog, trigger);
+          } catch (_) {}
+        }
+
+        function closeSettingsModal() {
+          if (!settingsModal) return;
+          settingsModal.style.display = 'none';
+        }
+
+        if (settingsOpenBtn) {
+          settingsOpenBtn.addEventListener('click', (e)=>{
+            e.stopPropagation();
+            openSettingsModal();
+          });
+        }
+        if (settingsCloseBtn) {
+          settingsCloseBtn.addEventListener('click', (e)=>{
+            e.stopPropagation();
+            closeSettingsModal();
+          });
+        }
+        if (settingsCloseFooterBtn) {
+          settingsCloseFooterBtn.addEventListener('click', (e)=>{
+            e.stopPropagation();
+            closeSettingsModal();
+          });
+        }
+        if (settingsModal) {
+          settingsModal.addEventListener('click', (e)=>{
+            if (e.target === settingsModal) {
+              closeSettingsModal();
+            }
+          });
+        }
+
+        if (settingsExportBtn) {
+          settingsExportBtn.addEventListener('click', () => {
+            const json = buildSettingsExportJSON();
+            try {
+              const blob = new Blob([json], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+
+              const now = new Date();
+              const pad = (n) => String(n).padStart(2, '0');
+              const fname =
+                `search-hub-backup-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}` +
+                `-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.json`;
+
+              a.href = url;
+              a.download = fname;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            } catch (_) {
+              // 失敗しても、とりあえずトーストだけは出す
+            }
+            showToast(i18n.t('toastExported'));
+          });
+        }
+
+        if (settingsImportBtn && settingsFileInput) {
+          let importResetTimer = null;
+
+          settingsImportBtn.addEventListener('click', () => {
+            settingsFileInput.click();
+          });
+
+          settingsFileInput.addEventListener('change', () => {
+            const file = settingsFileInput.files && settingsFileInput.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+              let ok = false;
+              try {
+                ok = applySettingsImportJSON(String(reader.result || ''));
+              } finally {
+                // 同じファイルを続けて選べるようにリセット
+                settingsFileInput.value = '';
+              }
+
+              if (ok && settingsImportBtn) {
+                const successLabel = i18n.t('buttonImportSuccess');
+                const normalLabel  = i18n.t('buttonImport');
+
+                settingsImportBtn.textContent = successLabel;
+                settingsImportBtn.disabled = true;
+
+                if (importResetTimer) clearTimeout(importResetTimer);
+                importResetTimer = setTimeout(() => {
+                  settingsImportBtn.disabled = false;
+                  settingsImportBtn.textContent = normalLabel;
+                }, 2000);
+              }
+            };
+            reader.readAsText(file);
+          });
+        }
+
+        if (settingsResetBtn) {
+          settingsResetBtn.addEventListener('click', () => {
+            if (!confirm(i18n.t('confirmResetAll'))) return;
+
+            const KEYS_TO_DELETE = [
+              MODAL_STATE_KEY,
+              TRIGGER_STATE_KEY,
+              HISTORY_KEY,
+              SAVED_KEY,
+              SECRET_KEY,
+              MUTE_KEY,
+              MUTE_MASTER_KEY,
+              LAST_TAB_KEY,
+              TABS_ORDER_KEY,
+              LANG_OVERRIDE_KEY,
+              HISTORY_SORT_KEY,
+              EXC_NAME_KEY,
+              EXC_HANDLE_KEY,
+              EXC_REPOSTS_KEY,
+              EXC_HASHTAGS_KEY,
+              'advSavedUnassignedIndex_v1',
+              'advAccountsUnassignedIndex_v1',
+              'advListsUnassignedIndex_v1',
+              ...Object.values(ZOOM_KEYS),
+            ];
+
+            KEYS_TO_DELETE.forEach(k => {
+              try { kv.del(k); } catch (_) {}
+            });
+
+            // 各種配列系は空配列で上書き
+            try { saveMuted([]); } catch (_) {}
+            try { saveJSON(HISTORY_KEY, []); } catch (_) {}
+            try { saveJSON(SAVED_KEY, []); } catch (_) {}
+            try { saveAccounts([]); } catch (_) {}
+            try { saveLists([]); } catch (_) {}
+            try { saveFolders(ACCOUNTS_FOLDERS_KEY, []); } catch (_) {}
+            try { saveFolders(LISTS_FOLDERS_KEY, []); } catch (_) {}
+            try { saveFolders(SAVED_FOLDERS_KEY, []); } catch (_) {}
+
+            // ズームキャッシュとパースキャッシュもリセット
+            try {
+              Object.keys(zoomByTab).forEach(tab => {
+                zoomByTab[tab] = (tab === 'search') ? 0.87 : 1.0;
+              });
+            } catch (_) {}
+            __cachedSearchTokens = null;
+            __cachedSearchQuery = null;
+
+            // 言語設定を再適用（オーバーライドがなければ自動検出）
+            try {
+              const override = kv.get(LANG_OVERRIDE_KEY, '');
+              if (override && i18n.translations[override]) {
+                i18n.lang = override;
+              } else {
+                i18n.init();
+              }
+            } catch (_) {
+              i18n.init();
+            }
+
+            try {
+              i18n.apply(document.getElementById('advanced-search-modal'));
+              i18n.apply(document.getElementById('adv-settings-modal'));
+            } catch (_) {}
+
+            // UI 状態を初期化
+            try {
+              parseQueryAndApplyToModal('');
+              applyScopesToControls({ pf: false, lf: false });
+              applySecretBtn();
+              renderHistory();
+              renderSaved();
+              renderLists();
+              renderAccounts();
+              renderMuted();
+              updateSaveButtonState();
+              scanAndFilterTweets();
+            } catch (_) {}
+
+            // モーダル位置・サイズをデフォルトに近い状態へ戻す
+            try {
+              modal.style.width = '';
+              modal.style.height = '';
+              modal.style.left = '';
+              modal.style.right = '';
+              modal.style.top = '';
+              modal.style.bottom = '';
+              loadModalState();
+            } catch (_) {}
+
+            // トリガーボタンの位置もリセット
+            try {
+              trigger.style.left = '';
+              trigger.style.right = '';
+              trigger.style.top = '';
+              trigger.style.bottom = '';
+              applyTriggerStoredPosition();
+              keepTriggerInViewport();
+            } catch (_) {}
+
+            showToast(i18n.t('toastReset'));
+          });
+        }
+
+        if (settingsLangSel) {
+          settingsLangSel.addEventListener('change', ()=>{
+            const v = settingsLangSel.value;
+            try { kv.set(LANG_OVERRIDE_KEY, v || ''); } catch (_) {}
+            if (v && i18n.translations[v]) {
+              i18n.lang = v;
+            } else {
+              i18n.init();
+              try {
+                const override = kv.get(LANG_OVERRIDE_KEY, '');
+                if (override && i18n.translations[override]) i18n.lang = override;
+              } catch (_) {}
+            }
+
+            try {
+              i18n.apply(document.getElementById('advanced-search-modal'));
+              i18n.apply(document.getElementById('adv-settings-modal'));
+            } catch (_) {}
+
+            trigger.setAttribute('aria-label', i18n.t('tooltipTrigger'));
+            historyClearAllBtn.textContent = i18n.t('historyClearAll');
+            applySecretBtn();
+
+            try { renderHistory(); } catch (_) {}
+            try { renderSaved(); } catch (_) {}
+            try { renderLists(); } catch (_) {}
+            try { renderAccounts(); } catch (_) {}
+            try { renderMuted(); } catch (_) {}
+          });
+        }
 
         const loadSecret = () => { try { return kv.get(SECRET_KEY, '0') === '1'; } catch(_) { return false; } };
         const saveSecret = (on) => { try { kv.set(SECRET_KEY, on ? '1' : '0'); } catch(_) {} };
@@ -3887,6 +4575,7 @@
             id:f.id, name:f.name, order:[...new Set(f.order)], ts:f.ts||Date.now(), collapsed: !!f.collapsed,
           }))});
         }
+
         function ensureFolderToolbars() {
           // Accounts tab
           {
@@ -3896,8 +4585,8 @@
               bar.className = 'adv-folder-toolbar';
               bar.innerHTML = `
                 <select id="adv-accounts-folder-filter" class="adv-select"></select>
-                <input id="adv-accounts-search" class="adv-input" type="text" placeholder="${i18n.t('placeholderFilterAccounts')}">
-                <button id="adv-accounts-new-folder" class="adv-chip">${i18n.t('buttonAddFolder')}</button>
+                <input id="adv-accounts-search" class="adv-input" type="text" data-i18n-placeholder="placeholderFilterAccounts" placeholder="${i18n.t('placeholderFilterAccounts')}">
+                <button id="adv-accounts-new-folder" class="adv-chip" data-i18n="buttonAddFolder">${i18n.t('buttonAddFolder')}</button>
               `;
               host.parentElement.insertBefore(bar, host);
             }
@@ -3910,8 +4599,8 @@
               bar.className = 'adv-folder-toolbar';
               bar.innerHTML = `
                 <select id="adv-lists-folder-filter" class="adv-select"></select>
-                <input id="adv-lists-search" class="adv-input" type="text" placeholder="${i18n.t('placeholderFilterLists')}">
-                <button id="adv-lists-new-folder" class="adv-chip">${i18n.t('buttonAddFolder')}</button>
+                <input id="adv-lists-search" class="adv-input" type="text" data-i18n-placeholder="placeholderFilterLists" placeholder="${i18n.t('placeholderFilterLists')}">
+                <button id="adv-lists-new-folder" class="adv-chip" data-i18n="buttonAddFolder">${i18n.t('buttonAddFolder')}</button>
               `;
               host.parentElement.insertBefore(bar, host);
             }
@@ -3924,13 +4613,10 @@
               bar.className = 'adv-folder-toolbar';
               bar.innerHTML = `
                 <select id="adv-saved-folder-filter" class="adv-select"></select>
-                <input id="adv-saved-search" class="adv-input" type="text" data-i18n-placeholder="placeholderSearchSaved">
-                <button id="adv-saved-new-folder" class="adv-chip">${i18n.t('buttonAddFolder')}</button>
+                <input id="adv-saved-search" class="adv-input" type="text" data-i18n-placeholder="placeholderSearchSaved" placeholder="${i18n.t('placeholderSearchSaved')}">
+                <button id="adv-saved-new-folder" class="adv-chip" data-i18n="buttonAddFolder">${i18n.t('buttonAddFolder')}</button>
               `;
               host.parentElement.insertBefore(bar, host);
-              // プレースホルダーのi18n適用
-              const input = bar.querySelector('#adv-saved-search');
-              if (input) input.placeholder = i18n.t('placeholderSearchSaved');
             }
           }
         }
