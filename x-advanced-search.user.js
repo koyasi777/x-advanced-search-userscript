@@ -1,16 +1,16 @@
 // ==UserScript==
-// @name         X.com (Twitter) Advanced Search Modal 🔍
-// @name:ja      X.com（Twitter）高度検索モーダル 🔍
-// @name:en      X.com (Twitter) Advanced Search Modal 🔍
-// @name:zh-CN   X.com（Twitter）高级搜索模态框 🔍
-// @name:zh-TW   X.com（Twitter）高級搜尋模態框 🔍
-// @name:ko      X.com (Twitter) 고급 검색 모달 🔍
-// @name:fr      X.com (Twitter) : Modal de recherche avancée 🔍
-// @name:es      Modal de búsqueda avanzada para X.com (Twitter) 🔍
-// @name:de      Erweitertes Suchmodal für X.com (Twitter)🔍
-// @name:pt-BR   Modal de busca avançada no X.com (Twitter) 🔍
-// @name:ru      Расширенный поиск для X.com (Twitter) 🔍
-// @version      5.1.8
+// @name         Search Hub for X (Twitter) 🔍
+// @name:ja      Search Hub for X（Twitter）🔍
+// @name:en      Search Hub for X (Twitter) 🔍
+// @name:zh-CN   Search Hub for X（Twitter）🔍
+// @name:zh-TW   Search Hub for X（Twitter）🔍
+// @name:ko      Search Hub for X (Twitter) 🔍
+// @name:fr      Search Hub for X (Twitter) 🔍
+// @name:es      Search Hub for X (Twitter) 🔍
+// @name:de      Search Hub for X (Twitter) 🔍
+// @name:pt-BR   Search Hub for X (Twitter) 🔍
+// @name:ru      Search Hub for X (Twitter) 🔍
+// @version      5.1.9
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -22,7 +22,7 @@
 // @description:de   Fügt X.com (Twitter) ein modales Fenster für erweiterte Suche hinzu, synchronisiert mit der Suchleiste und speichert Position/Zustand. Das Suchsymbol oben rechts ist per Drag & Drop verschiebbar und bleibt gespeichert.
 // @description:pt-BR Adiciona um modal de busca avançada flutuante no X.com (Twitter), sincronizado com a caixa de busca e com estado salvo. O ícone de busca no canto superior direito é arrastável com posição persistente.
 // @description:ru   Добавляет модальное окно расширенного поиска на X.com (Twitter). Синхронизируется с поисковой строкой и запоминает состояние. Кнопку поиска в правом верхнем углу можно перетаскивать; её положение сохраняется.
-// @namespace    https://github.com/koyasi777/x-advanced-search
+// @namespace    https://github.com/koyasi777/search-hub-for-x-twitter
 // @author       koyasi777
 // @match        https://x.com/*
 // @match        https://twitter.com/*
@@ -35,8 +35,8 @@
 // @grant        GM_deleteValue
 // @run-at       document-idle
 // @license      MIT
-// @homepageURL  https://github.com/koyasi777/x-advanced-search
-// @supportURL   https://github.com/koyasi777/x-advanced-search/issues
+// @homepageURL  https://github.com/koyasi777/search-hub-for-x-twitter
+// @supportURL   https://github.com/koyasi777/search-hub-for-x-twitter/issues
 // ==/UserScript==
 
 (function() {
