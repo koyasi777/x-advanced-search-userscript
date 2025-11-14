@@ -10,7 +10,7 @@
 // @name:de      Search Hub for X (Twitter) 🔍
 // @name:pt-BR   Search Hub for X (Twitter) 🔍
 // @name:ru      Search Hub for X (Twitter) 🔍
-// @version      5.2.0
+// @version      5.2.1
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -4204,8 +4204,18 @@
 
               // 3. リポスト除外
               if (flags.reposts) {
-                if (art.querySelector('[data-testid="socialContext"]')) {
-                  reasons.push('repost');
+                // 1. まず socialContext があるか確認
+                const socialContext = art.querySelector('[data-testid="socialContext"]');
+                if (socialContext) {
+                    // 2. それが「固定ポスト」のアイコンではないことを確認
+                    //    固定ポストのピンアイコンのSVGパス
+                    const pinIconPath = 'M7 4.5C7 3.12 8.12 2 9.5 2h5C15.88 2 17 3.12 17 4.5v5.26L20.12 16H13v5l-1 2-1-2v-5H3.88L7 9.76V4.5z';
+                    const isPinned = art.querySelector(`svg path[d="${pinIconPath}"]`);
+
+                    // 3. socialContext があり、かつ、固定ピンアイコンが無い場合のみ非表示
+                    if (!isPinned) {
+                        reasons.push('repost');
+                    }
                 }
               }
 
