@@ -28,7 +28,7 @@
 // @match        https://twitter.com/*
 // @exclude      https://x.com/i/tweetdeck*
 // @exclude      https://twitter.com/i/tweetdeck*
-// @icon         https://koyasi-brain.com/wp-content/uploads/2025/11/icon-64.png
+// @icon         https://raw.githubusercontent.com/koyasi777/advanced-search-for-x-twitter/refs/heads/main/extension/icons/icon-128.png
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue
