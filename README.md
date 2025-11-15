@@ -2,12 +2,12 @@
 
 *X（旧 Twitter）の検索体験に革命を。*
 
-<img width="640" height="400" alt="advanced_search_for_x_screenshot" src="https://github.com/user-attachments/assets/4a279d04-d11b-42d2-8ccc-1ba57739b1a0" />
-
 <p align="left">
   <a href="https://greasyfork.org/" target="_blank"><img alt="userscript" src="https://img.shields.io/badge/userscript-Tampermonkey%2FViolentmonkey-blue"></a>
   <img alt="license" src="https://img.shields.io/badge/license-MIT-green">
 </p>
+
+<img width="640" height="400" alt="advanced_search_for_x_screenshot" src="https://github.com/user-attachments/assets/4a279d04-d11b-42d2-8ccc-1ba57739b1a0" />
 
 高度検索用の**フローティング・モーダル**を X に追加します。検索ボックスと**双方向同期**し、クエリの**保存/履歴**、**ミュート**（本文ヒットの非表示）、**シークレットモード**、**フォロー中/近く**などのスコープ指定、**名前/ユーザー名のみヒットの除外**まで、実運用に必要な機能をすべて一つにまとめました。モーダルと右上の🔍トリガーは**ドラッグ移動＆位置を記憶**、モーダルは**リサイズ/ズーム**も可能です。
 
