@@ -1,6 +1,8 @@
-# X.com (Twitter) Advanced Search Modal 🔍
+# Advanced Search for X (Twitter)  🔍
 
 *X（旧 Twitter）の検索体験に革命を。*
+
+<img width="640" height="400" alt="advanced_search_for_x_screenshot" src="https://github.com/user-attachments/assets/4a279d04-d11b-42d2-8ccc-1ba57739b1a0" />
 
 <p align="left">
   <a href="https://greasyfork.org/" target="_blank"><img alt="userscript" src="https://img.shields.io/badge/userscript-Tampermonkey%2FViolentmonkey-blue"></a>
