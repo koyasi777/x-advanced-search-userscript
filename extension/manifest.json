@@ -1,0 +1,64 @@
+{
+  "manifest_version": 3,
+
+  "name": "__MSG_extensionName__",
+  "description": "__MSG_extensionDescription__",
+
+  "version": "5.2.2",
+  "author": "koyasi777",
+  "homepage_url": "https://github.com/koyasi777/advanced-search-for-x-twitter",
+
+  "icons": {
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "64": "icons/icon-64.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png"
+  },
+
+  "permissions": [
+    "storage"
+  ],
+
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*"
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": [ "_locales/*" ],
+      "matches": [ "https://x.com/*", "https://twitter.com/*" ]
+    }
+  ],
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "advanced-search-for-x-twitter@koyasi777.github.io",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    }
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "exclude_matches": [
+        "https://x.com/i/tweetdeck*",
+        "https://twitter.com/i/tweetdeck*"
+      ],
+      "js": [
+        "content_script.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "default_locale": "en"
+}
