@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      5.2.2
+// @version      6.0.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -107,6 +107,7 @@
                 buttonClear: "Clear",
                 buttonApply: "Search",
                 tooltipTrigger: "Open Advanced Search",
+                buttonOpen: "Open",
 
                 tabSearch: "Search",
                 tabHistory: "History",
@@ -197,8 +198,18 @@
                 optListsAll: "Lists",
                 defaultSavedFolders: "Saved Searches",
 
+                /* Favorites */
+                tabFavorites: "Favorites",
+                emptyFavorites: "No favorite tweets yet. Click the ★ icon on tweets to save them.",
+                optFavoritesAll: "All Favorites",
+                toastFavorited: "Added to favorites.",
+                toastUnfavorited: "Removed from favorites.",
+
                 /* Settings */
                 settingsTitle: "Settings",
+                settingsTitleGeneral: "General",
+                settingsTitleFeatures: "Tab Visibility",
+                settingsTitleData: "Data",
                 buttonClose: "Close",
                 labelUILang: "Interface language",
                 optUILangAuto: "Auto",
@@ -211,6 +222,39 @@
                 confirmResetAll: "Reset all data? This cannot be undone.",
                 toastReset: "All data has been reset.",
                 buttonImportSuccess: "Imported successfully 👍️",
+
+                /* Favorites Sort */
+                sortSavedNewest: "Saved date (Newest)",
+                sortSavedOldest: "Saved date (Oldest)",
+                sortPostedNewest: "Posted date (Newest)",
+                sortPostedOldest: "Posted date (Oldest)",
+
+                /* --- Favorite Tags --- */
+                FT_UNCATEGORIZED: 'Uncategorized',
+                FT_DROPDOWN_TITLE: 'Favorite Tags',
+                FT_DROPDOWN_SETTINGS_TITLE: 'Favorite Tag Settings',
+                FT_DROPDOWN_NEW_TAG: 'New tag',
+                FT_DROPDOWN_NEW_TAG_PLACEHOLDER: 'Tag name',
+                FT_DROPDOWN_NEW_TAG_ADD: 'Add',
+                FT_FILTER_ALL: 'All',
+                FT_SETTINGS_TITLE: 'Favorite Tag Settings',
+                FT_SETTINGS_EMPTY_TAG_LIST:
+                  'No tags yet. You can add one from "New tag".',
+                FT_SETTINGS_UNCATEGORIZED_NAME: 'Uncategorized',
+                FT_SETTINGS_UNCATEGORIZED_NAME_TOOLTIP:
+                  'The name of "Uncategorized" cannot be changed.',
+                FT_SETTINGS_UNCATEGORIZED_DELETE_TOOLTIP:
+                  '"Uncategorized" cannot be deleted.',
+                FT_SETTINGS_CLOSE: 'Close',
+                FT_SETTINGS_DELETE_BUTTON: 'Delete',
+                FT_SETTINGS_UP: '▲',
+                FT_SETTINGS_DOWN: '▼',
+                FT_SETTINGS_DISPLAY_SECTION_TITLE: 'Display',
+                FT_SETTINGS_DISPLAY_MODE_LABEL: 'Tag label format',
+                FT_SETTINGS_DISPLAY_MODE_LEAF: 'Leaf only',
+                FT_SETTINGS_DISPLAY_MODE_FULL: 'Full path',
+                FT_CONFIRM_DELETE_TAG_MSG: 'Delete tag "{tagName}"?\nFavorites with this tag will become "Uncategorized".',
+                FT_SETTINGS_BUTTON_TITLE: 'Favorite Tag Settings',
             },
             'ja': {
                 modalTitle: "高度な検索",
@@ -272,6 +316,7 @@
                 buttonClear: "クリア",
                 buttonApply: "検索実行",
                 tooltipTrigger: "高度な検索を開く",
+                buttonOpen: "開く",
 
                 tabSearch: "検索",
                 tabHistory: "履歴",
@@ -362,8 +407,18 @@
                 optListsAll: "リスト",
                 defaultSavedFolders: "保存済み検索",
 
+                /* Favorites */
+                tabFavorites: "お気に入り",
+                emptyFavorites: "お気に入りはまだありません。ツイートの★ボタンをクリックして保存できます。",
+                optFavoritesAll: "すべてのお気に入り",
+                toastFavorited: "お気に入りに追加しました。",
+                toastUnfavorited: "お気に入りから削除しました。",
+
                 /* Settings */
                 settingsTitle: "設定",
+                settingsTitleGeneral: "一般設定",
+                settingsTitleFeatures: "タブ表示設定",
+                settingsTitleData: "データ管理",
                 buttonClose: "閉じる",
                 labelUILang: "UI 言語",
                 optUILangAuto: "自動判定",
@@ -376,6 +431,37 @@
                 confirmResetAll: "すべてのデータを初期化しますか？この操作は元に戻せません。",
                 toastReset: "すべてのデータを初期化しました。",
                 buttonImportSuccess: "インポートに成功しました👍️",
+
+                /* Favorites Sort */
+                sortSavedNewest: "追加日 (新しい順)",
+                sortSavedOldest: "追加日 (古い順)",
+                sortPostedNewest: "投稿日 (新しい順)",
+                sortPostedOldest: "投稿日 (古い順)",
+
+                /* --- Favorite Tags --- */
+                FT_UNCATEGORIZED: '未分類',
+                FT_DROPDOWN_TITLE: 'お気に入りタグ',
+                FT_DROPDOWN_SETTINGS_TITLE: 'お気に入りタグ設定',
+                FT_DROPDOWN_NEW_TAG: '新しいタグ',
+                FT_DROPDOWN_NEW_TAG_PLACEHOLDER: 'タグ名',
+                FT_DROPDOWN_NEW_TAG_ADD: '追加',
+                FT_FILTER_ALL: 'すべて',
+                FT_SETTINGS_TITLE: 'お気に入りタグ設定',
+                FT_SETTINGS_EMPTY_TAG_LIST:
+                  'タグはまだありません。「新しいタグ」から追加できます。',
+                FT_SETTINGS_UNCATEGORIZED_NAME: '未分類',
+                FT_SETTINGS_UNCATEGORIZED_NAME_TOOLTIP: '未分類の名前は変更できません',
+                FT_SETTINGS_UNCATEGORIZED_DELETE_TOOLTIP: '未分類は削除できません',
+                FT_SETTINGS_CLOSE: '閉じる',
+                FT_SETTINGS_DELETE_BUTTON: '削除',
+                FT_SETTINGS_UP: '▲',
+                FT_SETTINGS_DOWN: '▼',
+                FT_SETTINGS_DISPLAY_SECTION_TITLE: '表示設定',
+                FT_SETTINGS_DISPLAY_MODE_LABEL: 'タグの表示形式',
+                FT_SETTINGS_DISPLAY_MODE_LEAF: '末尾のみ (leaf)',
+                FT_SETTINGS_DISPLAY_MODE_FULL: 'フルパス (full)',
+                FT_CONFIRM_DELETE_TAG_MSG: 'タグ「{tagName}」を削除しますか？\nこのタグが付いていたお気に入りは未分類になります。',
+                FT_SETTINGS_BUTTON_TITLE: 'お気に入りタグ設定',
             },
             'zh-CN': {},
             'ko': {},
@@ -487,6 +573,19 @@
             let theme = 'dark';
             if (bodyBg === 'rgb(21, 32, 43)') theme = 'dim';
             else if (bodyBg === 'rgb(255, 255, 255)') theme = 'light';
+
+            // ▼ ブックマークUIのテーマ切替用にクラスを付与
+            try {
+                document.documentElement.classList.remove('x-theme-light', 'x-theme-dim', 'x-theme-dark');
+                if (theme === 'light') {
+                    document.documentElement.classList.add('x-theme-light');
+                } else if (theme === 'dim') {
+                    document.documentElement.classList.add('x-theme-dim');
+                } else {
+                    document.documentElement.classList.add('x-theme-dark');
+                }
+            } catch (e) {}
+
             const themeColors = this.colors[theme] || this.colors.dark;
             const targets = [modalElement, document.documentElement];
             if (triggerEl) targets.push(triggerEl);
@@ -753,7 +852,7 @@
           text-decoration: line-through;
         }
         .adv-modal-footer{padding:12px 16px;border-top:1px solid var(--modal-border,#333);display:flex;justify-content:flex-end;gap:12px}
-        .adv-modal-button{padding:8px 16px;border-radius:9999px;border:1px solid var(--modal-text-secondary,#536471);background-color:transparent;color:var(--modal-text-primary,#e7e9ea);font-weight:700;cursor:pointer;transition:background-color .2s}
+        .adv-modal-button{padding:5px 16px;border-radius:9999px;border:1px solid var(--modal-text-secondary,#536471);background-color:transparent;color:var(--modal-text-primary,#e7e9ea);font-weight:700;cursor:pointer;transition:background-color .2s}
         .adv-modal-button:hover{background-color:var(--modal-button-hover-bg,rgba(231,233,234,.1))}
         .adv-modal-button.primary,
         .adv-chip.primary {
@@ -784,9 +883,79 @@
         .adv-form-row.two-cols { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
         @media (max-width: 480px) { .adv-form-row.two-cols { grid-template-columns:1fr; } }
 
-        .adv-tabs { display:flex; border-bottom:1px solid var(--modal-border,#333); padding:0 8px; gap:6px; align-items:stretch; }
-        .adv-tab-btn { appearance:none; border:none; background:transparent; color:var(--modal-text-secondary,#8b98a5); padding:10px 12px; cursor:pointer; font-weight:700; border-radius:8px 8px 0 0; font-size:0.78rem; }
-        .adv-tab-btn.active { color:var(--modal-text-primary,#e7e9ea); background-color:var(--modal-input-bg,#202327); border:1px solid var(--modal-input-border,#38444d); border-bottom:none; }
+        .adv-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--modal-border, #333);
+            padding: 0 8px 0 6px;
+            gap: 4px;
+            align-items: stretch;
+
+            /* 幅不足の時は隠さず、2行にする */
+            flex-wrap: wrap;
+
+            /* 幅検知の基準にする */
+            container-type: inline-size;
+        }
+
+        .adv-tab-btn {
+            appearance: none;
+            border: none;
+            background: transparent;
+            color: var(--modal-text-secondary, #8b98a5);
+            padding: 10px 8px;
+            cursor: pointer;
+            font-weight: 700;
+            border-radius: 8px 8px 0 0;
+            font-size: 0.78rem;
+
+            /* ボタン内のテキストは折り返さない */
+            white-space: nowrap;
+
+            /* 余ったスペースを全員で分け合う（均等配置・最大化） */
+            flex: 1 1 auto;
+            text-align: center;
+
+            /* なめらかな変化 */
+            transition: font-size 0.1s, padding 0.1s, background-color 0.2s;
+        }
+
+        .adv-tab-btn.active {
+            color: var(--modal-text-primary, #e7e9ea);
+            background-color: var(--modal-input-bg, #202327);
+            border: 1px solid var(--modal-input-border, #38444d);
+            border-bottom: none;
+            /* アクティブタブは少し強調 */
+            z-index: 1;
+        }
+
+        /* ▼▼▼ コンテナクエリ: 幅に応じて最適化 ▼▼▼ */
+
+        /* 幅 480px 以下: フォントを少し小さくし、1行収まりを狙う */
+        @container (max-width: 480px) {
+            .adv-tab-btn {
+                font-size: 12px;
+                padding: 8px 4px;
+            }
+        }
+
+        /* 幅 380px 以下: さらにフォントを詰め、もし2行になっても違和感ないサイズに */
+        @container (max-width: 380px) {
+            .adv-tab-btn {
+                font-size: 11px;
+                padding: 6px 2px;
+                border-radius: 6px; /* 角丸も少し小さく */
+            }
+            /* 2行になった際に上下の列がくっつきすぎないようにする */
+            .adv-tabs {
+                row-gap: 2px;
+            }
+            /* 2行目のボーダー処理（見た目を整える） */
+            .adv-tab-btn.active {
+                border-bottom: 1px solid var(--modal-input-bg, #202327);
+                margin-bottom: -1px;
+            }
+        }
+
         .adv-tab-content { display:none; }
         .adv-tab-content.active { display:block; }
 
@@ -798,7 +967,7 @@
         .adv-secret-btn.on .dot { background:#fff; box-shadow:0 0 8px rgba(255,255,255,.9); }
 
         .adv-list { display:flex; flex-direction:column; gap:8px; }
-        .adv-item { border:1px solid var(--modal-input-border,#38444d); background:var(--modal-input-bg,#202327); border-radius:8px; padding:8px; display:flex; gap:8px; align-items:flex-start; }
+        .adv-item { position: relative; border:1px solid var(--modal-input-border,#38444d); background:var(--modal-input-bg,#202327); border-radius:8px; padding:8px; display:flex; gap:8px; align-items:flex-start; }
         .adv-item.dragging { opacity:.6; }
         .adv-item-handle { cursor:grab; user-select:none; padding:4px 6px; border-radius:6px; border:1px dashed var(--modal-border,#333); }
         .adv-item-avatar { width:36px; height:36px; border-radius:9999px; object-fit:cover; flex:0 0 auto; background:var(--modal-border,#333); }
@@ -806,10 +975,15 @@
         a.adv-link:hover { text-decoration: underline; cursor: pointer; }
         .adv-item-avatar-link { display:inline-block; border-radius:9999px; }
         .adv-item-main { flex:1; min-width:0; }
-        .adv-item-title { font-size:14px; font-weight:700; color:var(--modal-text-primary,#e7e9ea); word-break:break-word; }
+
+        .adv-item-title { font-size:14px; font-weight:700; color:var(--modal-text-primary,#e7e9ea); word-break:break-word; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
         .adv-item-sub { font-size:12px; color:var(--modal-text-secondary,#8b98a5); margin-top:2px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
         .adv-item-actions { display:flex; gap:6px; align-items:center; align-self:center; }
         .adv-chip { border:1px solid var(--modal-input-border,#38444d); background:transparent; color:var(--modal-text-primary,#e7e9ea); padding:4px 8px; border-radius:9999px; font-size:12px; cursor:pointer; }
+
+        .adv-fav-btn-pos { position: absolute; right: 8px; }
+        .adv-fav-btn-top { top: 8px; }
+        .adv-fav-btn-bottom { bottom: 8px; }
         .adv-chip.danger { border-color:#8b0000; color:#ffb3b3; }
         .adv-modal-button.danger {
           border-color:#8b0000;
@@ -867,7 +1041,11 @@
         }
 
         [data-testid="cellInnerDiv"][data-adv-hidden],
-        article[data-adv-hidden] { display:none !important; }
+        article[data-adv-hidden] {
+          display:none !important;
+          content-visibility: hidden;
+          contain: strict;
+        }
 
         #advanced-search-modal { max-height:none; }
         .adv-resizer { position:absolute; z-index:10002; background:transparent; }
@@ -885,7 +1063,7 @@
 
         /* ▶ Mute タブ */
         .adv-mute-add { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
-        .adv-mute-add input[type=text]{ flex:1; }
+        .adv-mute-add input[type=text]{ flex:1; border-radius:8px; }
         .adv-mute-list { display:flex; flex-direction:column; gap:8px; }
 
         /* ▼ グローバル無効（マスターOFF）のとき：リスト全体を淡く */
@@ -1174,7 +1352,7 @@
           background-color:var(--modal-close-hover-bg,rgba(231,233,234,.1));
         }
         .adv-settings-body{
-          padding:12px 16px;
+          padding:12px 16px 23px 16px;
           overflow-y:auto;
           display:flex;
           flex-direction:column;
@@ -1202,6 +1380,69 @@
           resize:vertical;
           min-height:80px;
         }
+        .adv-settings-section-header {
+          margin: 12px 0 2px 0;
+          padding-bottom: 4px;
+          border-bottom: 1px solid var(--modal-border,#333);
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--modal-text-primary,#e7e9ea);
+        }
+        .adv-settings-toggle-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 6px 0;
+        }
+        .adv-settings-toggle-row .adv-toggle {
+          font-size: 14px;
+          color: var(--modal-text-primary,#e7e9ea);
+          user-select: none;
+          cursor: pointer;
+        }
+        .adv-settings-toggle-row .adv-toggle span {
+          font-size: 14px;
+        }
+        /* Simple toggle switch CSS */
+        .adv-switch {
+          position: relative;
+          display: inline-block;
+          width: 40px;
+          height: 22px;
+        }
+        .adv-switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+        .adv-slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: var(--modal-input-border,#38444d);
+          transition: .2s;
+          border-radius: 22px;
+        }
+        .adv-slider:before {
+          position: absolute;
+          content: "";
+          height: 16px;
+          width: 16px;
+          left: 3px;
+          bottom: 3px;
+          background-color: var(--modal-bg, #000);
+          transition: .2s;
+          border-radius: 50%;
+        }
+        .adv-switch input:checked + .adv-slider {
+          background-color: var(--modal-primary-color);
+        }
+        .adv-switch input:checked + .adv-slider:before {
+          transform: translateX(18px);
+        }
         .adv-settings-actions-inline{
           display:flex;
           gap:8px;
@@ -1227,6 +1468,568 @@
           opacity: .5;
         }
 
+        /* --- Favorite Tags CSS --- */
+
+        /* ▼ ブックマークUI専用の配色変数を定義 */
+        :root {
+          /* デフォルト (Dim / Dark) は静的なダークテーマ */
+          --ft-bg: rgb(21, 24, 28);
+          --ft-border-light: rgba(239, 243, 244, 0.24);
+          --ft-border-dim: rgba(239, 243, 244, 0.15);
+          --ft-border-strong: rgba(239, 243, 244, 0.3);
+          --ft-border-accent: rgba(239, 243, 244, 0.8);
+          --ft-text-primary: rgb(239, 243, 244);
+          --ft-text-secondary: rgba(239, 243, 244, 0.7);
+          --ft-input-bg: rgba(0,0,0,0.2);
+          --ft-input-border: rgba(239,243,244,0.2);
+          --ft-hover-bg: rgba(255, 255, 255, 0.06);
+          --ft-hover-bg-strong: rgba(255, 255, 255, 0.08);
+          --ft-accent-color: #1d9bf0;
+        }
+        :root.x-theme-light {
+          /* Lightテーマの時だけ、X本体の動的変数を参照する */
+          --ft-bg: var(--modal-bg);
+          --ft-border-light: var(--modal-border);
+          --ft-border-dim: var(--modal-border);
+          --ft-border-strong: var(--modal-text-secondary);
+          --ft-border-accent: var(--modal-text-primary);
+          --ft-text-primary: var(--modal-text-primary);
+          --ft-text-secondary: var(--modal-text-secondary);
+          --ft-input-bg: var(--modal-input-bg);
+          --ft-input-border: var(--modal-input-border);
+          --ft-hover-bg: var(--modal-button-hover-bg);
+          --ft-hover-bg-strong: var(--modal-button-hover-bg);
+          --ft-accent-color: var(--modal-primary-color);
+        }
+
+        /* Tag chip on tweet header */
+        .ft-tag-chip {
+          display: inline-flex;
+          align-items: center;
+          margin-left: 4px; /* JS (ft_attachTagChipToArticle) 側の gap: 4px と連動 */
+          padding: 1px 8px;
+          border-radius: 9999px;
+          border: 1px solid currentColor;
+          font-size: 11px;
+          line-height: 1.4;
+          cursor: pointer;
+          user-select: none;
+          white-space: nowrap;
+          background: rgba(255, 255, 255, 0.03); /* これは静的なまま (ほぼ透明なので) */
+          flex: 0 0 auto;
+        }
+        .ft-tag-chip-label {
+          max-width: 150px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .ft-tag-chip-uncategorized {
+          opacity: 0.7;
+        }
+
+        /* Dropdown for selecting tag / filter */
+        .ft-tag-dropdown {
+          position: fixed;
+          z-index: 2147482000;
+          min-width: 220px;
+          max-width: 260px;
+          max-height: 60vh;
+          overflow-y: auto;
+          padding: 8px;
+          border-radius: 12px;
+          border: 1px solid var(--ft-border-light);
+          background: var(--ft-bg);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+          font-size: 13px;
+          color: var(--ft-text-primary);
+        }
+        .ft-tag-dropdown-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 6px;
+          font-weight: 600;
+        }
+        .ft-tag-dropdown-close {
+          border: none;
+          background: transparent;
+          color: inherit;
+          cursor: pointer;
+          padding: 2px 4px;
+        }
+        .ft-tag-dropdown-tags {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          margin-bottom: 8px;
+        }
+        .ft-tag-dropdown-tag-item {
+          display: flex;
+          align-items: center;
+          padding: 4px 6px;
+          border-radius: 6px;
+          cursor: pointer;
+        }
+        .ft-tag-dropdown-tag-item:hover {
+          background: var(--ft-hover-bg);
+        }
+        .ft-tag-dropdown-tag-color {
+          width: 10px;
+          height: 10px;
+          border-radius: 9999px;
+          margin-right: 6px;
+        }
+        .ft-tag-dropdown-tag-label {
+          flex: 1;
+        }
+        .ft-tag-dropdown-tag-selected::after {
+          content: '✓';
+          margin-left: 6px;
+          font-size: 11px;
+        }
+
+        /* New tag row in dropdown */
+        .ft-tag-dropdown-new {
+          border-top: 1px solid var(--ft-border-dim);
+          padding-top: 6px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .ft-tag-dropdown-new-row {
+          display: flex;
+          gap: 4px;
+        }
+        .ft-tag-dropdown-new-input {
+          flex: 1;
+          background: var(--ft-input-bg);
+          border: 1px solid var(--ft-input-border);
+          border-radius: 6px;
+          padding: 3px 6px;
+          color: inherit;
+        }
+        .ft-tag-dropdown-new-color {
+          width: 36px;
+          padding: 0;
+          border-radius: 6px;
+          border: 1px solid var(--ft-input-border);
+          background: transparent;
+        }
+        .ft-tag-dropdown-new-button {
+          border-radius: 6px;
+          border: 1px solid var(--ft-border-strong);
+          background: transparent;
+          color: inherit;
+          padding: 2px 6px;
+          font-size: 12px;
+          cursor: pointer;
+        }
+        .ft-tag-dropdown-new-button:hover {
+          background: var(--ft-hover-bg);
+        }
+
+        /* Bookmark header controls (テーマ変数適用) */
+        .ft-filter-button {
+          border-radius: 8px;
+          border: 1px solid var(--modal-border, rgba(239,243,244,0.3));
+          background: var(--modal-input-bg, rgba(0,0,0,0.2));
+          color: var(--modal-text-primary, rgb(239,243,244));
+          font-size: 14px;
+          padding: 4px 10px;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          cursor: pointer;
+        }
+        .ft-filter-button-label {
+          max-width: 140px;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+        .ft-filter-button-caret {
+          font-size: 10px;
+          opacity: 0.8;
+        }
+        .ft-filter-button[disabled] {
+          opacity: 0.4;
+          cursor: default;
+        }
+        .ft-filter-button:not([disabled]):hover {
+          background: var(--modal-button-hover-bg, rgba(255,255,255,0.06));
+          border-color: var(--modal-text-secondary, rgba(239,243,244,0.6));
+        }
+        .ft-settings-button {
+          border-radius: 9999px;
+          width: 26px;
+          height: 26px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid var(--modal-border, rgba(239,243,244,0.3));
+          background: var(--modal-input-bg, rgba(0,0,0,0.2));
+          color: var(--modal-text-primary, rgb(239,243,244));
+          cursor: pointer;
+        }
+        .ft-settings-button:hover {
+          background: var(--modal-button-hover-bg, rgba(255,255,255,0.06));
+        }
+
+        /* Settings modal */
+        .ft-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.6);
+          z-index: 2147483000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .ft-modal {
+          width: min(380px, 100vw - 32px);
+          max-height: 80vh;
+          border-radius: 16px;
+          background: var(--ft-bg);
+          border: 1px solid var(--ft-border-light);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.75);
+          display: flex;
+          flex-direction: column;
+          color: var(--ft-text-primary);
+        }
+        .ft-modal-header {
+          padding: 10px 14px;
+          border-bottom: 1px solid var(--ft-border-dim);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+        }
+        .ft-modal-title {
+          font-size: 14px;
+          font-weight: 600;
+        }
+        .ft-modal-toggle {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 12px;
+        }
+        .ft-modal-toggle input[type="checkbox"] {
+          accent-color: var(--ft-accent-color);
+        }
+        .ft-modal-body {
+          padding: 10px 14px 12px;
+          overflow-y: auto;
+          font-size: 13px;
+        }
+        .ft-modal-footer {
+          padding: 8px 14px 10px;
+          border-top: 1px solid var(--ft-border-dim);
+          display: flex;
+          justify-content: flex-end;
+          gap: 8px;
+        }
+        .ft-modal-button {
+          border-radius: 9999px;
+          border: 1px solid var(--ft-border-strong);
+          background: transparent;
+          color: inherit;
+          font-size: 12px;
+          padding: 4px 10px;
+          cursor: pointer;
+        }
+        .ft-modal-button:hover {
+          background: var(--ft-hover-bg);
+        }
+
+        /* Display settings section */
+        .ft-modal-display-settings {
+          margin-bottom: 10px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid var(--ft-border-dim);
+          font-size: 12px;
+        }
+        .ft-modal-display-settings-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          align-items: center;
+          margin-top: 4px;
+        }
+        .ft-modal-display-radio {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        /* Tag list in modal */
+       .ft-modal-tag-list {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          margin-bottom: 10px;
+        }
+        .ft-modal-tag-item {
+          position: relative;
+          display: grid;
+          /* [mainCell] [dragHandle] [orderButtons] [deleteBtn] */
+          grid-template-columns: minmax(0, 1fr) auto auto auto;
+          align-items: center;
+          gap: 6px;
+          /* cursor: grab; を削除 (ハンドルが担当) */
+        }
+        .ft-modal-tag-main {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .ft-modal-tag-item-dragging {
+          opacity: 0.6;
+        }
+        .ft-modal-tag-item-drop-before::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: -4px;
+          border-top: 2px solid var(--ft-border-accent);
+        }
+        .ft-modal-tag-item-drop-after::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: -4px;
+          border-bottom: 2px solid var(--ft-border-accent);
+        }
+        .ft-modal-tag-item-drop-child {
+          background: var(--ft-hover-bg-strong);
+        }
+        .ft-modal-tag-name {
+          background: var(--ft-input-bg);
+          border-radius: 6px;
+          border: 1px solid var(--ft-input-border);
+          padding: 3px 6px;
+          color: inherit;
+          font-size: 12px;
+        }
+        .ft-modal-tag-color {
+          width: 40px;
+          padding: 0;
+          border-radius: 6px;
+          border: 1px solid var(--ft-input-border);
+          background: transparent;
+        }
+        .ft-modal-tag-order,
+        .ft-modal-tag-delete {
+          border-radius: 6px;
+          border: 1px solid var(--ft-border-strong);
+          background: transparent;
+          color: inherit;
+          padding: 2px 4px;
+          cursor: pointer;
+          font-size: 11px;
+        }
+        .ft-modal-tag-order:hover,
+        .ft-modal-tag-delete:hover {
+          background: var(--ft-hover-bg-strong);
+        }
+
+        /* --- Drag handle for tag settings --- */
+        .ft-modal-tag-drag-handle {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          border-radius: 4px;
+          cursor: grab;
+          color: var(--ft-text-secondary);
+          user-select: none;
+        }
+        .ft-modal-tag-drag-handle:hover {
+          background: var(--ft-hover-bg-strong);
+          color: var(--ft-text-primary);
+        }
+        /* Uncategorized: disable drag */
+        .ft-modal-tag-item[data-kind="uncat"] .ft-modal-tag-drag-handle {
+          cursor: not-allowed;
+          opacity: 0.5;
+        }
+
+        /* New tag row */
+        .ft-modal-new-tag {
+          border-top: 1px solid var(--ft-border-dim);
+          padding-top: 8px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .ft-modal-new-tag-row {
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
+          gap: 6px;
+        }
+
+        /* 未分類は名前変更不可＆削除不可の視覚表現 */
+        .ft-modal-tag-name[readonly] {
+          cursor: not-allowed;
+          opacity: 0.8;
+        }
+        .ft-modal-tag-delete:disabled {
+          cursor: not-allowed;
+          opacity: 0.4;
+        }
+
+        /* Hidden helper */
+        .ft-hidden {
+          display: none !important;
+          content-visibility: hidden;
+          contain: strict;
+        }
+        /* --- End Favorite Tags CSS --- */
+
+        /* --- Favorites Feature --- */
+        .adv-fav-btn {
+          display: inline-flex; align-items: center; justify-content: center;
+          background: transparent; border: none; cursor: pointer;
+          color: rgb(83, 100, 113); /* Default grey */
+          padding: 0; margin: 0;
+          width: 34.75px; height: 34.75px; /* X standard icon size touch target */
+          border-radius: 50%;
+          transition: background-color 0.2s, color 0.2s;
+        }
+        /* ネイティブのクラスを借用した時は固定サイズを無効化する */
+        .adv-fav-btn.adv-native-style {
+          width: auto;
+          height: auto;
+          min-width: 34.75px; /* 最低限の大きさは確保 */
+          min-height: 34.75px;
+        }
+        .adv-fav-btn:hover {
+          background-color: rgba(29, 155, 240, 0.1);
+          color: rgb(29, 155, 240);
+        }
+        .adv-fav-btn.active {
+          color: rgb(249, 24, 128); /* Pink/Red like Like, or Gold? Let's use Gold for Star */
+          color: rgb(255, 215, 0);
+        }
+        .adv-fav-btn.active:hover {
+          background-color: rgba(255, 215, 0, 0.1);
+        }
+        .adv-fav-btn svg {
+          width: 20px; height: 20px;
+          fill: currentColor;
+        }
+        .adv-item-body-text {
+          font-size: 13px; color: var(--modal-text-primary); margin-top: 4px;
+          white-space: pre-wrap;       /* 改行を維持 */
+          word-break: break-word;      /* 長い単語を折り返し */
+        }
+        /* Favorites Media */
+        .adv-item-media-row {
+          display: flex;
+          gap: 4px;
+          margin-top: 6px;
+          overflow-x: auto;
+          padding-bottom: 2px;
+        }
+        .adv-item-media-row::-webkit-scrollbar { height: 4px; }
+        .adv-item-media-row::-webkit-scrollbar-thumb { background: var(--modal-border); border-radius: 2px; }
+        .adv-media-thumb {
+          height: 60px;
+          min-width: 60px;
+          border-radius: 6px;
+          border: 1px solid var(--modal-border);
+          object-fit: cover;
+          cursor: pointer;
+        }
+        /* Favorites Quote */
+        .adv-quote-box {
+          margin-top: 8px;
+          border: 1px solid var(--modal-border);
+          border-radius: 12px;
+          padding: 8px 12px;
+          background-color: rgba(0, 0, 0, 0.03);
+        }
+        .adv-quote-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 4px;
+          font-size: 12px;
+        }
+        .adv-quote-avatar {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+        .adv-quote-name {
+          font-weight: 700;
+          color: var(--modal-text-primary);
+        }
+        .adv-quote-handle {
+          color: var(--modal-text-secondary);
+        }
+        .adv-quote-text {
+          font-size: 13px;
+          color: var(--modal-text-primary);
+          white-space: pre-wrap;
+          word-break: break-word;
+        }
+        /* Content Link */
+        .adv-content-link {
+          color: var(--modal-primary-color);
+          text-decoration: none;
+        }
+        .adv-content-link:hover {
+          text-decoration: underline;
+        }
+
+        /* Media Play Icon */
+        .adv-media-wrap {
+          position: relative;
+          display: inline-flex;
+        }
+        .adv-media-play-icon {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 24px;
+          height: 24px;
+          background-color: rgba(0, 0, 0, 0.6);
+          color: #fff;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none; /* クリックを下の画像(リンク)に透過させる */
+          backdrop-filter: blur(1px);
+          z-index: 1;
+        }
+        .adv-media-play-icon svg {
+          width: 14px;
+          height: 14px;
+          fill: currentColor;
+          display: block;
+          margin-left: 2px;
+        }
+        /* Favorites Item Tag Container */
+        .adv-fav-tag-container {
+           margin-top:0.7px;
+           margin-left: 2px;
+           display: inline-flex;
+           align-items: center;
+        }
+        /* タグチップのサイズ微調整 */
+        .adv-item-sub .ft-tag-chip {
+            margin-left: 8px;
+            font-size: 10px;
+            padding: 0 6px;
+            height: 18px;
+        }
     `);
 
     const modalHTML = `
@@ -1253,6 +2056,7 @@
                     <button class="adv-tab-btn active" data-tab="search" data-i18n="tabSearch"></button>
                     <button class="adv-tab-btn" data-tab="history" data-i18n="tabHistory"></button>
                     <button class="adv-tab-btn" data-tab="saved" data-i18n="tabSaved"></button>
+                    <button class="adv-tab-btn" data-tab="favorites" data-i18n="tabFavorites"></button>
                     <button class="adv-tab-btn" data-tab="mute" data-i18n="tabMute"></button>
                     <button class="adv-tab-btn" data-tab="lists" data-i18n="tabLists"></button>
                     <button class="adv-tab-btn" data-tab="accounts" data-i18n="tabAccounts"></button>
@@ -1401,6 +2205,13 @@
                   </div>
                 </div>
 
+                <div class="adv-tab-content" id="adv-tab-favorites">
+                  <div class="adv-zoom-root">
+                    <div id="adv-favorites-empty" class="adv-item-sub"></div>
+                    <div id="adv-favorites-list" class="adv-list"></div>
+                  </div>
+                </div>
+
                 <div class="adv-tab-content" id="adv-tab-lists">
                   <div class="adv-zoom-root">
                     <div id="adv-lists-empty" class="adv-item-sub"></div>
@@ -1463,6 +2274,7 @@
                     <button id="adv-settings-close" type="button" class="adv-settings-close" data-i18n-title="tooltipClose">&times;</button>
                 </div>
                 <div class="adv-settings-body">
+                  <div class="adv-settings-section-header" data-i18n="settingsTitleGeneral"></div>
                     <div class="adv-settings-group">
                         <label for="adv-settings-lang" data-i18n="labelUILang"></label>
                         <select id="adv-settings-lang">
@@ -1479,20 +2291,86 @@
                             <option value="zh-TW">繁體中文</option>
                         </select>
                     </div>
-                    <div class="adv-settings-group">
-                        <label data-i18n="labelImportExport"></label>
-                        <div class="adv-settings-actions-inline">
-                            <button id="adv-settings-export" type="button" class="adv-modal-button" data-i18n="buttonExport"></button>
-                            <button id="adv-settings-import" type="button" class="adv-modal-button primary" data-i18n="buttonImport"></button>
-                            <!-- ファイルインポート用（非表示） -->
-                            <input id="adv-settings-file-input" type="file" accept="application/json" style="display:none">
-                        </div>
-                    </div>
 
-                </div>
-                <div class="adv-settings-footer">
-                    <button id="adv-settings-close-footer" type="button" class="adv-modal-button" data-i18n="buttonClose"></button>
-                </div>
+                      <div class="adv-settings-section-header" data-i18n="settingsTitleFeatures"></div>
+                      <div class="adv-settings-group">
+                        <div class="adv-settings-toggle-row">
+                          <label class="adv-toggle" for="adv-settings-tab-toggle-search">
+                              <span data-i18n="tabSearch"></span>
+                          </label>
+                          <label class="adv-switch">
+                              <input id="adv-settings-tab-toggle-search" type="checkbox">
+                              <span class="adv-slider"></span>
+                          </label>
+                        </div>
+                        <div class="adv-settings-toggle-row">
+                          <label class="adv-toggle" for="adv-settings-tab-toggle-history">
+                              <span data-i18n="tabHistory"></span>
+                          </label>
+                          <label class="adv-switch">
+                              <input id="adv-settings-tab-toggle-history" type="checkbox">
+                              <span class="adv-slider"></span>
+                          </label>
+                        </div>
+                        <div class="adv-settings-toggle-row">
+                          <label class="adv-toggle" for="adv-settings-tab-toggle-saved">
+                              <span data-i18n="tabSaved"></span>
+                          </label>
+                          <label class="adv-switch">
+                              <input id="adv-settings-tab-toggle-saved" type="checkbox">
+                              <span class="adv-slider"></span>
+                          </label>
+                        </div>
+                        <div class="adv-settings-toggle-row">
+                          <label class="adv-toggle" for="adv-settings-tab-toggle-favorites">
+                              <span data-i18n="tabFavorites"></span>
+                          </label>
+                          <label class="adv-switch">
+                              <input id="adv-settings-tab-toggle-favorites" type="checkbox">
+                              <span class="adv-slider"></span>
+                          </label>
+                        </div>
+                        <div class="adv-settings-toggle-row">
+                          <label class="adv-toggle" for="adv-settings-tab-toggle-mute">
+                              <span data-i18n="tabMute"></span>
+                          </label>
+                          <label class="adv-switch">
+                              <input id="adv-settings-tab-toggle-mute" type="checkbox">
+                              <span class="adv-slider"></span>
+                          </label>
+                        </div>
+                        <div class="adv-settings-toggle-row">
+                          <label class="adv-toggle" for="adv-settings-tab-toggle-lists">
+                              <span data-i18n="tabLists"></span>
+                          </label>
+                          <label class="adv-switch">
+                              <input id="adv-settings-tab-toggle-lists" type="checkbox">
+                              <span class="adv-slider"></span>
+                          </label>
+                        </div>
+                        <div class="adv-settings-toggle-row">
+                          <label class="adv-toggle" for="adv-settings-tab-toggle-accounts">
+                              <span data-i18n="tabAccounts"></span>
+                          </label>
+                          <label class="adv-switch">
+                              <input id="adv-settings-tab-toggle-accounts" type="checkbox">
+                              <span class="adv-slider"></span>
+                          </label>
+                        </div>
+                      </div>
+                      <div class="adv-settings-section-header" data-i18n="settingsTitleData"></div>
+                      <div class="adv-settings-group">
+                          <div class="adv-settings-actions-inline">
+                              <button id="adv-settings-export" type="button" class="adv-modal-button" data-i18n="buttonExport"></button>
+                              <button id="adv-settings-import" type="button" class="adv-modal-button primary" data-i18n="buttonImport"></button>
+                              <input id="adv-settings-file-input" type="file" accept="application/json" style="display:none">
+                          </div>
+                      </div>
+
+                    </div>
+                    <div class="adv-settings-footer">
+                        <button id="adv-settings-close-footer" type="button" class="adv-modal-button" data-i18n="buttonClose"></button>
+                    </div>
             </div>
         </div>
     `;
@@ -1514,6 +2392,888 @@
         const saveJSON = (key, value) => {
             try { kv.set(key, JSON.stringify(value)); } catch(_) {}
         };
+
+        const DEFAULT_TABS = ['search', 'history', 'saved', 'favorites', 'mute', 'lists', 'accounts'];
+        const DEFAULT_TABS_VISIBILITY = {
+            search: true,
+            history: true,
+            saved: true,
+            favorites: true,
+            mute: true,
+            lists: true,
+            accounts: true,
+        };
+        const loadTabsVisibility = () => {
+            const stored = loadJSON(TABS_VISIBILITY_KEY, DEFAULT_TABS_VISIBILITY);
+            const normalized = { ...DEFAULT_TABS_VISIBILITY };
+            for (const key of DEFAULT_TABS) {
+                normalized[key] = stored[key] === false ? false : true; // false のみ明示的に引き継ぐ
+            }
+            return normalized;
+        };
+        const saveTabsVisibility = (state) => {
+            saveJSON(TABS_VISIBILITY_KEY, state);
+        };
+
+        /* --- Favorite Tags: Code Block --- */
+
+        // ------------- 定数 & 状態 ------------- //
+        const FT_STATE_KEY = 'ftTagState_v1';
+        const FT_FILTER_ALL = 'all';
+        const FT_FILTER_UNCATEGORIZED = 'uncategorized';
+        const FT_TWEET_ID_REGEX = /\/status\/(\d+)/;
+
+        let ft_state = null;
+        let ft_initialized = false;
+        let ft_currentFilter = FT_FILTER_ALL;
+        let ft_currentDropdown = null;
+        let ft_settingsModalBackdrop = null;
+        let ft_dragSrcEntry = null;
+
+        // ------------- State 管理 ------------- //
+
+        function ft_createDefaultState() {
+            return {
+                enabled: true,
+                tags: [],
+                tweetTags: {},
+                uncategorized: { color: '#8899A6', order: 0 },
+                display: { mode: 'leaf' },
+            };
+        }
+
+        function ft_normalizeTagOrdersFor(stateObj) {
+            if (!stateObj || !Array.isArray(stateObj.tags)) return;
+            const groups = new Map();
+            for (const tag of stateObj.tags) {
+                if (!tag || typeof tag !== 'object') continue;
+                const pid = tag.parentId || null;
+                if (!groups.has(pid)) groups.set(pid, []);
+                groups.get(pid).push(tag);
+            }
+            for (const arr of groups.values()) {
+                arr.sort((a, b) => (typeof a.order === 'number' ? a.order : 0) - (typeof b.order === 'number' ? b.order : 0));
+                arr.forEach((tag, i) => { tag.order = i; });
+            }
+        }
+
+        function ft_countRootTagsFor(stateObj) {
+            if (!stateObj || !Array.isArray(stateObj.tags)) return 0;
+            return stateObj.tags.filter((t) => !t.parentId).length;
+        }
+
+        function ft_clampUncategorizedOrderFor(stateObj) {
+            if (!stateObj) return;
+            if (!stateObj.uncategorized || typeof stateObj.uncategorized !== 'object') {
+                stateObj.uncategorized = { color: '#8899A6', order: 0 };
+            }
+            const rootCount = ft_countRootTagsFor(stateObj);
+            let pos = typeof stateObj.uncategorized.order === 'number' ? stateObj.uncategorized.order : 0;
+            if (pos < 0) pos = 0;
+            if (pos > rootCount) pos = rootCount;
+            stateObj.uncategorized.order = pos;
+        }
+
+        function ft_normalizeTagOrders() { if (ft_state) ft_normalizeTagOrdersFor(ft_state); }
+        function ft_clampUncategorizedOrder() { if (ft_state) ft_clampUncategorizedOrderFor(ft_state); }
+
+        function ft_loadState() {
+            try {
+                const parsed = loadJSON(FT_STATE_KEY, null);
+                if (!parsed || typeof parsed !== 'object') return ft_createDefaultState();
+
+                if (!Array.isArray(parsed.tags)) parsed.tags = [];
+                if (!parsed.tweetTags || typeof parsed.tweetTags !== 'object') parsed.tweetTags = {};
+                parsed.enabled = true;
+
+                if (!parsed.uncategorized || typeof parsed.uncategorized !== 'object') {
+                    parsed.uncategorized = { color: '#8899A6', order: 0 };
+                } else {
+                    if (!parsed.uncategorized.color) parsed.uncategorized.color = '#8899A6';
+                    if (typeof parsed.uncategorized.order !== 'number') parsed.uncategorized.order = 0;
+                }
+
+                if (!parsed.display || typeof parsed.display !== 'object') {
+                    parsed.display = { mode: 'leaf' };
+                } else if (parsed.display.mode !== 'leaf' && parsed.display.mode !== 'full') {
+                    parsed.display.mode = 'leaf';
+                }
+
+                ft_normalizeTagOrdersFor(parsed);
+                ft_clampUncategorizedOrderFor(parsed);
+                return parsed;
+            } catch (e) {
+                return ft_createDefaultState();
+            }
+        }
+
+        function ft_saveState(newState) {
+            if (newState) ft_state = newState;
+            try {
+                if (ft_state) {
+                    ft_normalizeTagOrdersFor(ft_state);
+                    ft_clampUncategorizedOrderFor(ft_state);
+                    saveJSON(FT_STATE_KEY, ft_state);
+                }
+            } catch (e) {}
+            requestAnimationFrame(() => {
+                ft_refreshAllTagChips();
+
+                // お気に入りタブが開いていれば再描画してタグ変更/絞り込みを反映
+                if (getActiveTabName() === 'favorites') {
+                    renderFavorites();
+                }
+            });
+        }
+
+        function ft_generateTagId() {
+            return 'tag_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+        }
+
+        function ft_getTagById(tagId) {
+            return ft_state.tags.find((t) => t.id === tagId) || null;
+        }
+
+        function ft_getAllTags() {
+            return ft_state.tags.slice();
+        }
+
+        function ft_getTagColor(tagId) {
+            const tag = ft_getTagById(tagId);
+            return tag ? tag.color || '#1d9bf0' : '#8899A6';
+        }
+
+        function ft_getUncategorizedColor() {
+            return ft_state?.uncategorized?.color || '#8899A6';
+        }
+
+        function ft_createNewTag(name, color, parentId) {
+            const pid = parentId || null;
+            const siblingsCount = ft_state.tags.filter((t) => (t.parentId || null) === pid).length;
+            const tag = {
+                id: ft_generateTagId(),
+                name,
+                color,
+                parentId: pid,
+                order: siblingsCount,
+            };
+            ft_state.tags.push(tag);
+            return tag;
+        }
+
+        function ft_countRootTags() {
+            return ft_countRootTagsFor(ft_state);
+        }
+
+        function ft_getTagAncestors(tag) {
+            const result = [];
+            if (!tag) return result;
+            const seen = new Set();
+            let current = tag;
+            while (current) {
+                if (seen.has(current.id)) break;
+                seen.add(current.id);
+                result.unshift(current);
+                if (!current.parentId) break;
+                current = ft_getTagById(current.parentId);
+            }
+            return result;
+        }
+
+        function ft_getTagFullPath(tag) {
+            const ancestors = ft_getTagAncestors(tag);
+            if (!ancestors.length) return tag ? tag.name || '' : '';
+            return ancestors.map((t) => t.name || '').join(' / ');
+        }
+
+        function ft_getTagDisplayLabelFromTag(tag) {
+            if (!tag) return '';
+            const mode = ft_state?.display?.mode;
+            if (mode === 'full') return ft_getTagFullPath(tag);
+            return tag.name;
+        }
+
+        function ft_getTagListWithUncategorized() {
+            const result = [];
+            if (!ft_state || !Array.isArray(ft_state.tags)) return result;
+
+            const byParent = new Map();
+            for (const tag of ft_state.tags) {
+                if (!tag || typeof tag !== 'object') continue;
+                const pid = tag.parentId || null;
+                if (!byParent.has(pid)) byParent.set(pid, []);
+                byParent.get(pid).push(tag);
+            }
+
+            for (const arr of byParent.values()) {
+                arr.sort((a, b) => (typeof a.order === 'number' ? a.order : 0) - (typeof b.order === 'number' ? b.order : 0));
+            }
+
+            function dfs(parentId, depth) {
+                const arr = byParent.get(parentId || null);
+                if (!arr) return;
+                for (const tag of arr) {
+                    result.push({ tag, depth });
+                    dfs(tag.id, depth + 1);
+                }
+            }
+            dfs(null, 0);
+
+            const entries = [];
+            const rootCount = result.filter((e) => e.depth === 0).length;
+            let uncatPos = ft_state.uncategorized.order || 0;
+            if (uncatPos < 0) uncatPos = 0;
+            if (uncatPos > rootCount) uncatPos = rootCount;
+
+            let rootIndex = 0;
+            for (const item of result) {
+                if (item.depth === 0 && rootIndex === uncatPos) {
+                    entries.push({ kind: 'uncat', depth: 0 });
+                }
+                entries.push({ kind: 'tag', tag: item.tag, depth: item.depth });
+                if (item.depth === 0) rootIndex++;
+            }
+            if (rootCount === 0 || uncatPos === rootCount) {
+                entries.push({ kind: 'uncat', depth: 0 });
+            }
+            return entries;
+        }
+
+        function ft_isTagInSubtree(tagId, rootTagId) {
+            // ft_state が存在しない場合は即座に false を返す
+            if (!ft_state || !tagId || !rootTagId) return false;
+
+            if (tagId === rootTagId) return true;
+            let current = ft_getTagById(tagId);
+            const visited = new Set();
+            while (current && current.parentId) {
+                if (visited.has(current.id)) break;
+                visited.add(current.id);
+                if (current.parentId === rootTagId) return true;
+                current = ft_getTagById(current.parentId);
+            }
+            return false;
+        }
+
+        function ft_wouldCreateCycle(newParentId, childId) {
+            if (!newParentId || !childId) return false;
+            if (newParentId === childId) return true;
+            let current = ft_getTagById(newParentId);
+            const visited = new Set();
+            while (current && current.parentId) {
+                if (visited.has(current.id)) break;
+                visited.add(current.id);
+                if (current.parentId === childId) return true;
+                current = ft_getTagById(current.parentId);
+            }
+            return false;
+        }
+
+        // ------------- ルート & ユーティリティ ------------- //
+
+        // ツイートのDOMからIDを抽出
+        function ft_extractTweetId(article) {
+            if (article.dataset.ftTweetId) return article.dataset.ftTweetId;
+
+            // 引用ツイート（カード部分）の中にあるリンクを除外するための判定関数
+            // div[role="link"] は引用カードのコンテナに付与される属性です
+            const isInsideQuote = (el) => {
+                return !!el.closest('div[role="link"]');
+            };
+
+            // 1. 最も確実な方法: <time>タグの親アンカーを探す
+            const timeEls = Array.from(article.querySelectorAll('time'));
+            for (const timeEl of timeEls) {
+                const timeAnchor = timeEl.closest('a');
+                if (timeAnchor) {
+                    // ★追加: 引用カードの中にある時刻リンクならスキップする
+                    if (isInsideQuote(timeAnchor)) continue;
+
+                    const href = timeAnchor.getAttribute('href');
+                    const m = href.match(/\/status\/(\d+)/);
+                    if (m) return m[1];
+                }
+            }
+
+            // 2. フォールバック: 従来の検索方法
+            try {
+                const anchors = Array.from(article.querySelectorAll('a[href*="/status/"]'));
+                for (const a of anchors) {
+                    if (a.dataset.testid === 'tweet-text-show-more-link') continue;
+
+                    // 引用カードの中にあるリンクならスキップする
+                    if (isInsideQuote(a)) continue;
+
+                    const href = a.getAttribute('href') || '';
+                    const m = href.match(/\/status\/(\d+)/);
+                    if (m) return m[1];
+                }
+            } catch (e) {}
+
+            return null;
+        }
+
+        function ft_getTweetCardRoot(article) {
+            return article.closest('div[data-testid="cellInnerDiv"]') || article;
+        }
+
+        function ft_findHeaderMetaContainer(article) {
+            const timeEl = article.querySelector('time');
+            if (!timeEl) return null;
+            const anchor = timeEl.closest('a');
+            if (!anchor) return null;
+            let container = anchor.parentElement;
+            if (container && container.parentElement) container = container.parentElement;
+            if (!container || !container.parentElement) return null;
+            return container.parentElement;
+        }
+
+        // ------------- タグチップ描画（イベント委譲対応） ------------- //
+
+        function ft_buildTagChip(tweetId) {
+            const currentTagId = ft_state.tweetTags[tweetId];
+            const isUncategorized = !currentTagId;
+            const tag = currentTagId ? ft_getTagById(currentTagId) : null;
+            const label = isUncategorized
+                ? i18n.t('FT_UNCATEGORIZED')
+                : ft_getTagDisplayLabelFromTag(tag) || i18n.t('FT_UNCATEGORIZED');
+            const color = isUncategorized ? ft_getUncategorizedColor() : ft_getTagColor(currentTagId);
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ft-tag-chip' + (isUncategorized ? ' ft-tag-chip-uncategorized' : '');
+            btn.style.color = color;
+            btn.style.borderColor = color;
+            btn.dataset.tweetId = tweetId;
+
+            const span = document.createElement('span');
+            span.className = 'ft-tag-chip-label';
+            span.textContent = label;
+            span.style.pointerEvents = 'none'; // クリックをボタンに透過
+
+            btn.appendChild(span);
+            return btn;
+        }
+
+        function ft_attachTagChipToArticle(article, tweetId) {
+            if (!ft_state.enabled) return;
+            const headerRow = ft_findHeaderMetaContainer(article);
+            if (!headerRow) return;
+
+            headerRow.style.display = 'flex';
+            headerRow.style.flexDirection = 'row';
+            headerRow.style.flexWrap = 'nowrap';
+            headerRow.style.alignItems = 'center';
+            headerRow.style.justifyContent = 'flex-start';
+            headerRow.style.columnGap = '4px';
+
+            let existing = headerRow.querySelector('.ft-tag-chip');
+            const chip = ft_buildTagChip(tweetId);
+            if (existing) {
+                existing.replaceWith(chip);
+            } else {
+                headerRow.appendChild(chip);
+            }
+            article.classList.add('ft-chip-attached');
+        }
+
+        function ft_removeTagChipFromArticle(article) {
+            const chip = article.querySelector('.ft-tag-chip');
+            if (chip) chip.remove();
+            article.classList.remove('ft-chip-attached');
+        }
+
+        function ft_refreshAllTagChips() {
+            const articles = document.querySelectorAll('article[data-testid="tweet"]');
+            for (const article of articles) {
+                ft_processTweetArticle(article);
+            }
+        }
+
+        // ------------- タグ / フィルタ用ドロップダウン ------------- //
+
+        function ft_closeTagDropdown() {
+            if (ft_currentDropdown) {
+                ft_currentDropdown.remove();
+                ft_currentDropdown = null;
+            }
+        }
+
+        // タグごとの件数を集計するヘルパー
+        function ft_countTagUsage() {
+            const counts = { uncat: 0, total: 0 };
+            // 全タグの初期値を0にする
+            if (ft_state && ft_state.tags) {
+                ft_state.tags.forEach(t => counts[t.id] = 0);
+            }
+
+            // 現在のお気に入りリストをロードして集計
+            const favs = loadFavorites();
+            counts.total = favs.length;
+
+            favs.forEach(item => {
+                const tagId = ft_state.tweetTags[item.id];
+                if (tagId && counts[tagId] !== undefined) {
+                    counts[tagId]++;
+                } else {
+                    counts.uncat++;
+                }
+            });
+            return counts;
+        }
+
+        function ft_buildTagDropdownContent(tweetId) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'ft-tag-dropdown';
+            wrapper.dataset.tweetId = tweetId;
+
+            const header = document.createElement('div');
+            header.className = 'ft-tag-dropdown-header';
+            const headerLeft = document.createElement('div');
+            headerLeft.style.display = 'flex'; headerLeft.style.alignItems = 'center'; headerLeft.style.gap = '4px';
+            const title = document.createElement('div');
+            title.textContent = i18n.t('FT_DROPDOWN_TITLE');
+            const settingsBtn = document.createElement('button');
+            settingsBtn.type = 'button'; settingsBtn.className = 'ft-settings-button'; settingsBtn.textContent = '⚙';
+            settingsBtn.title = i18n.t('FT_SETTINGS_BUTTON_TITLE');
+            settingsBtn.addEventListener('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); ft_closeTagDropdown(); ft_openSettingsModal(); });
+            headerLeft.appendChild(title); headerLeft.appendChild(settingsBtn);
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'ft-tag-dropdown-close'; closeBtn.type = 'button'; closeBtn.textContent = '×';
+            closeBtn.addEventListener('click', () => ft_closeTagDropdown());
+            header.appendChild(headerLeft); header.appendChild(closeBtn);
+
+            const tagList = document.createElement('div');
+            tagList.className = 'ft-tag-dropdown-tags';
+            const currentTagId = ft_state.tweetTags[tweetId] || null;
+            const entries = ft_getTagListWithUncategorized();
+
+            const counts = ft_countTagUsage();
+
+            for (const entry of entries) {
+                const item = document.createElement('div');
+                const colorDot = document.createElement('div');
+                const label = document.createElement('div');
+                label.className = 'ft-tag-dropdown-tag-label';
+
+                if (entry.kind === 'uncat') {
+                    item.className = 'ft-tag-dropdown-tag-item' + (currentTagId ? '' : ' ft-tag-dropdown-tag-selected');
+                    colorDot.className = 'ft-tag-dropdown-tag-color';
+                    colorDot.style.backgroundColor = ft_getUncategorizedColor();
+                    label.textContent = i18n.t('FT_UNCATEGORIZED') + ` (${counts.uncat})`;
+                    item.addEventListener('click', () => { delete ft_state.tweetTags[tweetId]; ft_saveState(); ft_closeTagDropdown(); });
+                } else {
+                    const tag = entry.tag;
+                    item.className = 'ft-tag-dropdown-tag-item' + (tag.id === currentTagId ? ' ft-tag-dropdown-tag-selected' : '');
+                    colorDot.className = 'ft-tag-dropdown-tag-color';
+                    colorDot.style.backgroundColor = tag.color || '#1d9bf0';
+                    if (entry.depth > 0) colorDot.style.marginLeft = `${entry.depth * 12}px`;
+                    const c = counts[entry.tag.id] || 0;
+                    label.textContent = (entry.tag.name || '') + ` (${c})`;
+                    item.addEventListener('click', () => { ft_state.tweetTags[tweetId] = tag.id; ft_saveState(); ft_closeTagDropdown(); });
+                }
+                item.appendChild(colorDot); item.appendChild(label);
+                tagList.appendChild(item);
+            }
+
+            const newSection = document.createElement('div');
+            newSection.className = 'ft-tag-dropdown-new';
+            const newLabel = document.createElement('div');
+            newLabel.textContent = i18n.t('FT_DROPDOWN_NEW_TAG');
+            const newRow = document.createElement('div');
+            newRow.className = 'ft-tag-dropdown-new-row';
+            const newInput = document.createElement('input');
+            newInput.type = 'text'; newInput.placeholder = i18n.t('FT_DROPDOWN_NEW_TAG_PLACEHOLDER'); newInput.className = 'ft-tag-dropdown-new-input';
+            const newColor = document.createElement('input');
+            newColor.type = 'color'; newColor.value = '#1d9bf0'; newColor.className = 'ft-tag-dropdown-new-color';
+            const addBtn = document.createElement('button');
+            addBtn.type = 'button'; addBtn.className = 'ft-tag-dropdown-new-button'; addBtn.textContent = i18n.t('FT_DROPDOWN_NEW_TAG_ADD');
+
+            function doAddTag() {
+                const name = newInput.value.trim();
+                if (!name) return;
+                const tag = ft_createNewTag(name, newColor.value || '#1d9bf0', null);
+                ft_state.tweetTags[tweetId] = tag.id;
+                ft_saveState();
+                ft_closeTagDropdown();
+            }
+            addBtn.addEventListener('click', doAddTag);
+            newInput.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); doAddTag(); } });
+
+            newRow.appendChild(newColor); newRow.appendChild(newInput); newRow.appendChild(addBtn);
+            newSection.appendChild(newLabel); newSection.appendChild(newRow);
+            wrapper.appendChild(header); wrapper.appendChild(tagList); wrapper.appendChild(newSection);
+            return wrapper;
+        }
+
+        function ft_openTagDropdown(chipEl, tweetId) {
+            ft_closeTagDropdown();
+            const dropdown = ft_buildTagDropdownContent(tweetId);
+            ft_currentDropdown = dropdown;
+            document.body.appendChild(dropdown);
+            const rect = chipEl.getBoundingClientRect();
+            const margin = 8;
+            const width = dropdown.offsetWidth || 240;
+            const height = dropdown.offsetHeight || 200;
+            let left = rect.left;
+            if (left + width + margin > window.innerWidth) left = window.innerWidth - width - margin;
+            if (left < margin) left = margin;
+            let top = rect.bottom + 4;
+            if (top + height + margin > window.innerHeight) top = rect.top - height - 4;
+            if (top < margin) top = margin;
+            dropdown.style.left = `${left}px`; dropdown.style.top = `${top}px`;
+        }
+
+        // ---- ブックマークフィルタ用ドロップダウン ---- //
+        function ft_buildFilterDropdownContent(targetValue, onSelectCallback) {
+            const currentValue = targetValue;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'ft-tag-dropdown ft-filter-dropdown';
+            const header = document.createElement('div'); header.className = 'ft-tag-dropdown-header';
+            const headerLeft = document.createElement('div'); headerLeft.style.display = 'flex'; headerLeft.style.alignItems = 'center'; headerLeft.style.gap = '4px';
+            const title = document.createElement('div'); title.textContent = i18n.t('FT_DROPDOWN_TITLE');
+            const settingsBtn = document.createElement('button'); settingsBtn.type = 'button'; settingsBtn.className = 'ft-settings-button'; settingsBtn.textContent = '⚙'; settingsBtn.title = i18n.t('FT_SETTINGS_BUTTON_TITLE');
+            settingsBtn.addEventListener('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); ft_closeTagDropdown(); ft_openSettingsModal(); });
+            headerLeft.appendChild(title); headerLeft.appendChild(settingsBtn);
+            const closeBtn = document.createElement('button'); closeBtn.className = 'ft-tag-dropdown-close'; closeBtn.type = 'button'; closeBtn.textContent = '×';
+            closeBtn.addEventListener('click', () => ft_closeTagDropdown());
+            header.appendChild(headerLeft); header.appendChild(closeBtn);
+
+            const tagList = document.createElement('div'); tagList.className = 'ft-tag-dropdown-tags';
+            function addItem(value, label, color, depth) {
+                const item = document.createElement('div');
+                item.className = 'ft-tag-dropdown-tag-item' + (value === currentValue ? ' ft-tag-dropdown-tag-selected' : '');
+                const colorDot = document.createElement('div');
+                colorDot.className = 'ft-tag-dropdown-tag-color'; colorDot.style.backgroundColor = color || 'rgba(239,243,244,0.6)';
+                if (depth > 0) colorDot.style.marginLeft = `${depth * 12}px`;
+                const text = document.createElement('div');
+                text.className = 'ft-tag-dropdown-tag-label'; text.textContent = label;
+                item.appendChild(colorDot); item.appendChild(text);
+                item.addEventListener('click', () => {
+                    if (typeof onSelectCallback === 'function') {
+                        onSelectCallback(value);
+                    }
+                    ft_closeTagDropdown();
+                });
+                tagList.appendChild(item);
+            }
+            const counts = ft_countTagUsage();
+            addItem(FT_FILTER_ALL, i18n.t('FT_FILTER_ALL') + ` (${counts.total})`, 'rgba(239,243,244,0.7)', 0);
+
+            const entries = ft_getTagListWithUncategorized();
+            for (const entry of entries) {
+                if (entry.kind === 'uncat') {
+                    addItem(FT_FILTER_UNCATEGORIZED, i18n.t('FT_UNCATEGORIZED') + ` (${counts.uncat})`, ft_getUncategorizedColor(), 0);
+                } else {
+                    // フィルタ時は「そのタグ + 子孫タグ」の合計件数を計算して表示する
+                    // (絞り込み機能がサブツリー検索であるため、件数も合わせるのが自然)
+                    let subTreeCount = 0;
+                    if (ft_state && ft_state.tags) {
+                        ft_state.tags.forEach(t => {
+                            if (ft_isTagInSubtree(t.id, entry.tag.id)) {
+                                subTreeCount += (counts[t.id] || 0);
+                            }
+                        });
+                    }
+                    // 合計件数を表示
+                    addItem(entry.tag.id, (entry.tag.name || '') + ` (${subTreeCount})`, entry.tag.color, entry.depth);
+                }
+            }
+            wrapper.appendChild(header); wrapper.appendChild(tagList);
+            return wrapper;
+        }
+
+        function ft_openFilterDropdown(buttonEl, targetValue, onSelectCallback) {
+            ft_closeTagDropdown();
+            const dropdown = ft_buildFilterDropdownContent(targetValue, onSelectCallback);
+            ft_currentDropdown = dropdown;
+            document.body.appendChild(dropdown);
+            const rect = buttonEl.getBoundingClientRect();
+            const margin = 8;
+            const width = dropdown.offsetWidth || 240;
+            const height = dropdown.offsetHeight || 200;
+            let left = rect.left;
+            if (left + width + margin > window.innerWidth) left = window.innerWidth - width - margin;
+            if (left < margin) left = margin;
+            let top = rect.bottom + 4;
+            if (top + height + margin > window.innerHeight) top = rect.top - height - 4;
+            if (top < margin) top = margin;
+            dropdown.style.left = `${left}px`; dropdown.style.top = `${top}px`;
+        }
+
+        // ------------- 設定モーダル ------------- //
+
+        function ft_closeSettingsModal() {
+            if (ft_settingsModalBackdrop) { ft_settingsModalBackdrop.remove(); ft_settingsModalBackdrop = null; }
+            ft_dragSrcEntry = null;
+        }
+
+        function ft_openSettingsModal() {
+            ft_closeSettingsModal();
+            const backdrop = document.createElement('div'); backdrop.className = 'ft-modal-backdrop';
+            const modal = document.createElement('div'); modal.className = 'ft-modal';
+            const header = document.createElement('div'); header.className = 'ft-modal-header';
+            const title = document.createElement('div'); title.className = 'ft-modal-title'; title.textContent = i18n.t('FT_SETTINGS_TITLE');
+            header.appendChild(title);
+            const body = document.createElement('div'); body.className = 'ft-modal-body';
+            const displaySection = document.createElement('div'); displaySection.className = 'ft-modal-display-settings';
+            const displayTitle = document.createElement('div'); displayTitle.textContent = i18n.t('FT_SETTINGS_DISPLAY_SECTION_TITLE');
+            const modeRow = document.createElement('div'); modeRow.className = 'ft-modal-display-settings-row';
+            const modeLabel = document.createElement('span'); modeLabel.textContent = i18n.t('FT_SETTINGS_DISPLAY_MODE_LABEL');
+            const radioLeafLabel = document.createElement('label'); radioLeafLabel.className = 'ft-modal-display-radio';
+            const radioLeaf = document.createElement('input'); radioLeaf.type = 'radio'; radioLeaf.name = 'ft-display-mode'; radioLeaf.value = 'leaf'; radioLeaf.checked = ft_state.display.mode === 'leaf';
+            const radioLeafText = document.createElement('span'); radioLeafText.textContent = i18n.t('FT_SETTINGS_DISPLAY_MODE_LEAF');
+            radioLeafLabel.appendChild(radioLeaf); radioLeafLabel.appendChild(radioLeafText);
+            const radioFullLabel = document.createElement('label'); radioFullLabel.className = 'ft-modal-display-radio';
+            const radioFull = document.createElement('input'); radioFull.type = 'radio'; radioFull.name = 'ft-display-mode'; radioFull.value = 'full'; radioFull.checked = ft_state.display.mode === 'full';
+            const radioFullText = document.createElement('span'); radioFullText.textContent = i18n.t('FT_SETTINGS_DISPLAY_MODE_FULL');
+            radioFullLabel.appendChild(radioFull); radioFullLabel.appendChild(radioFullText);
+            modeRow.appendChild(modeLabel); modeRow.appendChild(radioLeafLabel); modeRow.appendChild(radioFullLabel);
+            radioLeaf.addEventListener('change', () => { if (radioLeaf.checked) { ft_state.display.mode = 'leaf'; ft_saveState(); } });
+            radioFull.addEventListener('change', () => { if (radioFull.checked) { ft_state.display.mode = 'full'; ft_saveState(); } });
+            displaySection.appendChild(displayTitle); displaySection.appendChild(modeRow);
+            const tagListEl = document.createElement('div'); tagListEl.className = 'ft-modal-tag-list';
+
+            function clearDropClasses() {
+                tagListEl.querySelectorAll('.ft-modal-tag-item').forEach(el => el.classList.remove('ft-modal-tag-item-drop-before', 'ft-modal-tag-item-drop-after', 'ft-modal-tag-item-drop-child'));
+            }
+            function deleteTagAndReparentChildren(tag) {
+                ft_state.tags.forEach(child => { if (child.parentId === tag.id) child.parentId = tag.parentId || null; });
+                ft_state.tags = ft_state.tags.filter(t => t.id !== tag.id);
+                Object.keys(ft_state.tweetTags).forEach(tid => { if (ft_state.tweetTags[tid] === tag.id) delete ft_state.tweetTags[tid]; });
+                ft_normalizeTagOrders(); ft_clampUncategorizedOrder(); ft_saveState();
+            }
+            function moveTagInSiblings(tag, direction) {
+                const siblings = ft_state.tags.filter(t => (t.parentId || null) === (tag.parentId || null)).sort((a, b) => a.order - b.order);
+                const idx = siblings.findIndex(t => t.id === tag.id);
+                if (idx < 0 || idx + direction < 0 || idx + direction >= siblings.length) return;
+                const other = siblings[idx + direction];
+                [tag.order, other.order] = [other.order, tag.order];
+                ft_normalizeTagOrders(); ft_saveState();
+            }
+            function moveTagAsChild(srcTag, targetTag) {
+                if (!srcTag || !targetTag || ft_wouldCreateCycle(targetTag.id, srcTag.id)) return;
+                srcTag.parentId = targetTag.id;
+                const children = ft_state.tags.filter(t => (t.parentId || null) === targetTag.id);
+                srcTag.order = (children.length ? Math.max(...children.map(t => t.order)) : -1) + 1;
+                ft_normalizeTagOrders(); ft_saveState();
+            }
+            function moveTagBefore(srcTag, targetTag) {
+                if (!srcTag || !targetTag || ft_wouldCreateCycle(targetTag.parentId, srcTag.id)) return;
+                srcTag.parentId = targetTag.parentId; srcTag.order = targetTag.order - 0.5; ft_normalizeTagOrders(); ft_saveState();
+            }
+            function moveTagAfter(srcTag, targetTag) {
+                if (!srcTag || !targetTag || ft_wouldCreateCycle(targetTag.parentId, srcTag.id)) return;
+                srcTag.parentId = targetTag.parentId; srcTag.order = targetTag.order + 0.5; ft_normalizeTagOrders(); ft_saveState();
+            }
+            function moveTagToRootRelativeToUncat(srcTag, mode) {
+                if (!srcTag) return;
+                srcTag.parentId = null;
+                let uncatPos = ft_state.uncategorized.order;
+                const insertIndex = mode === 'before' ? uncatPos : uncatPos + 1;
+                const rootTags = ft_state.tags.filter(t => !t.parentId && t.id !== srcTag.id).sort((a, b) => a.order - b.order);
+                rootTags.splice(insertIndex, 0, srcTag);
+                rootTags.forEach((t, i) => t.order = i);
+                ft_normalizeTagOrders(); ft_clampUncategorizedOrder(); ft_saveState();
+            }
+            function getDropTargetInfoFromY(y) {
+                const items = Array.from(tagListEl.querySelectorAll('.ft-modal-tag-item'));
+                if (!items.length) return null;
+                const rects = items.map(row => row.getBoundingClientRect());
+                const boundaries = [rects[0].top];
+                for (let i = 1; i < items.length; i++) boundaries.push((rects[i - 1].bottom + rects[i].top) / 2);
+                boundaries.push(rects[items.length - 1].bottom);
+                let idx = 0; let min = Infinity;
+                for (let i = 0; i < boundaries.length; i++) { const d = Math.abs(y - boundaries[i]); if (d < min) { min = d; idx = i; } }
+                if (idx === 0) return { row: items[0], mode: 'before' };
+                if (idx === items.length) return { row: items[items.length - 1], mode: 'after' };
+                return { row: items[idx], mode: 'before' };
+            }
+            function rebuildTagList() {
+                tagListEl.innerHTML = '';
+                const entries = ft_getTagListWithUncategorized();
+                if (entries.length === 1 && entries[0].kind === 'uncat') {
+                    const empty = document.createElement('div'); empty.style.opacity = '0.7'; empty.style.fontSize = '12px'; empty.textContent = i18n.t('FT_SETTINGS_EMPTY_TAG_LIST'); tagListEl.appendChild(empty);
+                }
+                const rootCount = ft_countRootTags(); ft_clampUncategorizedOrder();
+                entries.forEach(entry => {
+                    const row = document.createElement('div'); row.className = 'ft-modal-tag-item'; row.dataset.kind = entry.kind;
+                    const mainCell = document.createElement('div'); mainCell.className = 'ft-modal-tag-main'; if (entry.depth > 0) mainCell.style.paddingLeft = `${entry.depth * 16}px`;
+                    const nameInput = document.createElement('input'); nameInput.className = 'ft-modal-tag-name'; nameInput.type = 'text';
+                    const colorInput = document.createElement('input'); colorInput.className = 'ft-modal-tag-color'; colorInput.type = 'color';
+                    const orderDiv = document.createElement('div');
+                    const upBtn = document.createElement('button'); upBtn.className = 'ft-modal-tag-order'; upBtn.textContent = i18n.t('FT_SETTINGS_UP'); upBtn.type='button';
+                    const downBtn = document.createElement('button'); downBtn.className = 'ft-modal-tag-order'; downBtn.textContent = i18n.t('FT_SETTINGS_DOWN'); downBtn.type='button';
+                    orderDiv.appendChild(upBtn); orderDiv.appendChild(downBtn);
+                    const delBtn = document.createElement('button'); delBtn.className = 'ft-modal-tag-delete'; delBtn.textContent = i18n.t('FT_SETTINGS_DELETE_BUTTON'); delBtn.type='button';
+                    mainCell.appendChild(colorInput); mainCell.appendChild(nameInput);
+                    const dragHandle = document.createElement('div'); dragHandle.className = 'ft-modal-tag-drag-handle'; dragHandle.innerHTML = '≡';
+
+                    if (entry.kind === 'uncat') {
+                        row.draggable = false; dragHandle.draggable = false; dragHandle.title = i18n.t('FT_SETTINGS_UNCATEGORIZED_DELETE_TOOLTIP');
+                        nameInput.value = i18n.t('FT_SETTINGS_UNCATEGORIZED_NAME'); nameInput.readOnly = true; nameInput.title = i18n.t('FT_SETTINGS_UNCATEGORIZED_NAME_TOOLTIP');
+                        colorInput.value = ft_getUncategorizedColor();
+                        colorInput.addEventListener('change', () => { ft_state.uncategorized.color = colorInput.value; ft_saveState(); });
+                        delBtn.disabled = true;
+                        upBtn.disabled = ft_state.uncategorized.order <= 0;
+                        downBtn.disabled = ft_state.uncategorized.order >= rootCount;
+                        upBtn.addEventListener('click', () => { ft_state.uncategorized.order--; ft_saveState(); rebuildTagList(); });
+                        downBtn.addEventListener('click', () => { ft_state.uncategorized.order++; ft_saveState(); rebuildTagList(); });
+                    } else {
+                        const tag = entry.tag; row.dataset.tagId = tag.id;
+                        dragHandle.draggable = true;
+                        nameInput.value = tag.name; colorInput.value = tag.color || '#1d9bf0';
+                        nameInput.addEventListener('change', () => { if(nameInput.value.trim()) { tag.name = nameInput.value.trim(); ft_saveState(); rebuildTagList(); } });
+                        colorInput.addEventListener('change', () => { tag.color = colorInput.value; ft_saveState(); });
+                        delBtn.addEventListener('click', () => { if(confirm(i18n.t('FT_CONFIRM_DELETE_TAG_MSG').replace('{tagName}', tag.name))) { deleteTagAndReparentChildren(tag); rebuildTagList(); } });
+                        const siblings = ft_state.tags.filter(t => (t.parentId || null) === (tag.parentId || null)).sort((a, b) => a.order - b.order);
+                        const idx = siblings.findIndex(t => t.id === tag.id);
+                        upBtn.disabled = idx <= 0; downBtn.disabled = idx >= siblings.length - 1;
+                        upBtn.addEventListener('click', () => { moveTagInSiblings(tag, -1); rebuildTagList(); });
+                        downBtn.addEventListener('click', () => { moveTagInSiblings(tag, 1); rebuildTagList(); });
+                        dragHandle.addEventListener('dragstart', (ev) => { ev.stopPropagation(); ft_dragSrcEntry = { kind: 'tag', tagId: tag.id }; row.classList.add('ft-modal-tag-item-dragging'); ev.dataTransfer.setData('text/plain', tag.id); ev.dataTransfer.effectAllowed='move'; });
+                        dragHandle.addEventListener('dragend', (ev) => { ev.stopPropagation(); ft_dragSrcEntry = null; row.classList.remove('ft-modal-tag-item-dragging'); clearDropClasses(); });
+                        row.addEventListener('dragover', (ev) => {
+                            if (!ft_dragSrcEntry) return;
+                            const rect = row.getBoundingClientRect(); const ratio = (ev.clientY - rect.top) / rect.height;
+                            clearDropClasses();
+                            if (ratio > 0.3 && ratio < 0.7) { ev.preventDefault(); row.classList.add('ft-modal-tag-item-drop-child'); }
+                        });
+                        row.addEventListener('drop', (ev) => {
+                            if (!ft_dragSrcEntry) return;
+                            const rect = row.getBoundingClientRect(); const ratio = (ev.clientY - rect.top) / rect.height;
+                            if (ratio > 0.3 && ratio < 0.7) { ev.preventDefault(); ev.stopPropagation(); moveTagAsChild(ft_getTagById(ft_dragSrcEntry.tagId), tag); rebuildTagList(); }
+                        });
+                    }
+                    row.appendChild(mainCell); row.appendChild(dragHandle); row.appendChild(orderDiv); row.appendChild(delBtn); tagListEl.appendChild(row);
+                });
+            }
+            tagListEl.ondragover = (ev) => {
+                if (!ft_dragSrcEntry) return; if (ev.defaultPrevented) return;
+                ev.preventDefault(); clearDropClasses();
+                const info = getDropTargetInfoFromY(ev.clientY);
+                if (info) info.row.classList.add(info.mode === 'before' ? 'ft-modal-tag-item-drop-before' : 'ft-modal-tag-item-drop-after');
+            };
+            tagListEl.ondrop = (ev) => {
+                if (!ft_dragSrcEntry) return; if (ev.defaultPrevented) return;
+                ev.preventDefault(); clearDropClasses();
+                const info = getDropTargetInfoFromY(ev.clientY);
+                if (!info) return;
+                const srcTag = ft_getTagById(ft_dragSrcEntry.tagId);
+                if (info.row.dataset.kind === 'tag') {
+                   const tTag = ft_getTagById(info.row.dataset.tagId);
+                   if (info.mode === 'before') moveTagBefore(srcTag, tTag); else moveTagAfter(srcTag, tTag);
+                } else {
+                   moveTagToRootRelativeToUncat(srcTag, info.mode);
+                }
+                rebuildTagList();
+            };
+            rebuildTagList();
+            const newTagSection = document.createElement('div'); newTagSection.className = 'ft-modal-new-tag';
+            const newTagLabel = document.createElement('div'); newTagLabel.textContent = i18n.t('FT_DROPDOWN_NEW_TAG');
+            const newTagRow = document.createElement('div'); newTagRow.className = 'ft-modal-new-tag-row';
+            const newNameInput = document.createElement('input'); newNameInput.className = 'ft-modal-tag-name'; newNameInput.type = 'text'; newNameInput.placeholder = i18n.t('FT_DROPDOWN_NEW_TAG_PLACEHOLDER');
+            const newColorInput = document.createElement('input'); newColorInput.className = 'ft-modal-tag-color'; newColorInput.type = 'color'; newColorInput.value = '#1d9bf0';
+            const newAddBtn = document.createElement('button'); newAddBtn.className = 'ft-modal-button'; newAddBtn.textContent = i18n.t('FT_DROPDOWN_NEW_TAG_ADD'); newAddBtn.type='button';
+            function doAddNew() {
+                const name = newNameInput.value.trim();
+                if (!name) return;
+                ft_createNewTag(name, newColorInput.value, null); ft_saveState();
+                newNameInput.value = ''; rebuildTagList();
+            }
+            newAddBtn.addEventListener('click', doAddNew);
+            newNameInput.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); doAddNew(); } });
+            newTagRow.appendChild(newColorInput); newTagRow.appendChild(newNameInput); newTagRow.appendChild(newAddBtn);
+            newTagSection.appendChild(newTagLabel); newTagSection.appendChild(newTagRow);
+            body.appendChild(displaySection); body.appendChild(tagListEl); body.appendChild(newTagSection);
+            const footer = document.createElement('div'); footer.className = 'ft-modal-footer';
+            const closeBtn = document.createElement('button'); closeBtn.className = 'ft-modal-button'; closeBtn.textContent = i18n.t('FT_SETTINGS_CLOSE'); closeBtn.type='button';
+            closeBtn.addEventListener('click', ft_closeSettingsModal);
+            footer.appendChild(closeBtn);
+            modal.appendChild(header); modal.appendChild(body); modal.appendChild(footer);
+            backdrop.appendChild(modal);
+            backdrop.addEventListener('mousedown', (ev) => { if (ev.target === backdrop) ft_closeSettingsModal(); });
+            ft_settingsModalBackdrop = backdrop;
+            document.body.appendChild(backdrop);
+        }
+
+        // ------------- イベント委譲 & 堅牢初期化 (Optimized) ------------- //
+
+        function ft_installGlobalListeners() {
+            // Document level Delegation
+            document.addEventListener('click', (ev) => {
+                const target = ev.target;
+                if (!(target instanceof Element)) return;
+
+                // 1. Tag Chip Click
+                const chipBtn = target.closest('.ft-tag-chip');
+                if (chipBtn) {
+                    ev.stopPropagation(); ev.preventDefault();
+                    const tweetId = chipBtn.dataset.tweetId;
+                    if (tweetId && ft_state.enabled) {
+                        ft_openTagDropdown(chipBtn, tweetId);
+                    }
+                    return;
+                }
+
+                // 3. Close Dropdown on outside click
+                if (ft_currentDropdown && !ft_currentDropdown.contains(target)) {
+                    ft_closeTagDropdown();
+                }
+
+            }, true); // Use capture for better delegation reliability
+
+            document.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Escape') { ft_closeTagDropdown(); ft_closeSettingsModal(); }
+            });
+        }
+
+        function ft_startRobustPolling() {
+            let count = 0;
+            const maxChecks = 10;
+            const intervalId = setInterval(() => {
+                count++;
+                processNewTweets(true);
+                if (count >= maxChecks) clearInterval(intervalId);
+            }, 500);
+        }
+
+        // ------------- ツイート処理 (単一要素) ------------- //
+
+        function ft_processTweetArticle(article) {
+            const tweetId = article.dataset.ftTweetId || ft_extractTweetId(article);
+            if (!tweetId) return;
+            article.dataset.ftTweetId = tweetId;
+
+            if (!ft_state.enabled) {
+                 ft_removeTagChipFromArticle(article);
+                 return;
+            }
+
+            // ネイティブブックマークや単なるタグ有無のチェックを削除
+            // 「お気に入り済み (isFav)」の場合のみタグチップを表示する
+            const isFav = (typeof isFavorited === 'function') && isFavorited(tweetId);
+
+            if (isFav) {
+                ft_attachTagChipToArticle(article, tweetId);
+            } else {
+                ft_removeTagChipFromArticle(article);
+            }
+        }
+
+        // ------------- 初期化 ------------- //
+
+        function ft_init() {
+            if (ft_initialized) return;
+            ft_initialized = true;
+            ft_state = ft_loadState();
+            ft_installGlobalListeners();
+            processNewTweets(true);
+            ft_startRobustPolling();
+        }
+
+        /* --- End Favorite Tags: Code Block --- */
 
         const LANG_OVERRIDE_KEY = 'advUILang_v1';
         // Settings で指定された UI 言語があれば、検出結果より優先して適用
@@ -1610,7 +3370,7 @@
                     reposts: excRepostsEl?.checked ?? false,
                     hashtags: excHashtagsEl?.checked ?? false,
                 });
-                scanAndFilterTweets();
+                rescanAllTweetsForFilter();
             });
         });
 
@@ -1625,7 +3385,7 @@
             const zoomRoot = panel?.querySelector('.adv-zoom-root');
             const eventTargets = [panel, host, zoomRoot].filter(Boolean); // イベントをリッスンする対象
 
-            // ★ 修正: 破線を表示する対象は panel のみとする
+            // 破線を表示する対象は panel のみとする
             const feedbackTargets = [panel].filter(Boolean); // 破線を表示する対象
 
             const onDragEnter = (ev) => {
@@ -1796,11 +3556,449 @@
             renderSaved();
         };
 
-        /* ★タブごと保存に対応 */
+        /* ========= Favorites Logic ========= */
+        const FAV_KEY = 'advFavorites_v1';
+        const FAV_SORT_KEY = 'advFavoritesSort_v1';
+
+        // 高速化: メモリキャッシュ変数を定義
+        let _favCache = null; // 配列データ (レンダリング用)
+        let _favSet = null;   // ID検索用 Set (O(1)判定用)
+
+        // データ構造: { id: tweetId, text, user: {name, handle, avatar}, media: [], ts, ... }
+
+        // キャッシュがあればそれを返す。なければロードしてキャッシュ構築。
+        const loadFavorites = () => {
+            if (_favCache) return _favCache;
+
+            const raw = loadJSON(FAV_KEY, []);
+            _favCache = raw;
+            _favSet = new Set(raw.map(x => x.id));
+
+            return _favCache;
+        };
+
+        // 保存時にキャッシュとSetも同時に更新する
+        const saveFavorites = (arr) => {
+            _favCache = arr;
+            _favSet = new Set(arr.map(x => x.id));
+            saveJSON(FAV_KEY, arr);
+        };
+
+        const toggleFavorite = (tweetMeta) => {
+            // loadFavoritesはキャッシュを返すので高速
+            const list = loadFavorites();
+            const idx = list.findIndex(x => x.id === tweetMeta.id);
+
+            if (idx >= 0) {
+                // --- 削除 (Remove) ---
+                // 配列を直接変更せず、新しい配列を作って整合性を保つのがベストだが
+                // ここでは元のロジックに合わせて破壊的変更をしてから saveFavorites で全体更新する
+                list.splice(idx, 1);
+                saveFavorites(list); // ここで _favSet も更新される
+
+                // 解除時はタグデータも削除する
+                if (ft_state && ft_state.tweetTags && ft_state.tweetTags[tweetMeta.id]) {
+                    delete ft_state.tweetTags[tweetMeta.id];
+                    ft_saveState();
+                }
+
+                renderFavorites(); // (お気に入りタブが開いている場合用)
+                showToast(i18n.t('toastUnfavorited'));
+            } else {
+                list.unshift({ ...tweetMeta, ts: Date.now() });
+                saveFavorites(list); // ここで _favSet も更新される
+                renderFavorites();
+                showToast(i18n.t('toastFavorited'));
+            }
+
+            // 最後に全同期
+            updateAllFavoriteButtons();          // ボタン更新
+            refreshTagChipsForTweet(tweetMeta.id); // タグチップ更新
+
+            return idx < 0; // 追加されたら true
+        };
+
+        // Setを使った超高速判定 (JSON.parseが発生しない)
+        const isFavorited = (tweetId) => {
+            if (!_favSet) loadFavorites(); // 初回ロードがまだなら実行
+            return _favSet.has(tweetId);
+        };
+
+        const deleteFavorite = (id) => {
+            // 1. お気に入りリストから削除
+            const list = loadFavorites().filter(x => x.id !== id);
+            saveFavorites(list); // ここで _favSet も更新される
+
+            // 2. タグデータも削除する (データのクリーンアップ)
+            if (ft_state && ft_state.tweetTags && ft_state.tweetTags[id]) {
+                delete ft_state.tweetTags[id];
+                ft_saveState(); // 状態を保存
+            }
+
+            // 3. UI更新 (リスト再描画 & トースト)
+            renderFavorites();
+            showToast(i18n.t('toastDeleted'));
+
+            // 4. タイムライン上の見た目を同期
+            updateAllFavoriteButtons();   // ボタンの色を更新
+            refreshTagChipsForTweet(id);  // タグチップを消去
+        };
+
+        // お気に入りリストのイベント委譲ハンドラ
+        function setupFavoritesDelegation() {
+            const listEl = document.getElementById('adv-favorites-list');
+            // まだ要素がない、または既に登録済みならスキップ
+            if (!listEl || listEl._delegationAttached) return;
+            listEl._delegationAttached = true;
+
+            listEl.addEventListener('click', (e) => {
+                const target = e.target;
+                if (!target) return;
+
+                // A. 削除ボタン
+                const deleteBtn = target.closest('[data-action="delete"]');
+                if (deleteBtn) {
+                    const row = deleteBtn.closest('.adv-item');
+                    if (row && row.dataset.id) {
+                        e.stopPropagation();
+                        deleteFavorite(row.dataset.id);
+                    }
+                    return;
+                }
+
+                // B. Openボタン
+                const openBtn = target.closest('[data-action="open"]');
+                if (openBtn) {
+                    const row = openBtn.closest('.adv-item');
+                    if (row && row.dataset.id) {
+                        e.stopPropagation();
+                        // IDから最新データを引く（クロージャがないため）
+                        const item = loadFavorites().find(x => x.id === row.dataset.id);
+                        if (item) {
+                            const url = `/${item.user.handle}/status/${item.id}`;
+                            spaNavigate(url, { ctrlMeta: e.ctrlKey || e.metaKey });
+                            if (window.innerWidth <= 700) closeModal();
+                        }
+                    }
+                    return;
+                }
+
+                // C. ユーザーリンク
+                const userLink = target.closest('.adv-link-user');
+                if (userLink) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const href = userLink.getAttribute('href');
+                    if (href) {
+                        spaNavigate(href, { ctrlMeta: e.ctrlKey || e.metaKey });
+                        if (window.innerWidth <= 700) closeModal();
+                    }
+                    return;
+                }
+
+                // D. メディアサムネイル
+                const mediaImg = target.closest('.adv-media-thumb');
+                if (mediaImg) {
+                    e.stopPropagation();
+                    const row = mediaImg.closest('.adv-item');
+                    if (!row) return;
+                    // 最新データの再取得
+                    const item = loadFavorites().find(x => x.id === row.dataset.id);
+                    if (!item) return;
+
+                    const type = mediaImg.dataset.type;
+                    const index = mediaImg.dataset.index;
+                    const isQuote = mediaImg.dataset.isQuote === '1';
+
+                    // 引用でIDがない場合(取得不能)は無視
+                    if (isQuote && item.quote && !item.quote.id) return;
+
+                    let targetBaseUrl = `/${item.user.handle}/status/${item.id}`;
+                    if (isQuote && item.quote && item.quote.id) {
+                        targetBaseUrl = `/${item.quote.user.handle}/status/${item.quote.id}`;
+                    }
+
+                    let targetPath = targetBaseUrl;
+                    if (type === 'image') {
+                        targetPath = `${targetBaseUrl}/photo/${index}`;
+                    }
+
+                    spaNavigate(targetPath, { ctrlMeta: e.ctrlKey || e.metaKey });
+                    if (window.innerWidth <= 700) closeModal();
+                    return;
+                }
+
+                // E. 本文中のリンク (.adv-content-link)
+                const contentLink = target.closest('.adv-content-link');
+                if (contentLink) {
+                     e.stopPropagation();
+                     // target="_blank" ならブラウザデフォルト動作へ
+                     return;
+                }
+            });
+        }
+
+        // 行レンダリング
+        // addEventListener を全削除し、純粋なDOM生成のみにする
+        function renderFavoriteRow(item) {
+            const row = document.createElement('div');
+            row.className = 'adv-item';
+            // お気に入りタブだけはボタンが絶対配置なので、右余白を個別に確保する
+            row.style.paddingRight = '60px';
+            row.dataset.id = item.id;
+
+            const text = item.text || '';
+            const bodyHtml = safeLinkify(text);
+            const displayTime = item.postedAt ? fmtTime(item.postedAt) : fmtTime(item.ts);
+
+            // --- メディアHTML生成 ---
+            const buildMediaHtml = (mediaList, isQuote = false) => {
+                if (!mediaList || mediaList.length === 0) return '';
+                let html = '<div class="adv-item-media-row">';
+                mediaList.forEach((m, i) => {
+                    const mediaType = m.type || 'image';
+                    const isVideo = mediaType === 'video';
+                    const playIcon = isVideo
+                        ? `<div class="adv-media-play-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></div>`
+                        : '';
+                    // 引用でIDがない場合、クリックできない視覚表現(cursor:default)をHTML生成時点で適用
+                    let styleAttr = '';
+                    if (isQuote && item.quote && !item.quote.id) {
+                         styleAttr = 'style="cursor:default"';
+                    }
+
+                    html += `<div class="adv-media-wrap">
+                                <img src="${escapeAttr(m.url)}"
+                                     data-type="${mediaType}"
+                                     data-index="${i + 1}"
+                                     data-is-quote="${isQuote ? '1' : '0'}"
+                                     class="adv-media-thumb" loading="lazy" alt="Media" title="Open Media"
+                                     ${styleAttr}>
+                                ${playIcon}
+                             </div>`;
+                });
+                html += '</div>';
+                return html;
+            };
+            const mainMediaHtml = buildMediaHtml(item.media, false);
+
+            // --- 引用HTML ---
+            let quoteHtml = '';
+            if (item.quote) {
+                const q = item.quote;
+                const qUserUrl = `/${escapeAttr(q.user.handle)}`;
+                const qMediaHtml = buildMediaHtml(q.media, true);
+                const qBodyHtml = safeLinkify(q.text);
+                quoteHtml = `
+                    <div class="adv-quote-box">
+                        <div class="adv-quote-header">
+                            ${q.user.avatar ? `<a class="adv-link adv-link-user" href="${qUserUrl}"><img src="${escapeAttr(q.user.avatar)}" class="adv-quote-avatar"></a>` : ''}
+                            <a class="adv-link adv-link-user" href="${qUserUrl}" title="Quote User">
+                                <span class="adv-quote-name">${escapeHTML(q.user.name)}</span>
+                                <span class="adv-quote-handle">@${escapeHTML(q.user.handle)}</span>
+                            </a>
+                        </div>
+                        <div class="adv-quote-text">${qBodyHtml}</div>
+                        ${qMediaHtml}
+                    </div>
+                `;
+            }
+
+            const userUrl = `/${escapeAttr(item.user.handle)}`;
+
+            row.innerHTML = `
+                ${item.user.avatar
+                    ? `<a class="adv-item-avatar-link adv-link adv-link-user" href="${userUrl}">
+                         <img class="adv-item-avatar" src="${escapeAttr(item.user.avatar)}">
+                       </a>`
+                    : `<a class="adv-item-avatar-link adv-link adv-link-user" href="${userUrl}">
+                         <div class="adv-item-avatar"></div>
+                       </a>`
+                }
+
+                <div class="adv-item-main">
+                    <div class="adv-item-title">
+                        <a class="adv-link adv-link-user" href="${userUrl}" title="Open Profile">${escapeHTML(item.user.name)} <span style="font-weight:normal;color:var(--modal-text-secondary)">@${escapeHTML(item.user.handle)}</span></a>
+                        <span class="adv-fav-tag-container"></span>
+                    </div>
+                    <div class="adv-item-body-text">${bodyHtml}</div>
+                    ${mainMediaHtml}
+                    ${quoteHtml}
+                    <div class="adv-item-sub">
+                        <span>${displayTime}</span>
+                    </div>
+                </div>
+
+                <button class="adv-chip primary adv-fav-btn-pos adv-fav-btn-top" data-action="open">${i18n.t('buttonOpen')}</button>
+                <button class="adv-chip danger adv-fav-btn-pos adv-fav-btn-bottom" data-action="delete">${i18n.t('delete')}</button>
+            `;
+
+            // タグチップの生成と挿入
+            const tagContainer = row.querySelector('.adv-fav-tag-container');
+            if (tagContainer && typeof ft_buildTagChip === 'function') {
+                const chip = ft_buildTagChip(item.id);
+                // 注記: ここは ft_installGlobalListeners で委譲されているため、個別の addEventListener は不要です
+                // もし ft_buildTagChip 内でイベントを付けている場合はそのまま機能します
+                tagContainer.appendChild(chip);
+            }
+
+            return row;
+        }
+
+        const advFavoritesListEl = document.getElementById('adv-favorites-list');
+
+        // お気に入りタブ専用の現在の絞り込み状態（メモリ保持）
+        let favFilterTagId = 'ALL'; // 'ALL', 'UNCAT', or tagId
+        let favSearchQuery = '';
+
+        function renderFavorites() {
+            const listEl = document.getElementById('adv-favorites-list');
+            const emptyEl = document.getElementById('adv-favorites-empty');
+            if (!listEl) return;
+
+            // 1. ツールバーの生成（まだ無ければ）
+            if (!listEl.previousElementSibling?.classList?.contains('adv-folder-toolbar')) {
+                const bar = document.createElement('div');
+                bar.className = 'adv-folder-toolbar';
+                // タグ絞り込みボタン、ソート選択、検索ボックス
+                bar.innerHTML = `
+                    <div style="display:flex; gap:6px; align-items:center; flex:0 0 auto;">
+                        <button id="adv-favorites-tag-filter-btn" class="ft-filter-button" type="button">
+                            <span class="ft-filter-button-label"></span>
+                            <span class="ft-filter-button-caret">▾</span>
+                        </button>
+                        <select id="adv-favorites-sort" class="adv-select" style="max-width:140px;">
+                            <option value="saved_newest" data-i18n="sortSavedNewest"></option>
+                            <option value="saved_oldest" data-i18n="sortSavedOldest"></option>
+                            <option value="posted_newest" data-i18n="sortPostedNewest"></option>
+                            <option value="posted_oldest" data-i18n="sortPostedOldest"></option>
+                        </select>
+                    </div>
+                    <input id="adv-favorites-search" class="adv-input" type="text" placeholder="${i18n.t('placeholderSearchSaved')}" style="flex:1; min-width:80px;">
+                `;
+
+                // 翻訳適用（動的生成のためここで適用）
+                bar.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = i18n.t(el.dataset.i18n); });
+
+                listEl.parentElement.insertBefore(bar, listEl);
+
+                // イベントリスナー登録
+                const btn = bar.querySelector('#adv-favorites-tag-filter-btn');
+                const sortSel = bar.querySelector('#adv-favorites-sort');
+                const inp = bar.querySelector('#adv-favorites-search');
+
+                // A. タグフィルタ
+                btn.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    ev.preventDefault();
+                    ft_openFilterDropdown(btn, favFilterTagId, (val) => {
+                        favFilterTagId = val;
+                        renderFavorites();
+                    });
+                });
+
+                // B. ソート変更
+                sortSel.value = kv.get(FAV_SORT_KEY, 'saved_newest');
+                sortSel.addEventListener('change', () => {
+                    kv.set(FAV_SORT_KEY, sortSel.value);
+                    renderFavorites();
+                });
+
+                // C. 検索
+                inp.addEventListener('input', debounce(() => {
+                    favSearchQuery = inp.value;
+                    renderFavorites();
+                }, 200));
+            }
+
+            // 2. ツールバーの状態更新（ラベル設定など）
+            const btn = document.getElementById('adv-favorites-tag-filter-btn');
+            const labelSpan = btn ? btn.querySelector('.ft-filter-button-label') : null;
+            const inp = document.getElementById('adv-favorites-search');
+            const sortSel = document.getElementById('adv-favorites-sort');
+
+            if (inp) inp.placeholder = i18n.t('placeholderSearchSaved');
+            if (labelSpan) {
+                let labelText = i18n.t('FT_FILTER_ALL');
+                if (favFilterTagId === FT_FILTER_UNCATEGORIZED) {
+                    labelText = i18n.t('FT_UNCATEGORIZED');
+                } else if (favFilterTagId !== 'ALL') {
+                    const tag = ft_getTagById(favFilterTagId);
+                    if (tag) {
+                        labelText = ft_getTagDisplayLabelFromTag(tag) || tag.name;
+                    } else {
+                        favFilterTagId = 'ALL';
+                    }
+                }
+                labelSpan.textContent = labelText;
+            }
+            if (inp && inp.value !== favSearchQuery) inp.value = favSearchQuery;
+
+            // ソート設定の読み込み（UIと同期）
+            const currentSort = kv.get(FAV_SORT_KEY, 'saved_newest');
+            if (sortSel && sortSel.value !== currentSort) sortSel.value = currentSort;
+
+            // 3. データのロードとフィルタリング
+            const allItems = loadFavorites(); // { id, text, user, postedAt, ts, ... }
+
+            let filtered = allItems.filter(item => {
+                // A. テキスト検索
+                const q = favSearchQuery.trim().toLowerCase(); // 検索時に初めて正規化する
+                if (q) {
+                    const targetText = (item.text + ' ' + item.user.name + ' ' + item.user.handle).toLowerCase();
+                    if (!targetText.includes(q)) return false;
+                }
+                // B. タグフィルタ
+                if (favFilterTagId === 'ALL') return true;
+
+                // ft_state および ft_state.tweetTags の存在確認を行う
+                const itemTagId = (ft_state && ft_state.tweetTags) ? ft_state.tweetTags[item.id] : null;
+
+                if (favFilterTagId === FT_FILTER_UNCATEGORIZED) return !itemTagId;
+                return itemTagId ? ft_isTagInSubtree(itemTagId, favFilterTagId) : false;
+            });
+
+            // 4. ソート適用
+            // ts: 追加日時, postedAt: 投稿日時
+            // postedAt が無い古いデータは ts をフォールバックとして使う
+            filtered.sort((a, b) => {
+                const tsA = a.ts || 0;
+                const tsB = b.ts || 0;
+                const postedA = a.postedAt || tsA; // fallback
+                const postedB = b.postedAt || tsB; // fallback
+
+                switch (currentSort) {
+                    case 'saved_oldest':  return tsA - tsB;
+                    case 'posted_newest': return postedB - postedA;
+                    case 'posted_oldest': return postedA - postedB;
+                    case 'saved_newest':
+                    default:              return tsB - tsA;
+                }
+            });
+
+            // 5. リスト描画
+            listEl.innerHTML = '';
+
+            // 全データ(allItems)が空の時だけメッセージを出す。
+            // 検索やフィルタでヒットしなかっただけなら、メッセージは出さずに空欄にする。
+            if (allItems.length === 0) {
+                emptyEl.textContent = i18n.t('emptyFavorites');
+                emptyEl.style.display = 'block';
+            } else {
+                emptyEl.style.display = 'none';
+                filtered.forEach(item => {
+                    const row = renderFavoriteRow(item);
+                    listEl.appendChild(row);
+                });
+            }
+        }
+
+        /* タブごと保存に対応 */
         const ZOOM_KEYS = {
           search:  'advZoom_tab_search_v1',
           history: 'advZoom_tab_history_v1',
           saved:   'advZoom_tab_saved_v1',
+          favorites: 'advZoom_tab_favorites_v1',
           lists:   'advZoom_tab_lists_v1',
           accounts:'advZoom_tab_accounts_v1',
           mute:    'advZoom_tab_mute_v1',
@@ -1875,7 +4073,7 @@
         const onWheelZoom = (e) => {
           const isAccel = e.ctrlKey || e.metaKey;
           if (!isAccel) return;
-          if (!e.target.closest('.adv-zoom-root')) return; // ★タブバー等は除外
+          if (!e.target.closest('.adv-zoom-root')) return; // タブバー等は除外
           e.preventDefault();
           const tab = getActiveTabName();
           const cur = zoomByTab[tab] ?? 1.0;
@@ -1885,7 +4083,7 @@
         const onKeyZoom = (e) => {
           const accel = (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey;
           if (!accel) return;
-          if (!e.target.closest('.adv-zoom-root')) return; // ★タブバー等は除外
+          if (!e.target.closest('.adv-zoom-root')) return; // タブバー等は除外
           const k = e.key;
           const tab = getActiveTabName();
           const cur = zoomByTab[tab] ?? 1.0;
@@ -1903,22 +4101,34 @@
         });
         modalDisplayObserver.observe(modal, { attributes:true, attributeFilter:['style'] });
 
-        /* ★タブ切替時にもズーム再適用 */
+        /* タブ切替時にもズーム再適用 */
 
         const searchInputSelectors = [
-            'div[data-testid="primaryColumn"] input[data-testid="SearchBox_Search_Input"]',
-            'div[data-testid="sidebarColumn"] input[data-testid="SearchBox_Search_Input"]',
-            'input[aria-label="Search query"]',
-            'input[placeholder*="Search"]',
-            'input[placeholder*="検索"]'
+            'div[data-testid="primaryColumn"] input[data-testid="SearchBox_Search_Input"]', // 検索ページ
+            'div[data-testid="sidebarColumn"] input[data-testid="SearchBox_Search_Input"]', // サイドバー
+            'input[aria-label="Search query"]', // 標準（英語）
+            'input[aria-label="検索クエリ"]' // 標準（日本語）
         ];
-        const getActiveSearchInput = () => {
+
+        // ▼ 関数名を getActiveSearchInputs (複数形) に変更
+        const getActiveSearchInputs = () => {
+            const inputs = new Set(); // 重複排除
+
+            // 1. 標準の検索窓を探す
             for (const selector of searchInputSelectors) {
                 const input = document.querySelector(selector);
-                if (input && input.offsetParent !== null) return input;
+                if (input && input.offsetParent !== null) {
+                    inputs.add(input);
+                }
             }
-            const fallback = document.querySelector('input[data-testid="SearchBox_Search_Input"]');
-            return (fallback && fallback.offsetParent !== null) ? fallback : null;
+            // フォールバック（data-testid のみ）
+            document.querySelectorAll('input[data-testid="SearchBox_Search_Input"]').forEach(input => {
+                if (input && input.offsetParent !== null) {
+                    inputs.add(input);
+                }
+            });
+
+            return Array.from(inputs); // Set を配列にして返す
         };
 
         // React controlled input を確実に同期させる共通関数
@@ -1967,28 +4177,28 @@
           list.unshift({ id: uid(), word: w, cs: !!cs, enabled: true, ts: Date.now() });
           saveMuted(list);
           renderMuted();
-          scanAndFilterTweets();
+          rescanAllTweetsForFilter();
         };
 
         const deleteMuted = (id) => {
           const list = loadMuted().filter(it => it.id !== id);
           saveMuted(list);
           renderMuted();
-          scanAndFilterTweets();
+          rescanAllTweetsForFilter();
         };
 
         const toggleMutedCS = (id) => {
           const list = loadMuted().map(it => it.id === id ? { ...it, cs: !it.cs, ts: Date.now() } : it);
           saveMuted(list);
           renderMuted();
-          scanAndFilterTweets();
+          rescanAllTweetsForFilter();
         };
 
         const toggleMutedEnabled = (id) => {
           const list = loadMuted().map(it => it.id === id ? { ...it, enabled: !it.enabled, ts: Date.now() } : it);
           saveMuted(list);
           renderMuted();
-          scanAndFilterTweets();
+          rescanAllTweetsForFilter();
         };
 
         const SETTINGS_EXPORT_VERSION = 2;
@@ -2017,6 +4227,7 @@
             // 検索履歴・保存済み検索
             history: loadJSON(HISTORY_KEY, []),
             saved: loadJSON(SAVED_KEY, []),
+            favorites: loadJSON(FAV_KEY, []),
 
             // シークレットモード・履歴ソート
             secret: kv.get(SECRET_KEY, '0') === '1',
@@ -2026,6 +4237,7 @@
             tabs: {
               last: kv.get(LAST_TAB_KEY, 'search'),
               order: loadJSON(TABS_ORDER_KEY, []),
+              visibility: loadTabsVisibility(),
             },
 
             // モーダル／トリガー位置・サイズ
@@ -2056,166 +4268,267 @@
               accounts: parseInt(kv.get('advAccountsUnassignedIndex_v1', '0'), 10) || 0,
               lists: parseInt(kv.get('advListsUnassignedIndex_v1', '0'), 10) || 0,
             },
+            /* --- Favorite Tags Data --- */
+            favoriteTags: (typeof ft_loadState === 'function') ? ft_loadState() : ft_createDefaultState(),
           };
 
           return JSON.stringify(data, null, 2);
         }
 
         function applySettingsImportJSON(text) {
-          let data;
-          try {
-            data = JSON.parse(text);
-          } catch (_) {
-            alert('Invalid JSON');
-            return false;
-          }
-          if (!data || typeof data !== 'object') {
-            alert('Invalid JSON');
-            return false;
-          }
-
-          // --- 基本設定（v1/v2 共通） ---
-          if (data.lang !== undefined) {
-            try { kv.set(LANG_OVERRIDE_KEY, data.lang || ''); } catch (_) {}
-          }
-
-          if (data.excludeFlags) {
-            saveExcludeFlags({
-              name: !!data.excludeFlags.name,
-              handle: !!data.excludeFlags.handle,
-              reposts: !!data.excludeFlags.reposts,
-              hashtags: !!data.excludeFlags.hashtags,
-            });
-          }
-
-          if (Array.isArray(data.muted)) {
-            saveMuted(data.muted);
-          }
-
-          if (typeof data.muteMaster === 'boolean') {
-            saveMuteMaster(data.muteMaster);
-          }
-
-          // --- v2 以降で追加された保存データ（存在する場合のみ適用） ---
-          if (Array.isArray(data.history)) {
-            saveJSON(HISTORY_KEY, data.history);
-          }
-          if (Array.isArray(data.saved)) {
-            saveJSON(SAVED_KEY, data.saved);
-          }
-          if (typeof data.secret === 'boolean') {
-            try { kv.set(SECRET_KEY, data.secret ? '1' : '0'); } catch (_) {}
-          }
-          if (data.historySort) {
-            try { kv.set(HISTORY_SORT_KEY, data.historySort); } catch (_) {}
-          }
-          if (data.tabs && typeof data.tabs === 'object') {
-            if (data.tabs.last) {
-              try { kv.set(LAST_TAB_KEY, data.tabs.last); } catch (_) {}
-            }
-            if (Array.isArray(data.tabs.order)) {
-              saveJSON(TABS_ORDER_KEY, data.tabs.order);
-            }
-          }
-          if (data.modalState) {
-            try { kv.set(MODAL_STATE_KEY, JSON.stringify(data.modalState)); } catch (_) {}
-          }
-          if (data.triggerState) {
-            try { kv.set(TRIGGER_STATE_KEY, JSON.stringify(data.triggerState)); } catch (_) {}
-          }
-          if (data.zoom && typeof data.zoom === 'object') {
+            let data;
             try {
-              for (const [tab, key] of Object.entries(ZOOM_KEYS)) {
-                if (data.zoom[tab] != null) {
-                  kv.set(key, String(data.zoom[tab]));
+                data = JSON.parse(text);
+            } catch (_) {
+                alert('Invalid JSON');
+                return false;
+            }
+            if (!data || typeof data !== 'object') {
+                alert('Invalid JSON');
+                return false;
+            }
+
+            // --- 基本設定（v1/v2 共通） ---
+            if (data.lang !== undefined) {
+                try { kv.set(LANG_OVERRIDE_KEY, data.lang || ''); } catch (_) {}
+            }
+
+            if (data.excludeFlags) {
+                saveExcludeFlags({
+                    name: !!data.excludeFlags.name,
+                    handle: !!data.excludeFlags.handle,
+                    reposts: !!data.excludeFlags.reposts,
+                    hashtags: !!data.excludeFlags.hashtags,
+                });
+            }
+
+            if (Array.isArray(data.muted)) {
+                saveMuted(data.muted);
+            }
+
+            if (typeof data.muteMaster === 'boolean') {
+                saveMuteMaster(data.muteMaster);
+            }
+
+            // --- v2 以降で追加された保存データ ---
+            if (Array.isArray(data.history)) {
+                saveJSON(HISTORY_KEY, data.history);
+            }
+            if (Array.isArray(data.saved)) {
+                saveJSON(SAVED_KEY, data.saved);
+            }
+
+            // saveFavorites を経由させてキャッシュ(_favSet)も更新する
+            if (Array.isArray(data.favorites)) {
+                saveFavorites(data.favorites);
+            }
+
+            if (typeof data.secret === 'boolean') {
+                try { kv.set(SECRET_KEY, data.secret ? '1' : '0'); } catch (_) {}
+            }
+            if (data.historySort) {
+                try { kv.set(HISTORY_SORT_KEY, data.historySort); } catch (_) {}
+            }
+            if (data.tabs && typeof data.tabs === 'object') {
+                if (data.tabs.last) {
+                    try { kv.set(LAST_TAB_KEY, data.tabs.last); } catch (_) {}
                 }
-              }
+                if (Array.isArray(data.tabs.order)) {
+                    saveJSON(TABS_ORDER_KEY, data.tabs.order);
+                }
+                if (data.tabs.visibility && typeof data.tabs.visibility === 'object') {
+                    saveTabsVisibility(data.tabs.visibility);
+                }
+            }
+            if (data.modalState) {
+                try { kv.set(MODAL_STATE_KEY, JSON.stringify(data.modalState)); } catch (_) {}
+            }
+            if (data.triggerState) {
+                try { kv.set(TRIGGER_STATE_KEY, JSON.stringify(data.triggerState)); } catch (_) {}
+            }
+            if (data.zoom && typeof data.zoom === 'object') {
+                try {
+                    for (const [tab, key] of Object.entries(ZOOM_KEYS)) {
+                        if (data.zoom[tab] != null) {
+                            kv.set(key, String(data.zoom[tab]));
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            if (Array.isArray(data.accounts) && typeof saveAccounts === 'function') {
+                try { saveAccounts(data.accounts); } catch (_) {}
+            }
+            if (Array.isArray(data.lists) && typeof saveLists === 'function') {
+                try { saveLists(data.lists); } catch (_) {}
+            }
+
+            if (data.folders && typeof data.folders === 'object') {
+                if (Array.isArray(data.folders.accounts) && typeof ACCOUNTS_FOLDERS_KEY !== 'undefined') {
+                    try { saveFolders(ACCOUNTS_FOLDERS_KEY, data.folders.accounts); } catch (_) {}
+                }
+                if (Array.isArray(data.folders.lists) && typeof LISTS_FOLDERS_KEY !== 'undefined') {
+                    try { saveFolders(LISTS_FOLDERS_KEY, data.folders.lists); } catch (_) {}
+                }
+                if (Array.isArray(data.folders.saved) && typeof SAVED_FOLDERS_KEY !== 'undefined') {
+                    try { saveFolders(SAVED_FOLDERS_KEY, data.folders.saved); } catch (_) {}
+                }
+            }
+
+            if (data.unassignedIndex && typeof data.unassignedIndex === 'object') {
+                if ('saved' in data.unassignedIndex) try { kv.set('advSavedUnassignedIndex_v1', String(data.unassignedIndex.saved | 0)); } catch (_) {}
+                if ('accounts' in data.unassignedIndex) try { kv.set('advAccountsUnassignedIndex_v1', String(data.unassignedIndex.accounts | 0)); } catch (_) {}
+                if ('lists' in data.unassignedIndex) try { kv.set('advListsUnassignedIndex_v1', String(data.unassignedIndex.lists | 0)); } catch (_) {}
+            }
+
+            /* --- Favorite Tags Data --- */
+            if (data.favoriteTags && typeof ft_saveState === 'function') {
+                try {
+                    const s = data.favoriteTags;
+                    ft_normalizeTagOrdersFor(s);
+                    ft_clampUncategorizedOrderFor(s);
+                    ft_saveState(s); // ストレージへの保存
+
+                    if (typeof ft_state !== 'undefined') {
+                        ft_state = s;
+                    }
+                } catch (_) {}
+            }
+
+            // 言語を再適用
+            try {
+                const override = kv.get(LANG_OVERRIDE_KEY, '');
+                if (override && i18n.translations[override]) {
+                    i18n.lang = override;
+                } else if (!override) {
+                    i18n.init();
+                }
             } catch (_) {}
-          }
 
-          if (Array.isArray(data.accounts) && typeof saveAccounts === 'function') {
-            try { saveAccounts(data.accounts); } catch (_) {}
-          }
-          if (Array.isArray(data.lists) && typeof saveLists === 'function') {
-            try { saveLists(data.lists); } catch (_) {}
-          }
+            try {
+                i18n.apply(document.getElementById('advanced-search-modal'));
+                i18n.apply(document.getElementById('adv-settings-modal'));
+            } catch (_) {}
 
-          if (data.folders && typeof data.folders === 'object') {
-            if (Array.isArray(data.folders.accounts) &&
-                typeof saveFolders === 'function' &&
-                typeof ACCOUNTS_FOLDERS_KEY !== 'undefined') {
-              try { saveFolders(ACCOUNTS_FOLDERS_KEY, data.folders.accounts); } catch (_) {}
-            }
-            if (Array.isArray(data.folders.lists) &&
-                typeof saveFolders === 'function' &&
-                typeof LISTS_FOLDERS_KEY !== 'undefined') {
-              try { saveFolders(LISTS_FOLDERS_KEY, data.folders.lists); } catch (_) {}
-            }
-            if (Array.isArray(data.folders.saved) &&
-                typeof saveFolders === 'function' &&
-                typeof SAVED_FOLDERS_KEY !== 'undefined') {
-              try { saveFolders(SAVED_FOLDERS_KEY, data.folders.saved); } catch (_) {}
-            }
-          }
+            try { applySecretBtn(); } catch (_) {}
+            try { renderHistory(); } catch (_) {}
+            try { renderSaved(); } catch (_) {}
+            try { renderLists(); } catch (_) {}
+            try { renderAccounts(); } catch (_) {}
+            try { renderMuted(); } catch (_) {}
 
-          if (data.unassignedIndex && typeof data.unassignedIndex === 'object') {
-            if ('saved' in data.unassignedIndex) {
-              try { kv.set('advSavedUnassignedIndex_v1', String(data.unassignedIndex.saved | 0)); } catch (_) {}
-            }
-            if ('accounts' in data.unassignedIndex) {
-              try { kv.set('advAccountsUnassignedIndex_v1', String(data.unassignedIndex.accounts | 0)); } catch (_) {}
-            }
-            if ('lists' in data.unassignedIndex) {
-              try { kv.set('advListsUnassignedIndex_v1', String(data.unassignedIndex.lists | 0)); } catch (_) {}
-            }
-          }
+            // お気に入りリストを再描画し、ボタン状態・タグチップを全更新する
+            try {
+                renderFavorites();
+                updateAllFavoriteButtons();
+            } catch (_) {}
 
-          // 言語を再適用
-          try {
-            const override = kv.get(LANG_OVERRIDE_KEY, '');
-            if (override && i18n.translations[override]) {
-              i18n.lang = override;
-            } else if (!override) {
-              i18n.init();
-            }
-          } catch (_) {}
+            try { rescanAllTweetsForFilter(); } catch (_) {}
 
-          try {
-            i18n.apply(document.getElementById('advanced-search-modal'));
-            i18n.apply(document.getElementById('adv-settings-modal'));
-          } catch (_) {}
+            /* --- Favorite Tags UI Refresh --- */
+            try {
+                if (typeof ft_refreshAllTagChips === 'function') ft_refreshAllTagChips();
+            } catch (_) {}
 
-          try { applySecretBtn(); } catch (_) {}
-          try { renderHistory(); } catch (_) {}
-          try { renderSaved(); } catch (_) {}
-          try { renderLists(); } catch (_) {}
-          try { renderAccounts(); } catch (_) {}
-          try { renderMuted(); } catch (_) {}
-          try { scanAndFilterTweets(); } catch (_) {}
+            // タブの表示状態を適用
+            try { applyTabsVisibility(); } catch (_) {}
 
-          showToast(i18n.t('toastImported'));
-          return true;
+            showToast(i18n.t('toastImported'));
+            return true;
         }
 
         // マスターON/OFF（全体の適用を止めるだけ。各エントリの enabled は保持）
         const MUTE_MASTER_KEY = 'advMuteMasterEnabled_v1';
         const LAST_TAB_KEY = 'advSearchLastTab_v1';
         const TABS_ORDER_KEY = 'advTabsOrder_v1';
+        const TABS_VISIBILITY_KEY = 'advTabsVisibility_v1'; // ★ 新規追加
         const loadMuteMaster = () => { try { return kv.get(MUTE_MASTER_KEY, '1') === '1'; } catch(_) { return true; } };
         const saveMuteMaster = (on) => { try { kv.set(MUTE_MASTER_KEY, on ? '1' : '0'); } catch(_) {} };
 
         const tabButtons = Array.from(document.querySelectorAll('.adv-tab-btn'));
-        const tabSearch = document.getElementById('adv-tab-search');
-        const tabHistory = document.getElementById('adv-tab-history');
-        const tabSaved = document.getElementById('adv-tab-saved');
-        const tabLists = document.getElementById('adv-tab-lists');
-        const tabAccounts = document.getElementById('adv-tab-accounts');
-        const tabMute = document.getElementById('adv-tab-mute');
 
         // Get tab panels for background drop
         const tabAccountsPanel = document.getElementById('adv-tab-accounts');
         const tabListsPanel = document.getElementById('adv-tab-lists');
         const tabSavedPanel    = document.getElementById('adv-tab-saved');
+
+        const activateTab = (name) => {
+            let targetName = name;
+            const visibility = loadTabsVisibility();
+
+            // ターゲットが非表示に設定されているかチェック
+            if (visibility[targetName] === false) {
+                // 非表示の場合、フォールバック先を探す
+                // 'search' は true が保証されているので、必ず 'search' にフォールバックされる
+                const orderedButtons = Array.from(document.querySelectorAll('.adv-tab-btn'));
+                const firstVisible = orderedButtons.find(btn => {
+                    const tab = btn.dataset.tab;
+                    return tab && visibility[tab] !== false;
+                });
+                targetName = firstVisible ? firstVisible.dataset.tab : 'search';
+            }
+
+            // tabButtons は DOM の順序と同期している必要があるため、DOM から再取得
+            const currentTabButtons = Array.from(document.querySelectorAll('.adv-tab-btn'));
+            currentTabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === targetName));
+
+            // [tabSearch, tabHistory, tabSaved, tabLists, tabAccounts, tabMute] // 古い配列参照を削除
+            document.querySelectorAll('.adv-tab-content').forEach(el => {
+              el.classList.toggle('active', el.id === `adv-tab-${targetName}`);
+            });
+
+
+            footerEl.style.display = (targetName === 'search') ? '' : 'none';
+            // 最後に開いたタブを保存 (非表示でも要求されたタブを保存する)
+            try {
+                kv.set(LAST_TAB_KEY, name); // ★ 元の name を保存する
+            } catch(e) {
+                console.error('Failed to save last tab state:', e);
+            }
+            if (targetName === 'history') renderHistory();
+            if (targetName === 'saved') renderSaved();
+            if (targetName === 'lists') renderLists();
+            if (targetName === 'accounts') renderAccounts();
+            if (targetName === 'mute') renderMuted();
+            if (targetName === 'favorites') renderFavorites();
+            if (targetName === 'search') updateSaveButtonState();
+
+            /* タブ切替ごとに該当タブのズーム率を反映 */
+            applyZoom();
+        };
+
+        const applyTabsVisibility = () => {
+            const visibility = loadTabsVisibility();
+            // tabButtons は DOM の順序を反映している必要があるため、DOM から再取得
+            const currentTabButtons = Array.from(document.querySelectorAll('.adv-tab-btn'));
+            let firstVisibleTab = 'search'; // フォールバック (searchはtrue固定なので)
+
+            for (const btn of currentTabButtons) {
+                const tabName = btn.dataset.tab;
+                if (!tabName) continue;
+
+                // visibility[tabName] が false の場合のみ非表示 (true や undefined は表示)
+                const isVisible = visibility[tabName] !== false;
+                btn.style.display = isVisible ? '' : 'none';
+
+                // フォールバック先タブを決定 (search が最優先)
+                if (isVisible && firstVisibleTab === 'search' && tabName !== 'search') {
+                    firstVisibleTab = tabName; // search 以外で最初に見つかった表示可能なタブ
+                }
+            }
+
+            // 'search' が表示可能か確認 (true 固定だが念のため)
+            if (visibility['search'] === true) {
+                firstVisibleTab = 'search';
+            }
+
+            // 最後にアクティブだったタブが非表示になっていないかチェック
+            const activeBtn = document.querySelector('.adv-tab-btn.active');
+            if (activeBtn && activeBtn.style.display === 'none') {
+                // 非表示にされたので、表示可能な最初のタブ (通常は 'search') に切り替える
+                activateTab(firstVisibleTab);
+            }
+        };
 
         // タブの順序を読み込んで適用
         (function applyTabsOrder() {
@@ -2266,8 +4579,11 @@
               }
           });
           // tabButtons 配列も再取得（順序が変更されたため）
-          tabButtons.splice(0, tabButtons.length, ...Array.from(document.querySelectorAll('.adv-tab-btn')));
+            tabButtons.splice(0, tabButtons.length, ...Array.from(document.querySelectorAll('.adv-tab-btn')));
         })();
+
+        // タブの表示/非表示をDOMに適用 (activateTab の前に呼ぶ)
+        applyTabsVisibility();
 
         const saveModalRelativeState = () => {
             if (modal.style.display === 'none') {
@@ -2444,7 +4760,9 @@
         const STATE_SYNC = {
             parseFromSearchToModal: () => {
                 if (isUpdating || modal.style.display === 'none') return;
-                const si = getActiveSearchInput();
+                // ▼ 複数形に変更し、最初の要素を取得
+                const inputs = getActiveSearchInputs();
+                const si = inputs[0]; // 複数のうち最初のを代表として読み込む
                 parseQueryAndApplyToModal(si ? si.value : '');
                 applyScopesToControls(readScopesFromURL());
                 updateSaveButtonState();
@@ -2703,8 +5021,13 @@
         const syncFromModalToSearchBox = () => {
             if (isUpdating) return; isUpdating=true;
             const finalQuery = buildQueryStringFromModal();
-            const si = getActiveSearchInput();
-            if (si){ syncControlledInput(si, finalQuery); }
+            // ▼ 複数形に変更し、ループ処理
+            const inputs = getActiveSearchInputs();
+            if (inputs.length > 0) {
+                inputs.forEach(si => {
+                    if (si) { syncControlledInput(si, finalQuery); }
+                });
+            }
             isUpdating=false;
             updateSaveButtonState();
         };
@@ -2719,10 +5042,38 @@
         function openSettingsModal() {
           if (!settingsModal) return;
           settingsModal.style.display = 'flex';
+
+          // UI言語の読み込み
           try {
             const override = kv.get(LANG_OVERRIDE_KEY, '');
             if (settingsLangSel) settingsLangSel.value = override || '';
           } catch (_) {}
+
+          // タブ表示設定の読み込みと設定
+          try {
+            const visibility = loadTabsVisibility();
+            DEFAULT_TABS.forEach(tabName => {
+              const toggle = document.getElementById(`adv-settings-tab-toggle-${tabName}`);
+              if (!toggle) return;
+
+              // 状態を同期 (search は disabled checked になっているので loadTabsVisibility に追従)
+              toggle.checked = visibility[tabName] !== false;
+
+              // 多重登録を防止
+              if (toggle.dataset.listenerAttached) return;
+              toggle.dataset.listenerAttached = 'true';
+
+              toggle.addEventListener('change', () => {
+                const currentState = loadTabsVisibility();
+                currentState[tabName] = toggle.checked;
+                saveTabsVisibility(currentState);
+                // 即座にタブバーに反映
+                applyTabsVisibility();
+              });
+            });
+          } catch (e) {
+            console.error('[AdvSearch] Failed to setup Tab Toggles:', e);
+          }
 
           try {
             const dialog = settingsModal.querySelector('.adv-settings-dialog');
@@ -2772,7 +5123,7 @@
               const now = new Date();
               const pad = (n) => String(n).padStart(2, '0');
               const fname =
-                `search-hub-backup-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}` +
+                `advanced-search-for-x-twitter-backup-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}` +
                 `-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.json`;
 
               a.href = url;
@@ -2840,16 +5191,19 @@
               MUTE_MASTER_KEY,
               LAST_TAB_KEY,
               TABS_ORDER_KEY,
+              TABS_VISIBILITY_KEY,
               LANG_OVERRIDE_KEY,
               HISTORY_SORT_KEY,
               EXC_NAME_KEY,
               EXC_HANDLE_KEY,
               EXC_REPOSTS_KEY,
               EXC_HASHTAGS_KEY,
+              FAV_KEY,
               'advSavedUnassignedIndex_v1',
               'advAccountsUnassignedIndex_v1',
               'advListsUnassignedIndex_v1',
               ...Object.values(ZOOM_KEYS),
+              FT_STATE_KEY,
             ];
 
             KEYS_TO_DELETE.forEach(k => {
@@ -2860,11 +5214,25 @@
             try { saveMuted([]); } catch (_) {}
             try { saveJSON(HISTORY_KEY, []); } catch (_) {}
             try { saveJSON(SAVED_KEY, []); } catch (_) {}
+            try { saveFavorites([]); } catch (_) {}
             try { saveAccounts([]); } catch (_) {}
             try { saveLists([]); } catch (_) {}
             try { saveFolders(ACCOUNTS_FOLDERS_KEY, []); } catch (_) {}
             try { saveFolders(LISTS_FOLDERS_KEY, []); } catch (_) {}
             try { saveFolders(SAVED_FOLDERS_KEY, []); } catch (_) {}
+
+            /* --- Favorite Tags Data --- */
+            try {
+              if (typeof ft_createDefaultState === 'function' && typeof ft_saveState === 'function') {
+                const defaultBmState = ft_createDefaultState();
+                // saveState は内部で saveJSON を呼ぶ
+                ft_saveState(defaultBmState);
+                if (typeof ft_state !== 'undefined' && ft_state !== null) {
+                  // グローバル変数もリセット
+                  Object.assign(ft_state, defaultBmState);
+                }
+              }
+            } catch (_) {}
 
             // ズームキャッシュとパースキャッシュもリセット
             try {
@@ -2894,6 +5262,11 @@
 
             // UI 状態を初期化
             try {
+              // タブの表示状態をリセット
+              applyTabsVisibility();
+              // 最後のタブを 'search' にリセット
+              activateTab('search');
+
               parseQueryAndApplyToModal('');
               applyScopesToControls({ pf: false, lf: false });
               applySecretBtn();
@@ -2903,7 +5276,13 @@
               renderAccounts();
               renderMuted();
               updateSaveButtonState();
-              scanAndFilterTweets();
+              rescanAllTweetsForFilter();
+
+              /* --- Favorite Tags UI Refresh --- */
+              try {
+                if (typeof ft_refreshAllTagChips === 'function') ft_refreshAllTagChips();
+              } catch (_) {}
+
             } catch (_) {}
 
             // モーダル位置・サイズをデフォルトに近い状態へ戻す
@@ -2959,6 +5338,7 @@
             try { renderLists(); } catch (_) {}
             try { renderAccounts(); } catch (_) {}
             try { renderMuted(); } catch (_) {}
+            try { renderFavorites(); } catch (_) {}
           });
         }
 
@@ -3058,27 +5438,7 @@
             saveButton.setAttribute('aria-disabled', saveButton.disabled ? 'true' : 'false');
         };
 
-        const activateTab = (name) => {
-            tabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-            [tabSearch, tabHistory, tabSaved, tabLists, tabAccounts, tabMute]
-              .forEach((el) => el.classList.toggle('active', el.id === `adv-tab-${name}`));
-            footerEl.style.display = (name === 'search') ? '' : 'none';
-            // 最後に開いたタブを保存
-            try {
-                kv.set(LAST_TAB_KEY, name);
-            } catch(e) {
-                console.error('Failed to save last tab state:', e);
-            }
-            if (name === 'history') renderHistory();
-            if (name === 'saved') renderSaved();
-            if (name === 'lists') renderLists();
-            if (name === 'accounts') renderAccounts();
-            if (name === 'mute') renderMuted();
-            if (name === 'search') updateSaveButtonState();
 
-            /* タブ切替ごとに該当タブのズーム率を反映 */
-            applyZoom();
-        };
 
         // タブのクリックイベントとD&Dイベントリスナーをセットアップ
         (function setupTabDragAndDrop() {
@@ -3311,7 +5671,7 @@
             return closest.element;
         };
 
-        // === [ADD] セクション（フォルダ/Unassigned）用：縦方向の挿入位置計算 ===
+        // === セクション（フォルダ/Unassigned）用：縦方向の挿入位置計算 ===
         function getSectionAfterElement(container, y) {
           const els = [...container.querySelectorAll('.adv-folder:not(.dragging-folder), .adv-unassigned:not(.dragging-folder)')];
           let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
@@ -3325,7 +5685,7 @@
           return closest.element;
         }
 
-        // === [ADD] 汎用フォルダ描画レンダラ ===
+        // === 汎用フォルダ描画レンダラ ===
         // 各タブ（Saved/Accounts/Listsなど）の重複ロジックを1か所に集約します。
         function renderFolderedCollection(cfg) {
           const {
@@ -3401,11 +5761,19 @@
           const filterFolder = sel?.value || '__ALL__';
           const q = (qInput?.value || '').toLowerCase().trim();
 
-          const matchItem = (it) => {
-            // Saved: it.q, Accounts: it.name/handle …など、row renderer 側の表示に合わせて検索したい場合は
-            // 各タブ側の renderRow が構成する代表的フィールドを想定しておく
-            const s = JSON.stringify(it || {}).toLowerCase();
-            return !q || s.includes(q);
+         const matchItem = (it) => {
+              // JSON化せず、検索対象になりうるフィールドの値を直接結合して判定する
+              // これにより、保存クエリ内の " (ダブルクォート) がエスケープされずに検索可能になる
+              const targetText = [
+                  it.q,       // Saved / History 用
+                  it.name,    // Accounts / Lists / Folders 用
+                  it.handle,  // Accounts 用
+                  it.url,     // Lists 用
+                  it.user?.name,   // (予備)
+                  it.user?.handle  // (予備)
+              ].map(val => (val || '').toString().toLowerCase()).join(' ');
+
+              return !q || targetText.includes(q);
           };
 
           host.innerHTML = '';
@@ -3818,12 +6186,40 @@
             return closest.element;
         };
 
-        // ★注意: 以前 savedListEl にあった 'drop' イベントリスナーは、
-        // 新しい renderSaved 内の renderFolderSection / renderUnassignedSection の
-        // 'list.addEventListener('drop', ...)' に吸収・統合されました。
-
         function escapeHTML(s) {
             return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        // テキスト内のURLをリンク化する（HTMLエスケープ済みテキストに対して適用）
+        function safeLinkify(text) {
+            if (!text) return '';
+            let escaped = escapeHTML(text);
+
+            // Xの仕様で https:// の直後に不可視な空白や改行が含まれる場合があるため除去
+            // これにより "https:// amzn.to" が "https://amzn.to" に結合され、全体が正しくリンク化されます
+            escaped = escaped.replace(/(https?:\/\/)\s+/gi, '$1');
+
+            // URL正規表現
+            // Group 1: http/https/www で始まるURL
+            // Group 2: プロトコルなしのドメイン (誤検知防止の後読み付き)
+            const urlRegex = /((?:https?:\/\/|www\.)[^\s]+)|((?<![@\w.:/\-])\b[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
+
+            return escaped.replace(urlRegex, (match) => {
+                let cleanUrl = match;
+                let suffix = '';
+                const trailingMatch = cleanUrl.match(/[.,;:)\]]+$/);
+                if (trailingMatch) {
+                    suffix = trailingMatch[0];
+                    cleanUrl = cleanUrl.slice(0, -suffix.length);
+                }
+
+                let href = cleanUrl;
+                if (!href.match(/^(?:https?:|:\/\/)/i)) {
+                     href = 'https://' + href;
+                }
+
+                return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="adv-content-link">${cleanUrl}</a>${suffix}`;
+            });
         }
 
         function escapeAttr(s) {
@@ -3844,7 +6240,9 @@
             }
           } catch (_) {}
           if (!qRaw) {
-            const si = typeof getActiveSearchInput === 'function' ? getActiveSearchInput() : null;
+            // ▼ 複数形に変更
+            const inputs = typeof getActiveSearchInputs === 'function' ? getActiveSearchInputs() : [];
+            const si = inputs[0]; // 代表として最初のものを使う
             if (si?.value) qRaw = si.value;
           }
           if (!qRaw && typeof buildQueryStringFromModal === 'function') {
@@ -3978,32 +6376,87 @@
             hashtagSet,
           };
 
-          __cachedSearchTokens = result; // ★ パース結果をキャッシュに保存
+          __cachedSearchTokens = result; // パース結果をキャッシュに保存
           return result;
         }
+
         function pickTweetFields(article) {
-            const body = article.querySelector('[data-testid="tweetText"]')?.innerText || '';
+            // 1. 本文の取得
+            const bodyEl = article.querySelector('[data-testid="tweetText"]');
+            const body = bodyEl ? bodyEl.innerText : '';
+
             let disp = '';
-            try {
-                const nameBlock = article.querySelector('[data-testid="User-Name"] a[href^="/"] div[dir="ltr"]');
-                disp = nameBlock?.innerText || '';
-            } catch(_) {}
             let handle = '';
+
             try {
-                const handleEl = article.querySelector('[data-testid="User-Name"] a[href^="/"] div[dir="ltr"] span')
-                              || article.querySelector('[data-testid="User-Name"] a[href^="/"] .r-1qd0xha');
-                handle = handleEl?.innerText || '';
-            } catch(_) {}
+                // 2. ユーザー情報エリア (User-Name) を取得
+                // 共有いただいたDOMでは、ここに表示名とハンドル(@xxx)の両方が含まれています
+                const userRow = article.querySelector('[data-testid="User-Name"]');
+
+                if (userRow) {
+                    // User-Name内のすべての「リンク」または「テキストコンテナ」をチェック
+                    // 共有DOMでは aタグの中に span がある構造です
+                    const anchors = Array.from(userRow.querySelectorAll('a[href^="/"], div[dir="ltr"] span'));
+
+                    for (const node of anchors) {
+                        // テキストを取得（前後の空白を除去）
+                        const text = node.innerText.trim();
+
+                        // 空文字、または時間表示の区切り記号「·」などは無視
+                        if (!text || text === '·') continue;
+
+                        // ▼ 判定ロジック: テキストが '@' で始まるならハンドル、そうでなければ表示名
+                        if (text.startsWith('@')) {
+                            // ハンドルが見つかった (@を除去して保存)
+                            handle = text.replace(/^@/, '');
+                        } else {
+                            // まだ表示名がセットされていなければ、これを表示名とする
+                            // (検証済みアカウントのアイコンなどがテキストとして混ざるのを防ぐため、ある程度の長さチェックを入れても良いが、基本はこのままでOK)
+                            if (!disp) {
+                                disp = text;
+                            }
+                        }
+                    }
+
+                    // フォールバック: 上記で見つからなかった場合、User-Name直下の全テキストから解析
+                    if (!handle) {
+                        const allText = userRow.innerText.split('\n');
+                        for (const t of allText) {
+                            const trimT = t.trim();
+                            if (trimT.startsWith('@')) {
+                                handle = trimT.replace(/^@/, '');
+                            } else if (!disp && trimT && trimT !== '·') {
+                                disp = trimT;
+                            }
+                        }
+                    }
+                }
+            } catch(e) {
+                console.error('[pickTweetFields] Error parsing user info:', e);
+            }
+
+            // 3. 返信先ハンドルの取得 ("Replying to @..." の部分)
+            // 本文や自分の名前以外で、ヘッダー付近にある @リンク を探す
             const replyHandles = Array.from(
-                article.querySelectorAll('a[href^="/"]')
+                article.querySelectorAll('div[dir="ltr"] a[href^="/"]')
             )
-                .filter(a => {
-                  const txt = (a.textContent || '').trim();
-                  if (!txt.startsWith('@')) return false;
-                  return !a.closest('[data-testid="tweetText"]');
-                })
-                .map(a => (a.textContent || '').trim())
-                .filter(Boolean);
+            .filter(a => {
+                const txt = (a.innerText || '').trim();
+                // @で始まるリンクであること
+                if (!txt.startsWith('@')) return false;
+
+                // 本文内のメンションは除外
+                if (bodyEl && bodyEl.contains(a)) return false;
+
+                // 送信者自身のハンドル表記は除外
+                const userRow = article.querySelector('[data-testid="User-Name"]');
+                if (userRow && userRow.contains(a)) return false;
+
+                return true;
+            })
+            .map(a => a.innerText.trim())
+            .filter(Boolean);
+
             return { body, disp, handle, replyHandles };
         }
 
@@ -4150,48 +6603,21 @@
           return false;
         }
 
-        function scanAndFilterTweets() {
-          try {
-            const flags = {
-              name:   document.getElementById('adv-exclude-hit-name')?.checked ?? true,
-              handle: document.getElementById('adv-exclude-hit-handle')?.checked ?? true,
-              reposts: document.getElementById('adv-filter-reposts-exclude')?.checked ?? false,
-              hashtags: document.getElementById('adv-filter-hashtags-exclude')?.checked ?? false,
-            };
+        function evaluateTweetForFiltering(art, flags, muteSettings, tokens) {
+            const cell = getTweetCell(art);
+            const reasons = [];
+            let tweetBodyText = null; // 本文テキストのキャッシュ用
 
-            const masterOn = loadMuteMaster();
-            const muted = loadMuted();
-            const hasMute = masterOn && muted.length > 0;                       // ← masterOn を噛ませる
-            const enabledMuted = hasMute ? muted.filter(m => m.enabled !== false) : [];
-            const muteCI = enabledMuted.length ? new Set(enabledMuted.filter(m => !m.cs).map(m => m.word.toLowerCase())) : new Set();
-            const muteCS = enabledMuted.length ? enabledMuted.filter(m => m.cs).map(m => m.word) : [];
+            const { hasMute, muteCI, muteCS } = muteSettings;
 
-            // ▼ フィルタリングが何も有効でないなら即時リターン
-            if (!flags.name && !flags.handle && !hasMute && !flags.reposts && !flags.hashtags) {
-              // 非表示属性が残っている可能性があるので、全解除だけ試みる
-              document.querySelectorAll('[data-adv-hidden]').forEach(cell => {
-                cell.removeAttribute('data-adv-hidden');
-              });
-              cleanupAdjacentSeparators();
-              return;
-            }
-
-            const tokens = (flags.name || flags.handle) ? parseSearchTokens() : null; // 名前/ハンドル除外が有効な時だけトークンをパース
-            const list = document.querySelectorAll('article[data-testid="tweet"]');
-
-            for (const art of list) {
-              const cell = getTweetCell(art);
-              const reasons = [];
-              let tweetBodyText = null; // 本文テキストのキャッシュ用
-
-              // 1. 名前/ハンドル除外
-              if ((flags.name || flags.handle) && tokens) {
+            // 1. 名前/ハンドル除外
+            if ((flags.name || flags.handle) && tokens) {
                 const hideByNameHandle = shouldHideTweetByNameHandle(art, flags, tokens);
                 if (hideByNameHandle) reasons.push('name_handle_only');
-              }
+            }
 
-              // 2. ミュートワード除外
-              if (hasMute) {
+            // 2. ミュートワード除外
+            if (hasMute) {
                 tweetBodyText = tweetBodyText ?? (art.querySelector('[data-testid="tweetText"]')?.innerText || '');
                 const bodyCI = tweetBodyText.toLowerCase();
                 let hideByMute = false;
@@ -4200,46 +6626,80 @@
                   for (const w of muteCS) { if (w && tweetBodyText.includes(w)) { hideByMute = true; break; } }
                 }
                 if (hideByMute) reasons.push('muted_word');
-              }
+            }
 
-              // 3. リポスト除外
-              if (flags.reposts) {
-                // 1. まず socialContext があるか確認
+            // 3. リポスト除外
+            if (flags.reposts) {
                 const socialContext = art.querySelector('[data-testid="socialContext"]');
                 if (socialContext) {
-                    // 2. それが「固定ポスト」のアイコンではないことを確認
-                    //    固定ポストのピンアイコンのSVGパス
                     const pinIconPath = 'M7 4.5C7 3.12 8.12 2 9.5 2h5C15.88 2 17 3.12 17 4.5v5.26L20.12 16H13v5l-1 2-1-2v-5H3.88L7 9.76V4.5z';
                     const isPinned = art.querySelector(`svg path[d="${pinIconPath}"]`);
-
-                    // 3. socialContext があり、かつ、固定ピンアイコンが無い場合のみ非表示
                     if (!isPinned) {
                         reasons.push('repost');
                     }
                 }
-              }
+            }
 
-              // 4. ハッシュタグ除外
-              if (flags.hashtags) {
+            // 4. ハッシュタグ除外
+            if (flags.hashtags) {
                 tweetBodyText = tweetBodyText ?? (art.querySelector('[data-testid="tweetText"]')?.innerText || '');
-                // 本文中にハッシュタグ記号があるか
                 if (tweetBodyText.includes('#')) {
                   reasons.push('hashtag');
                 }
-              }
-
-              // 最終判定
-              if (reasons.length > 0) {
-                cell.setAttribute('data-adv-hidden', reasons.join(' '));
-              } else {
-                cell.removeAttribute('data-adv-hidden');
-              }
             }
 
-            cleanupAdjacentSeparators();
-          } catch (e) {
-            console.error('scanAndFilterTweets failed', e);
-          }
+            // 最終判定
+            if (reasons.length > 0) {
+                cell.setAttribute('data-adv-hidden', reasons.join(' '));
+            } else {
+                cell.removeAttribute('data-adv-hidden');
+            }
+
+            // 処理済みフラグは呼び出し元(processNewTweets)で共通化するため、ここではセットしない
+            // art.setAttribute('data-adv-processed-filter', '1');
+        }
+
+        // ▼ ミュート設定変更時などに、全ツイートを強制再スキャンする
+        function rescanAllTweetsForFilter() {
+            try {
+                const flags = {
+                    name:   document.getElementById('adv-exclude-hit-name')?.checked ?? true,
+                    handle: document.getElementById('adv-exclude-hit-handle')?.checked ?? true,
+                    reposts: document.getElementById('adv-filter-reposts-exclude')?.checked ?? false,
+                    hashtags: document.getElementById('adv-filter-hashtags-exclude')?.checked ?? false,
+                };
+
+                const masterOn = loadMuteMaster();
+                const muted = loadMuted();
+                const hasMute = masterOn && muted.length > 0;
+                const enabledMuted = hasMute ? muted.filter(m => m.enabled !== false) : [];
+                const muteSettings = {
+                    hasMute,
+                    muteCI: enabledMuted.length ? new Set(enabledMuted.filter(m => !m.cs).map(m => m.word.toLowerCase())) : new Set(),
+                    muteCS: enabledMuted.length ? enabledMuted.filter(m => m.cs).map(m => m.word) : [],
+                };
+
+                if (!flags.name && !flags.handle && !hasMute && !flags.reposts && !flags.hashtags) {
+                    document.querySelectorAll('[data-adv-hidden]').forEach(cell => {
+                        cell.removeAttribute('data-adv-hidden');
+                    });
+                    cleanupAdjacentSeparators();
+                    return;
+                }
+
+                const tokens = (flags.name || flags.handle) ? parseSearchTokens() : null;
+                // 全ツイートを対象
+                const list = document.querySelectorAll('article[data-testid="tweet"]');
+
+                for (const art of list) {
+                    // 共通関数を呼ぶ
+                    evaluateTweetForFiltering(art, flags, muteSettings, tokens);
+                }
+
+                cleanupAdjacentSeparators();
+            } catch (e) {
+                console.error('rescanAllTweetsForFilter failed', e);
+            }
         }
 
         function cleanupAdjacentSeparators() {
@@ -4258,9 +6718,12 @@
           const targetPath = `/search?${params.toString()}`;
 
           // 1) まず検索ボックスが見つかれば React state を更新して見た目と中身を同調
-          const si = getActiveSearchInput?.();
-          if (si) {
-            syncControlledInput(si, finalQuery);
+          // ▼ 複数形に変更し、ループ処理
+          const inputs = getActiveSearchInputs?.() || [];
+          if (inputs.length > 0) {
+              inputs.forEach(si => {
+                  if (si) { syncControlledInput(si, finalQuery); }
+              });
           }
 
           // 2) ルートに関わらず常に SPA 遷移で検索を確定
@@ -4279,12 +6742,15 @@
 
           // 3) 遷移が成功したら余計な replaceState はしない（URL とルーター state の乖離を避ける）
           //    もしフォーカスが残っていたら外す
-          try { si && si.blur(); } catch {}
+          // ▼ ループ処理
+          try { inputs.forEach(si => si && si.blur()); } catch {}
 
         };
 
         const onScopeChange = async () => {
-          const si = getActiveSearchInput();
+        // ▼ 複数形に変更
+          const inputs = getActiveSearchInputs();
+          const si = inputs[0]; // 代表として最初のものを使う
           const q = (() => {
             if (si && si.value && si.value.trim()) return si.value.trim();
             return buildQueryStringFromModal().trim();
@@ -4297,7 +6763,12 @@
           if (lf) params.set('lf', 'on');
 
           // 入力側を先に最新化
-          if (si) syncControlledInput(si, q);
+          // ▼ ループ処理
+          if (inputs.length > 0) {
+              inputs.forEach(input => {
+                  if (input) syncControlledInput(input, q);
+              });
+          }
 
           recordHistory(q, pf, lf);
           const path = `/search?${params.toString()}`;
@@ -4812,6 +7283,7 @@
           return { name, avatar };
         }
 
+        let profileButtonObserver = null;
         let profileButtonInstalledFor = '';
         function ensureProfileAddButton(force = false) {
           const handle = getProfileHandleFromURL();
@@ -4854,8 +7326,14 @@
           syncVisual(btn, moreBtn);
 
           // 将来のテーマ切替／hover などで X が style/class を書き換えたら追従
+          // 以前のObserverが残っていれば破棄し、リークを防ぐ
+          if (profileButtonObserver) {
+              profileButtonObserver.disconnect();
+          }
           const visMo = new MutationObserver(() => syncVisual(btn, moreBtn));
           visMo.observe(moreBtn, { attributes: true, attributeFilter: ['class', 'style'] });
+          // 新しいObserverを変数に保持
+          profileButtonObserver = visMo;
           // 状態に応じてラベルを変更
           const label = i18n.t(isAdded ? 'delete' : 'buttonAddAccount'); // 「削除」キーを流用
           btn.setAttribute('aria-label', label);
@@ -5115,6 +7593,7 @@
           return { name, url };
         }
 
+        let listButtonObserver = null;
         let listButtonInstalledAt = '';
         function ensureListAddButton(force = false) {
           if (!isListPath()) return;
@@ -5154,8 +7633,14 @@
           };
           syncVisual(btn, shareBtn);
 
+          // 以前のObserverが残っていれば破棄し、リークを防ぐ
+          if (listButtonObserver) {
+              listButtonObserver.disconnect();
+          }
           const visMo = new MutationObserver(() => syncVisual(btn, shareBtn));
           visMo.observe(shareBtn, { attributes: true, attributeFilter: ['class', 'style'] });
+          // 新しいObserverを変数に保持
+          listButtonObserver = visMo;
 
           // ▼ isAdded に応じてラベルを変更（"削除"キーを流用）
           const label = i18n.t(isAdded ? 'delete' : 'buttonAddList');
@@ -5229,8 +7714,14 @@
             const wasShown = (modal.style.display === 'flex');
             modal.style.display = shouldShow ? 'flex' : 'none';
             if (shouldShow) {
-                applyModalStoredPosition();
+                // 既に表示されている場合(wasShown=true)は、位置の強制適用をスキップする
+                if (!wasShown) {
+                    applyModalStoredPosition();
+                }
+
+                // 画面外にはみ出していないかのチェックだけは毎回行う（位置ズレ補正のため）
                 requestAnimationFrame(keepModalInViewport);
+
                 if (!wasShown) {
                     syncFromSearchBoxToModal();
                     applyScopesToControls(readScopesFromURL());
@@ -5278,8 +7769,11 @@
             syncFromModalToSearchBox();
         });
 
-        applyButton.addEventListener('click', () => executeSearch());
-        applyButton.addEventListener('click', () => { setTimeout(scanAndFilterTweets, 800); });
+        applyButton.addEventListener('click', () => {
+            // 検索確定 → ルーティング反映待ち → スキャン
+            Promise.resolve(executeSearch())
+              .finally(() => setTimeout(() => processNewTweets(true), 800));
+        });
 
         saveButton.addEventListener('click', () => {
             const q = buildQueryStringFromModal().trim();
@@ -5295,7 +7789,7 @@
                 e.preventDefault();
                 // 検索確定 → ルーティング反映待ち → スキャン
                 Promise.resolve(executeSearch())
-                  .finally(() => setTimeout(scanAndFilterTweets, 800));
+                  .finally(() => setTimeout(() => processNewTweets(true), 800));
             }
         });
 
@@ -5371,7 +7865,7 @@
           muteEnableAllEl.addEventListener('change', () => {
             saveMuteMaster(!!muteEnableAllEl.checked);
             applyMuteVisualState();   // 視覚の即時反映（リスト半透明/通常）
-            scanAndFilterTweets();    // 機能面の反映（既存）
+            rescanAllTweetsForFilter();    // 機能面の反映（既存）
           });
 
         }
@@ -5402,7 +7896,6 @@
                     onRouteChange();
                 }
             }, 60);
-
             const wrapHistory = (m) => {
                 const orig = history[m];
                 history[m] = function(...args){
@@ -5425,7 +7918,6 @@
             };
             wrapHistory('pushState'); wrapHistory('replaceState');
             window.addEventListener('popstate', fireIfChanged);
-
             document.addEventListener('click', (e) => {
                 const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
                 if (!a) return;
@@ -5444,90 +7936,370 @@
                 } catch(_) {}
             }, true);
 
-            const mo = new MutationObserver(fireIfChanged);
-            mo.observe(document.documentElement, { childList:true, subtree:true });
-            const pollId = setInterval(fireIfChanged, 300);
-            return () => { mo.disconnect(); clearInterval(pollId); };
+            return fireIfChanged;
         };
 
-        const setupObservers = () => {
-            const observer = new MutationObserver((mutations) => {
-                let searchBoxChanged=false;
-                for (const m of mutations) {
-                    if (m.addedNodes.length>0) {
-                        for (const node of m.addedNodes) {
-                            if (node.nodeType!==Node.ELEMENT_NODE) continue;
-                            if (node.matches?.('input[data-testid="SearchBox_Search_Input"]') || node.querySelector?.('input[data-testid="SearchBox_Search_Input"]')) { searchBoxChanged=true; break; }
-                        }
+        // ツイートのDOMから保存用データを抽出
+        function ft_extractTweetMeta(article, tweetId) {
+            const text = article.querySelector('[data-testid="tweetText"]')?.innerText || '';
+            const userRow = article.querySelector('[data-testid="User-Name"]');
+            let name = '', handle = '', avatar = '';
+
+            if (userRow) {
+                name = userRow.querySelector('a span')?.innerText || '';
+                const userLink = userRow.querySelector('a[href^="/"]');
+                if (userLink) {
+                    const href = userLink.getAttribute('href');
+                    if (href) {
+                        const parts = href.split('/');
+                        if (parts.length >= 2) handle = parts[1];
                     }
-                    if (searchBoxChanged) break;
                 }
-                if (searchBoxChanged) { syncFromSearchBoxToModal(); }
-                document.querySelectorAll('input[data-testid="SearchBox_Search_Input"]').forEach(input=>{
-                    if (!input.dataset.advSearchAttached) {
-                        input.dataset.advSearchAttached='true';
+            }
+            const img = article.querySelector('[data-testid="Tweet-User-Avatar"] img');
+            if (img) avatar = img.src;
 
-                        // ▼ 入力系イベントはすべて「入力中」と見なしてガード更新（IME対応）
-                        const typingEvents = ['input','keydown','keyup','compositionstart','compositionupdate','compositionend'];
-                        typingEvents.forEach(ev => input.addEventListener(ev, markTyping, { passive: true }));
+            // 投稿日時の取得
+            let postedAt = Date.now(); // フォールバックは現在時刻
+            const timeEl = article.querySelector('time');
+            if (timeEl && timeEl.getAttribute('datetime')) {
+                postedAt = new Date(timeEl.getAttribute('datetime')).getTime();
+            }
 
-                        input.addEventListener('input', () => {
-                            if (input === getActiveSearchInput()) {
-                                syncFromSearchBoxToModal();
-                            }
-                        });
-
-                        const f = input.closest('form');
-                        if (f && !f.dataset.advSearchSubmitAttached) {
-                            f.dataset.advSearchSubmitAttached = 'true';
-                            f.addEventListener('submit', () => {
-                                const val = (input.value || '').trim();
-                                const {pf, lf} = readScopesFromControls();
-                                if (val) recordHistory(val, pf, lf);
-                            }, true);
-                        }
-                    }
+            // メディア抽出ヘルパー
+            const extractMedia = (rootElement, excludeElement) => {
+                const extracted = [];
+                rootElement.querySelectorAll('div[data-testid="tweetPhoto"] img').forEach(m => {
+                    if (excludeElement && excludeElement.contains(m)) return;
+                    if (m.src) extracted.push({ type: 'image', url: m.src });
                 });
-
-                // ▼ ツイート要素が増減したかを検出（無関係なUI変化では走らせない）
-                const hasTweetMut = mutations.some(m => {
-                    const added = Array.from(m.addedNodes || []);
-                    const removed = Array.from(m.removedNodes || []);
-                    const hit = (n) => n.nodeType === Node.ELEMENT_NODE && (
-                        n.matches?.('article[data-testid="tweet"], [data-testid="cellInnerDiv"]') ||
-                        n.querySelector?.('article[data-testid="tweet"], [data-testid="cellInnerDiv"]')
-                    );
-                    return added.some(hit) || removed.some(hit);
+                rootElement.querySelectorAll('video').forEach(v => {
+                    if (excludeElement && excludeElement.contains(v)) return;
+                    if (v.poster) extracted.push({ type: 'video', url: v.poster });
                 });
-
-                // ▼ 入力中は絶対に走らせない。かつ、検索ボックス由来の変化では走らせない。
-                //    さらに、ツイート変化があった時だけ実行。
-                if (!isTyping() && !searchBoxChanged && hasTweetMut) {
-                    scanAndFilterTweets();
+                const unique = [];
+                const seen = new Set();
+                for (const m of extracted) {
+                    if (!seen.has(m.url)) { seen.add(m.url); unique.push(m); }
                 }
+                return unique;
+            };
 
-                ensureProfileAddButton();
-                ensureListAddButton();
+            // 引用コンテナ特定
+            let quoteContainer = null;
+            const quoteCandidates = Array.from(article.querySelectorAll('div[role="link"]'));
+            quoteContainer = quoteCandidates.find(el => {
+                if (el.getAttribute('tabindex') !== '0') return false;
+                const qUser = el.querySelector('[data-testid="User-Name"]');
+                if (!qUser) return false;
+                const hasText = el.querySelector('[data-testid="tweetText"]');
+                const hasMedia = el.querySelector('[data-testid="tweetPhoto"]') || el.querySelector('video');
+                return hasText || hasMedia;
             });
-            observer.observe(document.body, { childList:true, subtree:true });
 
-            installNavigationHooks(() => {
+            const mainMedia = extractMedia(article, quoteContainer);
+
+            let quote = null;
+            if (quoteContainer) {
+                const qText = quoteContainer.querySelector('[data-testid="tweetText"]')?.innerText || '';
+                let qName = '', qHandle = '', qAvatar = '';
+                const qUserRow = quoteContainer.querySelector('[data-testid="User-Name"]');
+                if (qUserRow) {
+                    qName = qUserRow.textContent.split('@')[0].trim();
+                    const handleMatch = qUserRow.innerText.match(/@([a-zA-Z0-9_]+)/);
+                    if (handleMatch) qHandle = handleMatch[1];
+                }
+                const qImg = quoteContainer.querySelector('img[src*="profile_images"]');
+                if (qImg) qAvatar = qImg.src;
+
+                let qTweetId = '';
+                const photoLink = quoteContainer.querySelector('a[href*="/status/"][href*="/photo/"]');
+                if (photoLink) {
+                    const m = photoLink.getAttribute('href').match(/\/status\/(\d+)/);
+                    if (m) qTweetId = m[1];
+                }
+
+                const qMedia = extractMedia(quoteContainer, null);
+
+                quote = {
+                    id: qTweetId,
+                    text: qText,
+                    user: { name: qName, handle: qHandle, avatar: qAvatar },
+                    media: qMedia
+                };
+            }
+
+            return {
+                id: tweetId,
+                text,
+                user: { name, handle, avatar },
+                media: mainMedia,
+                quote,
+                ts: Date.now(), // 保存操作をした日時（ソート用などで使用する場合のため残す）
+                postedAt: postedAt // 実際の投稿日時
+            };
+        }
+
+        // 特定のTweetIDを持つ記事のタグチップだけを即座に再評価・再描画する
+        function refreshTagChipsForTweet(tweetId) {
+            // data-ft-tweet-id 属性を持つ記事をピンポイントで取得
+            const articles = document.querySelectorAll(`article[data-ft-tweet-id="${tweetId}"]`);
+            articles.forEach(article => {
+                // 既存のロジックを利用してチップの着脱を再判定
+                if (typeof ft_processTweetArticle === 'function') {
+                    ft_processTweetArticle(article);
+                }
+            });
+        }
+
+        // 画面上のすべてのお気に入りボタンの状態を更新する
+        function updateAllFavoriteButtons() {
+            document.querySelectorAll('.adv-fav-btn').forEach(btn => {
+                const tid = btn.dataset.tweetId;
+                if (tid) {
+                    const active = isFavorited(tid);
+                    btn.classList.toggle('active', active);
+                }
+            });
+        }
+
+        // ★マークボタンの注入
+        function injectFavoriteButton(article, tweetId) {
+            const actionBar = article.querySelector('[role="group"]');
+            if (!actionBar) return;
+
+            // 1. シェアボタンを探す
+            let shareBtn = actionBar.querySelector('[data-testid="share-button"]');
+            if (!shareBtn) {
+                const buttons = actionBar.querySelectorAll('button');
+                for (const b of buttons) {
+                    const label = b.getAttribute('aria-label') || '';
+                    if (label.includes('共有') || label.includes('Share') || b.innerHTML.includes('M12 2.59l5.7 5.7')) {
+                        shareBtn = b;
+                        break;
+                    }
+                }
+            }
+
+            // シェアボタンが見つからない場合はフォールバック（末尾追加）
+            if (!shareBtn) {
+                if (actionBar.querySelector('.adv-fav-btn')) return;
+                const fallbackBtn = createFavButtonElement(article, tweetId, null);
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'display:flex;align-items:center;';
+                wrapper.appendChild(fallbackBtn);
+                actionBar.appendChild(wrapper);
+                return;
+            }
+
+            // 2. シェアボタンの親コンテナ（display: inline-grid のやつ）を探す
+            let shareContainer = shareBtn.closest('div[style*="display: inline-grid"]') || shareBtn.parentNode?.parentNode;
+            if (!shareContainer) shareContainer = shareBtn.parentNode;
+
+            if (shareContainer.querySelector('.adv-fav-btn')) return;
+
+            // 3. ボタン要素を作成
+            const btn = createFavButtonElement(article, tweetId, shareBtn);
+
+            // 4. 絶対配置用のスタイルを適用
+            shareContainer.style.position = 'relative';
+            shareContainer.style.overflow = 'visible';
+
+            // コンテナの左側に、星ボタンが入る分のスペース(約36px)を強制的に空ける
+            // これにより、タイムライン上で左隣のブックマークボタンと重ならなくなります
+            shareContainer.style.marginLeft = '36px';
+
+            btn.style.position = 'absolute';
+            btn.style.right = '100%';
+            btn.style.top = '50%';
+            btn.style.transform = 'translateY(-50%)';
+            btn.style.marginRight = '2px'; // シェアボタンとの隙間
+
+            // 5. 挿入
+            shareContainer.appendChild(btn);
+        }
+
+        // ボタン生成ロジックを分離（共通化）
+        function createFavButtonElement(article, tweetId, sourceBtn) {
+            const btn = document.createElement('button');
+            // adv-native-style: CSSで固定サイズを解除するためのクラス
+            btn.className = (sourceBtn ? sourceBtn.className : '') + ' adv-fav-btn adv-native-style';
+            btn.dataset.tweetId = tweetId;
+            btn.type = 'button';
+            btn.title = i18n.t('tabFavorites');
+
+            // SVG (Star)
+            btn.innerHTML = `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+            </svg>`;
+
+            const updateState = () => {
+                const active = isFavorited(tweetId);
+                btn.classList.toggle('active', active);
+            };
+            updateState();
+
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const meta = ft_extractTweetMeta(article, tweetId);
+                toggleFavorite(meta);
+                updateState();
+                ft_processTweetArticle(article);
+            });
+
+            return btn;
+        }
+
+        // ============================================================
+        //  High Performance Tweet Processor (O(1))
+        // ============================================================
+
+        function processSingleTweet(article) {
+            // 重複処理ガード
+            if (article.dataset.advProcessed) return;
+
+            // 1. 共通: ツイートIDの確保
+            const tweetId = article.dataset.ftTweetId || ft_extractTweetId(article);
+            if (!tweetId) return;
+            article.dataset.ftTweetId = tweetId;
+
+            // 2. 設定ロード (Advanced Search用) ...
+            const flags = {
+                name: document.getElementById('adv-exclude-hit-name')?.checked ?? true,
+                handle: document.getElementById('adv-exclude-hit-handle')?.checked ?? true,
+                reposts: document.getElementById('adv-filter-reposts-exclude')?.checked ?? false,
+                hashtags: document.getElementById('adv-filter-hashtags-exclude')?.checked ?? false,
+            };
+
+            // 3. Advanced Search Filtering ...
+            const masterOn = loadMuteMaster();
+            const muted = loadMuted();
+            const hasMute = masterOn && muted.length > 0;
+
+            if (flags.name || flags.handle || hasMute || flags.reposts || flags.hashtags) {
+                const enabledMuted = hasMute ? muted.filter(m => m.enabled !== false) : [];
+                const muteSettings = {
+                    hasMute,
+                    muteCI: enabledMuted.length ? new Set(enabledMuted.filter(m => !m.cs).map(m => m.word.toLowerCase())) : new Set(),
+                    muteCS: enabledMuted.length ? enabledMuted.filter(m => m.cs).map(m => m.word) : [],
+                };
+                const tokens = (flags.name || flags.handle) ? parseSearchTokens() : null;
+                try {
+                    evaluateTweetForFiltering(article, flags, muteSettings, tokens);
+                } catch (e) { console.error('[AdvSearch] Filter error', e); }
+            }
+
+            // 4. Favorite Tags Processing (タグ表示)
+            if (typeof ft_processTweetArticle === 'function') {
+                try {
+                    ft_processTweetArticle(article);
+                } catch (e) { console.error('[FT] Tag error', e); }
+            }
+
+            // 5.Inject Favorite Button
+            injectFavoriteButton(article, tweetId);
+
+            // 6. 処理済みフラグを立てる
+            article.dataset.advProcessed = '1';
+        }
+
+        // 手動実行（設定変更時など）やページ遷移時用
+        // 普段のスクロール時は Observer が processSingleTweet を呼ぶので、これは走らない
+        function processNewTweets(force = false) {
+            // 強制フラグがない場合、入力中はスキップ
+            if (!force && isTyping()) return;
+
+            // 全ツイートを取得して処理
+            const articles = document.querySelectorAll('article[data-testid="tweet"]');
+            for (const art of articles) {
+                processSingleTweet(art);
+            }
+
+            // 区切り線のクリーンアップなどはここで
+            cleanupAdjacentSeparators();
+        }
+
+        // 統合スキャン関数 ここまで ▼
+        const setupObservers = () => {
+            // URL変更検知用のプレースホルダ
+            let _fireIfChanged = () => {};
+
+            const observer = new MutationObserver((mutations) => {
+                let searchBoxChanged = false;
+
+                for (const m of mutations) {
+                    // 追加されたノードだけをループする (Differential Update)
+                    if (m.addedNodes.length > 0) {
+                        for (const node of m.addedNodes) {
+                            if (node.nodeType !== Node.ELEMENT_NODE) continue;
+
+                            // A. 検索ボックスの検知
+                            if (!searchBoxChanged) {
+                                if (node.matches?.('input[data-testid="SearchBox_Search_Input"]') ||
+                                    node.querySelector?.('input[data-testid="SearchBox_Search_Input"]')) {
+                                    searchBoxChanged = true;
+                                }
+                            }
+
+                            // B. ツイート (article) が直接追加された場合
+                            if (node.tagName === 'ARTICLE' && node.getAttribute('data-testid') === 'tweet') {
+                                processSingleTweet(node);
+                            }
+                            // C. コンテナ (div/section等) が追加され、中にツイートが含まれる場合
+                            else if (node.firstElementChild) {
+                                // cellInnerDiv もここに含まれる
+                                const nestedTweets = node.querySelectorAll('article[data-testid="tweet"]');
+                                if (nestedTweets.length > 0) {
+                                    for (const tweet of nestedTweets) {
+                                        processSingleTweet(tweet);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 検索ボックスが変わっていたらモーダルと同期
+                if (searchBoxChanged) {
+                    syncFromSearchBoxToModal();
+                }
+
+                // プロフィール/リストのボタン設置（DOM変化時は常にチェックしても軽量）
+                try {
+                    ensureProfileAddButton(false);
+                    ensureListAddButton(false);
+                } catch (_) {}
+
+                // URL変更チェック (Debounced)
+                _fireIfChanged();
+            });
+
+            const appContainer = document.querySelector('div[data-testid="app-container"]');
+            const observeTarget = appContainer || document.body;
+            observer.observe(observeTarget, { childList: true, subtree: true });
+
+            // installNavigationHooks はそのまま利用
+            _fireIfChanged = installNavigationHooks(() => {
+                // Navigation Change Logic...
+                if (profileButtonObserver) { profileButtonObserver.disconnect(); profileButtonObserver = null; }
+                if (listButtonObserver) { listButtonObserver.disconnect(); listButtonObserver = null; }
+
                 manualOverrideOpen = false;
                 reconcileUI();
                 syncFromSearchBoxToModal();
                 applyScopesToControls(readScopesFromURL());
                 updateSaveButtonState();
-                scanAndFilterTweets();
-                ensureProfileAddButton(true);
-                ensureListAddButton(true);
+
+                // ページ遷移時は強制的に全スキャン (Force)
+                processNewTweets(true);
             });
         };
-
         window.addEventListener('resize', debounce(()=>{
             if (modal.style.display === 'flex') { applyModalStoredPosition(); requestAnimationFrame(keepModalInViewport); }
             if (trigger.style.display !== 'none') { applyTriggerStoredPosition(); requestAnimationFrame(keepTriggerInViewport); }
         }, 100));
-
         loadModalState();
         reconcileUI();
         setupModalDrag();
@@ -5541,7 +8313,6 @@
                 const includeEl = document.getElementById(`adv-filter-${groupName}-include`);
                 const excludeEl = document.getElementById(`adv-filter-${groupName}-exclude`);
                 if (!includeEl || !excludeEl) return;
-
                 const handleChange = (eventSource, oppositeEl) => {
                     if (eventSource.checked) {
                         oppositeEl.disabled = true;
@@ -5549,7 +8320,6 @@
                         oppositeEl.disabled = false;
                     }
                 };
-
                 includeEl.addEventListener('change', () => handleChange(includeEl, excludeEl));
                 excludeEl.addEventListener('change', () => handleChange(excludeEl, includeEl));
             });
@@ -5557,30 +8327,91 @@
         setupExclusiveChecks();
         setupObservers();
 
+        // イベント委任のためのルート要素を取得
+        const appContainer = document.querySelector('div[data-testid="app-container"]') || document.body;
+
+        // 監視対象セレクタを結合
+        const allSearchSelectorsStr = searchInputSelectors.join(', ');
+
+        // 1. 検索ボックスの入力 (イベント委任)
+        appContainer.addEventListener('input', (e) => {
+            if (!e.target || !e.target.matches(allSearchSelectorsStr)) return;
+            const input = e.target;
+
+            if (isUpdating || modal.style.display === 'none') return;
+
+            const activeInputs = getActiveSearchInputs();
+            if (activeInputs.includes(input)) {
+                parseQueryAndApplyToModal(input.value);
+                applyScopesToControls(readScopesFromURL());
+                updateSaveButtonState();
+            }
+        });
+
+        // 2. タイピングガード (イベント委任)
+        const typingEvents = ['input', 'keydown', 'keyup', 'compositionstart', 'compositionupdate', 'compositionend'];
+        typingEvents.forEach(evName => {
+            appContainer.addEventListener(evName, (e) => {
+                if (e.target && e.target.matches(allSearchSelectorsStr)) {
+                    markTyping();
+                }
+            }, { passive: true, capture: true }); // capture: true でより確実に補足
+        });
+
+        // 3. フォーム送信 (イベント委任)
+        appContainer.addEventListener('submit', (e) => {
+            if (!e.target || !e.target.closest('form')) return;
+
+            // SearchBox_Search_Input を含むフォームか判定
+            const input = e.target.querySelector('input[data-testid="SearchBox_Search_Input"]');
+            if (input) {
+                const val = (input.value || '').trim();
+                const {pf, lf} = readScopesFromControls();
+                if (val) recordHistory(val, pf, lf);
+            }
+        }, true); // キャプチャフェーズで実行
+
         // ▼ Setup background drop zones ▼
         // （このブロックは、最初の renderAccounts / renderLists / renderSaved を呼ぶ前に置く）
         setupBackgroundDrop(tabAccountsPanel, accountsListEl,  unassignAccount);
         setupBackgroundDrop(tabListsPanel,    advListsListEl,  unassignList);
         setupBackgroundDrop(tabSavedPanel,    advSavedListEl,  unassignSaved);
 
+        // ft_init を最優先で実行し、stateをロードさせる
+        if (typeof ft_init === 'function') {
+            ft_init();
+        }
+
+        // 万が一ロード失敗していた場合に備え、デフォルトStateを注入して null落ちを防ぐ
+        if (typeof ft_state === 'undefined' || !ft_state) {
+            ft_state = ft_createDefaultState();
+        }
+
+        setupFavoritesDelegation();
+        renderFavorites(); // 初期描画 (これで ft_state がある状態で走る)
         renderHistory();
         renderSaved();
         renderAccounts();
         renderMuted();
-
         // 保存された最後のタブを読み込んでアクティブにする
         const lastTab = kv.get(LAST_TAB_KEY, 'search');
         activateTab(lastTab || 'search');
-
         (async () => {
             const input = await waitForElement(searchInputSelectors.join(','), 7000);
             if (input) {
                 syncFromSearchBoxToModal();
                 applyScopesToControls(readScopesFromURL());
                 updateSaveButtonState();
-                scanAndFilterTweets();
+                processNewTweets(true);
+
+                // force=true で初回描画を強制
                 ensureProfileAddButton(true);
                 ensureListAddButton(true);
+
+                /* --- Favorite Tags Init Scan --- */
+                try {
+                   processNewTweets(true);
+                } catch(e) { console.error('[FT] Init error', e); }
             }
         })();
     };
