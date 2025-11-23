@@ -1,10 +1,14 @@
 {
     "name": "x-advanced-search",
     "scripts": {
+        "clean": "shx rm -rf extension/content.js *.zip",
+        "prebuild": "npm run clean",
         "build": "shx cp x-advanced-search.user.js extension/content.js",
-        "watch": "onchange \"x-advanced-search.user.js\" -- npm run build"
+        "watch": "onchange \"x-advanced-search.user.js\" -- npm run build",
+        "pack": "npm run build && cd extension && bestzip ../package.zip *"
     },
     "devDependencies": {
+        "bestzip": "^2.2.1",
         "onchange": "^7.1.0",
         "shx": "^0.3.4"
     }
