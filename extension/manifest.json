@@ -4,7 +4,7 @@
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
 
-  "version": "5.2.2",
+  "version": "6.1.0",
   "author": "koyasi777",
   "homepage_url": "https://github.com/koyasi777/advanced-search-for-x-twitter",
 
@@ -54,7 +54,8 @@
         "https://twitter.com/i/tweetdeck*"
       ],
       "js": [
-        "content_script.js"
+        "content.js",
+        "adapter.js"
       ],
       "run_at": "document_idle"
     }
