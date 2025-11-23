@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.1.0
+// @version      6.1.1
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -121,7 +121,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 toastDeleted: "Deleted.",
                 toastReordered: "Order updated.",
                 emptyHistory: "No history yet.",
-                emptySaved: "No saved searches.",
+                emptySaved: "No saved searches. Add from the Save button at the bottom left of the Search tab.",
                 run: "Run",
                 delete: "Delete",
                 updated: "Updated.",
@@ -330,7 +330,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 toastDeleted: "削除しました。",
                 toastReordered: "並び順を更新しました。",
                 emptyHistory: "履歴はまだありません。",
-                emptySaved: "保存済みの検索はありません。",
+                emptySaved: "保存済みの検索はありません。検索タブの左下の保存から追加してください。",
                 run: "実行",
                 delete: "削除",
                 updated: "更新しました。",
@@ -1063,7 +1063,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
         /* ▶ Mute タブ */
         .adv-mute-add { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
-        .adv-mute-add input[type=text]{ flex:1; border-radius:8px; }
+        .adv-mute-add input[type=text]{ flex:1; border-radius:8px; padding: 6px 10px; font-size: 14px; }
         .adv-mute-list { display:flex; flex-direction:column; gap:8px; }
 
         /* ▼ グローバル無効（マスターOFF）のとき：リスト全体を淡く */
@@ -1137,9 +1137,15 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         .adv-no-anim, .adv-no-anim * {
           transition: none !important;
         }
+        #adv-history-empty:not(:empty),
+        #adv-saved-empty:not(:empty),
+        #adv-favorites-empty:not(:empty),
         #adv-accounts-empty:not(:empty),
         #adv-lists-empty:not(:empty) {
-          padding: 0 12px 12px 12px;
+          padding-inline: 7px;
+        }
+        #adv-mute-empty:not(:empty) {
+          padding-top: 6px;
         }
 
         /* ▼ マスターOFF中は、個別無効の“さらに薄く”を抑制（親の薄さのみ適用） */
@@ -2207,8 +2213,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
                 <div class="adv-tab-content" id="adv-tab-favorites">
                   <div class="adv-zoom-root">
-                    <div id="adv-favorites-empty" class="adv-item-sub"></div>
                     <div id="adv-favorites-list" class="adv-list"></div>
+                    <div id="adv-favorites-empty" class="adv-item-sub"></div>
                   </div>
                 </div>
 
@@ -3867,7 +3873,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                             <span class="ft-filter-button-label"></span>
                             <span class="ft-filter-button-caret">▾</span>
                         </button>
-                        <select id="adv-favorites-sort" class="adv-select" style="max-width:140px;">
+                        <select id="adv-favorites-sort" class="adv-select" style="max-width:140px; font-size:12px;">
                             <option value="saved_newest" data-i18n="sortSavedNewest"></option>
                             <option value="saved_oldest" data-i18n="sortSavedOldest"></option>
                             <option value="posted_newest" data-i18n="sortPostedNewest"></option>
@@ -7061,7 +7067,9 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           // Accounts tab
           {
             const host = document.getElementById('adv-accounts-list');
-            if (host && !host.previousElementSibling?.classList?.contains('adv-folder-toolbar')) {
+            const empty = document.getElementById('adv-accounts-empty');
+            const target = empty || host; // emptyがあればその前に挿入（HTML順序が empty->list なので一番上になる）
+            if (target && !target.previousElementSibling?.classList?.contains('adv-folder-toolbar')) {
               const bar = document.createElement('div');
               bar.className = 'adv-folder-toolbar';
               bar.innerHTML = `
@@ -7069,13 +7077,15 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 <input id="adv-accounts-search" class="adv-input" type="text" data-i18n-placeholder="placeholderFilterAccounts" placeholder="${i18n.t('placeholderFilterAccounts')}">
                 <button id="adv-accounts-new-folder" class="adv-chip" data-i18n="buttonAddFolder">${i18n.t('buttonAddFolder')}</button>
               `;
-              host.parentElement.insertBefore(bar, host);
+              target.parentElement.insertBefore(bar, target);
             }
           }
           // Lists tab
           {
             const host = document.getElementById('adv-lists-list');
-            if (host && !host.previousElementSibling?.classList?.contains('adv-folder-toolbar')) {
+            const empty = document.getElementById('adv-lists-empty');
+            const target = empty || host;
+            if (target && !target.previousElementSibling?.classList?.contains('adv-folder-toolbar')) {
               const bar = document.createElement('div');
               bar.className = 'adv-folder-toolbar';
               bar.innerHTML = `
@@ -7083,13 +7093,15 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 <input id="adv-lists-search" class="adv-input" type="text" data-i18n-placeholder="placeholderFilterLists" placeholder="${i18n.t('placeholderFilterLists')}">
                 <button id="adv-lists-new-folder" class="adv-chip" data-i18n="buttonAddFolder">${i18n.t('buttonAddFolder')}</button>
               `;
-              host.parentElement.insertBefore(bar, host);
+              target.parentElement.insertBefore(bar, target);
             }
           }
           // Saved tab
           {
             const host = document.getElementById('adv-saved-list');
-            if (host && !host.previousElementSibling?.classList?.contains('adv-folder-toolbar')) {
+            const empty = document.getElementById('adv-saved-empty');
+            const target = empty || host;
+            if (target && !target.previousElementSibling?.classList?.contains('adv-folder-toolbar')) {
               const bar = document.createElement('div');
               bar.className = 'adv-folder-toolbar';
               bar.innerHTML = `
@@ -7097,7 +7109,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 <input id="adv-saved-search" class="adv-input" type="text" data-i18n-placeholder="placeholderSearchSaved" placeholder="${i18n.t('placeholderSearchSaved')}">
                 <button id="adv-saved-new-folder" class="adv-chip" data-i18n="buttonAddFolder">${i18n.t('buttonAddFolder')}</button>
               `;
-              host.parentElement.insertBefore(bar, host);
+              target.parentElement.insertBefore(bar, target);
             }
           }
         }
