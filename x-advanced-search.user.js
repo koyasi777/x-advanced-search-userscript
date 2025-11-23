@@ -38,6 +38,8 @@
 // @license      MIT
 // @homepageURL  https://github.com/koyasi777/advanced-search-for-x-twitter
 // @supportURL   https://github.com/koyasi777/advanced-search-for-x-twitter/issues
+// @updateURL    https://raw.githubusercontent.com/koyasi777/advanced-search-for-x-twitter/main/x-advanced-search.user.js
+// @downloadURL  https://raw.githubusercontent.com/koyasi777/advanced-search-for-x-twitter/main/x-advanced-search.user.js
 // ==/UserScript==
 
 const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
