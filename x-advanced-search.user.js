@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.0.0
+// @version      6.1.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -39,7 +39,7 @@
 // @supportURL   https://github.com/koyasi777/advanced-search-for-x-twitter/issues
 // ==/UserScript==
 
-(function() {
+const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
     'use strict';
 
     if (window.__X_ADV_SEARCH_INITED__) return;
@@ -8421,4 +8421,14 @@
     } else {
         initialize();
     }
-})();
+};
+
+// --- 環境判定ブートローダー ---
+// 1. UserScript環境: GM_info があり、かつアダプターによる遅延実行待ち(window.__X_ADV_SEARCH_MAIN__)ではない場合
+if (typeof GM_info !== 'undefined' && typeof window.__X_ADV_SEARCH_MAIN__ === 'undefined') {
+    __X_ADV_SEARCH_MAIN_LOGIC__();
+}
+// 2. 拡張機能環境: adapter.js から呼ばれるのを待つために window に公開
+else {
+    window.__X_ADV_SEARCH_MAIN__ = __X_ADV_SEARCH_MAIN_LOGIC__;
+}
