@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.1.1
+// @version      6.1.2
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -217,6 +217,9 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 placeholderSettingsJSON: "Paste backup JSON here...",
                 tooltipSettings: "Open settings",
                 toastImported: "Imported.",
+                alertInvalidJSON: "Invalid JSON file.",
+                alertInvalidData: "Invalid data format.",
+                alertInvalidApp: 'This file is not a valid backup for "Advanced Search for X".',
                 toastExported: "Exported to file.",
                 buttonReset: "Reset all data",
                 confirmResetAll: "Reset all data? This cannot be undone.",
@@ -427,6 +430,9 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 tooltipSettings: "設定を開く",
                 toastImported: "インポートしました。",
                 toastExported: "ファイルにエクスポートしました。",
+                alertInvalidJSON: "無効なJSONファイルです。",
+                alertInvalidData: "無効なデータ形式です。",
+                alertInvalidApp: "このファイルは「Advanced Search for X」のバックアップデータではありません。",
                 buttonReset: "すべて初期化",
                 confirmResetAll: "すべてのデータを初期化しますか？この操作は元に戻せません。",
                 toastReset: "すべてのデータを初期化しました。",
@@ -4222,6 +4228,9 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           };
 
           const data = {
+            // アプリ識別子
+            appName: 'AdvancedSearchForX',
+
             v: SETTINGS_EXPORT_VERSION,
 
             // 言語・除外設定・ミュート
@@ -4286,13 +4295,29 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             try {
                 data = JSON.parse(text);
             } catch (_) {
-                alert('Invalid JSON');
+                alert(i18n.t('alertInvalidJSON'));
                 return false;
             }
             if (!data || typeof data !== 'object') {
-                alert('Invalid JSON');
+                alert(i18n.t('alertInvalidData'));
                 return false;
             }
+
+            // バリデーションロジック
+            // 1. アプリ識別子 (appName) があるかチェック
+            const hasSignature = (data.appName === 'AdvancedSearchForX');
+
+            // 2. 識別子がない場合、このアプリ特有の構造（vプロパティ + 主要な配列のいずれか）を持っているかチェック（後方互換性救済）
+            const hasValidStructure = (
+                typeof data.v === 'number' && 
+                (Array.isArray(data.history) || Array.isArray(data.saved) || Array.isArray(data.favorites) || typeof data.tabs === 'object')
+            );
+
+            if (!hasSignature && !hasValidStructure) {
+                alert(i18n.t('alertInvalidApp'));
+                return false;
+            }
+            // バリデーション終了
 
             // --- 基本設定（v1/v2 共通） ---
             if (data.lang !== undefined) {
