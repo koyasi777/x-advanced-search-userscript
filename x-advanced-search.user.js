@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.1.3
+// @version      6.1.5
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -2279,6 +2279,102 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         }
     };
 
+    /**
+     * Mobile Drag & Drop Shim
+     * タッチイベントを検知し、HTML5 Drag & Dropイベント(dragstart, dragover, drop等)を発火させる
+     */
+    function enableMobileDragSupport() {
+        let dragSource = null;
+        let lastTarget = null;
+        // DataTransferのデータを保持する擬似ストア
+        let dataTransferStore = {};
+
+        // 擬似的な DragEvent を作成するヘルパー
+        const createEvent = (type, touch, target) => {
+            const event = new CustomEvent(type, { bubbles: true, cancelable: true });
+            // dataTransfer オブジェクトを擬似的に再現
+            event.dataTransfer = {
+                effectAllowed: 'move',
+                dropEffect: 'move',
+                types: Object.keys(dataTransferStore),
+                setData: (format, data) => { dataTransferStore[format] = data; },
+                getData: (format) => dataTransferStore[format],
+                clearData: () => { dataTransferStore = {}; }
+            };
+            // 座標情報を付与 (getDragAfterElement 等の計算に必要)
+            event.clientX = touch.clientX;
+            event.clientY = touch.clientY;
+            event.pageX = touch.pageX;
+            event.pageY = touch.pageY;
+            // ターゲット要素を上書き設定 (CustomEventの制約回避)
+            Object.defineProperty(event, 'target', { value: target, enumerable: true });
+            return event;
+        };
+
+        const onTouchStart = (e) => {
+            // ハンドル、またはドラッグ可能な要素自体へのタッチか判定
+            const handle = e.target.closest('.adv-item-handle, .adv-folder-header, .adv-tab-btn');
+            if (!handle) return;
+
+            const draggable = handle.closest('[draggable="true"]');
+            if (!draggable) return;
+
+            dragSource = draggable;
+            dataTransferStore = {}; // データ初期化
+
+            const touch = e.changedTouches[0];
+            const evt = createEvent('dragstart', touch, dragSource);
+            dragSource.dispatchEvent(evt);
+        };
+
+        const onTouchMove = (e) => {
+            if (!dragSource) return;
+            // スクロール防止（CSSのtouch-actionで防げない場合用）
+            if (e.cancelable) e.preventDefault();
+
+            const touch = e.changedTouches[0];
+            // 指の下にある要素を取得
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (!element) return;
+
+            // dragover は頻繁に発火させる必要がある
+            // ターゲットが変わった場合は dragenter/dragleave も検討すべきだが、
+            // このアプリのロジック(並び替え)では dragover がメインのため、そこに集中する
+
+            // 既存ロジックが .closest('.adv-item') 等を使っているため、適切なターゲットに対して発火
+            // ここでは elementFromPoint で取れた要素に対して dragover を投げる
+            const evt = createEvent('dragover', touch, element);
+            element.dispatchEvent(evt);
+            lastTarget = element;
+        };
+
+        const onTouchEnd = (e) => {
+            if (!dragSource) return;
+            const touch = e.changedTouches[0];
+
+            // 最後に指があった要素に対して drop を発火
+            if (lastTarget) {
+                const evtDrop = createEvent('drop', touch, lastTarget);
+                lastTarget.dispatchEvent(evtDrop);
+            }
+
+            const evtEnd = createEvent('dragend', touch, dragSource);
+            dragSource.dispatchEvent(evtEnd);
+
+            // クリーンアップ
+            dragSource = null;
+            lastTarget = null;
+            dataTransferStore = {};
+        };
+
+        // モーダル全体、あるいは document に対してリスナーを登録
+        // イベント委譲で処理するため、動的に追加される要素にも対応可能
+        const root = document.getElementById('advanced-search-modal') || document.body;
+        root.addEventListener('touchstart', onTouchStart, { passive: false });
+        root.addEventListener('touchmove', onTouchMove, { passive: false });
+        root.addEventListener('touchend', onTouchEnd);
+    }
+
     function decodeURIComponentSafe(s) {
       try { return decodeURIComponent(s); } catch { return s; }
     }
@@ -2566,12 +2662,15 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             padding: 0 8px 0 6px;
             gap: 4px;
             align-items: stretch;
-
-            /* 幅不足の時は隠さず、2行にする */
             flex-wrap: wrap;
-
-            /* 幅検知の基準にする */
             container-type: inline-size;
+
+            /* ▼ 固定表示設定 */
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: var(--modal-bg, #000);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.27);
         }
 
         .adv-tab-btn {
@@ -2646,7 +2745,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         .adv-list { display:flex; flex-direction:column; gap:8px; }
         .adv-item { position: relative; border:1px solid var(--modal-input-border,#38444d); background:var(--modal-input-bg,#202327); border-radius:8px; padding:8px; display:flex; gap:8px; align-items:flex-start; }
         .adv-item.dragging { opacity:.6; }
-        .adv-item-handle { cursor:grab; user-select:none; padding:4px 6px; border-radius:6px; border:1px dashed var(--modal-border,#333); }
+        .adv-item-handle { cursor:grab; user-select:none; padding:4px 6px; border-radius:6px; border:1px dashed var(--modal-border,#333); touch-action: none; }
         .adv-item-avatar { width:36px; height:36px; border-radius:9999px; object-fit:cover; flex:0 0 auto; background:var(--modal-border,#333); }
         a.adv-link { color: inherit; text-decoration: none; }
         a.adv-link:hover { text-decoration: underline; cursor: pointer; }
@@ -2870,6 +2969,23 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           /* 検索アイコンは stroke="currentColor" を使っているので配色は自動追従 */
         }
 
+        /* リストコンテナ自体に十分な高さを確保し、下部にドロップ用の余白を強制的に広げる */
+        #adv-accounts-list,
+        #adv-lists-list,
+        #adv-saved-list {
+            min-height: 200px;      /* アイテムが空でもドロップできるようにする */
+            padding-bottom: 20px;
+            box-sizing: content-box; /* padding分を確実に高さに加える */
+        }
+
+        /* 未分類セクションが空の時も、ドラッグ中は少し広げて受け入れやすくする */
+        body.adv-dragging .adv-unassigned {
+            min-height: 60px;
+            background-color: rgba(128, 128, 128, 0.05); /* 視覚的にエリアを暗示 */
+            border-radius: 8px;
+            transition: min-height 0.2s ease, background-color 0.2s;
+        }
+
         /* === Folders === */
         .adv-folder { border:1px solid var(--modal-input-border,#38444d); border-radius:10px; margin-bottom:10px; }
         .adv-folder-header {
@@ -2884,7 +3000,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         .adv-folder-collapsed .adv-list { display:none; }
 
         /* ▶ Folder headers: show grab cursor except on action buttons */
-        .adv-folder-header { cursor: grab; }
+        .adv-folder-header { cursor: grab; touch-action: none; }
         .adv-folder-header:active { cursor: grabbing; }
 
         /* ボタン上では通常のポインタ（=ドラッグ開始させない見た目） */
@@ -3200,6 +3316,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           white-space: nowrap;
           background: rgba(255, 255, 255, 0.03); /* これは静的なまま (ほぼ透明なので) */
           flex: 0 0 auto;
+          order: 9999;
         }
         .ft-tag-chip-label {
           max-width: 150px;
@@ -4400,15 +4517,50 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             return article.closest('div[data-testid="cellInnerDiv"]') || article;
         }
 
+        // タグチップの挿入場所（ヘッダーメタ情報行）を特定する関数
         function ft_findHeaderMetaContainer(article) {
-            const timeEl = article.querySelector('time');
-            if (!timeEl) return null;
-            const anchor = timeEl.closest('a');
-            if (!anchor) return null;
-            let container = anchor.parentElement;
-            if (container && container.parentElement) container = container.parentElement;
-            if (!container || !container.parentElement) return null;
-            return container.parentElement;
+            // 1. User-Name を起点にする (タイムラインでも詳細表示でも必ずヘッダーに存在する)
+            const userName = article.querySelector('[data-testid="User-Name"]');
+
+            if (userName) {
+                // User-Name の親を遡り、ハンドルネーム(@...)や時間表示を含む「行コンテナ」を探す
+                // 構造: [Container] -> [NameWrapper] -> [User-Name]
+                //             L-> [HandleWrapper] -> [@handle]
+                let p = userName.parentElement;
+
+                // 親を数回遡って、兄弟要素に「@から始まるテキスト（ハンドル）」を含むコンテナを探す
+                // ※通常は2～3階層上
+                while (p && p !== article) {
+                    // 自分の親の直下(兄弟要素)に、自分以外で「@」から始まるテキストを持つ要素があるか確認
+                    const hasHandleSibling = Array.from(p.children).some(sib => {
+                        // 自分自身のラッパーは除外
+                        if (sib.contains(userName)) return false;
+                        // テキストを取得して @ で始まっているか判定
+                        const txt = sib.innerText || '';
+                        return txt.trim().startsWith('@');
+                    });
+
+                    if (hasHandleSibling) {
+                        // ハンドルネームと並んでいるコンテナが見つかったら、ここが挿入場所
+                        return p;
+                    }
+                    p = p.parentElement;
+                }
+            }
+
+            // 2. フォールバック: 従来のTime検索 (ただし引用ツイート内のTimeは厳密に除外する)
+            const allTimes = article.querySelectorAll('time');
+            for (const timeEl of allTimes) {
+                // 引用(role="link")の中にあるtimeは無視してスキップ
+                if (timeEl.closest('div[role="link"]')) continue;
+
+                const anchor = timeEl.closest('a');
+                if (anchor && anchor.parentElement && anchor.parentElement.parentElement) {
+                    return anchor.parentElement.parentElement;
+                }
+            }
+
+            return null;
         }
 
         // ------------- タグチップ描画（イベント委譲対応） ------------- //
@@ -4443,12 +4595,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             const headerRow = ft_findHeaderMetaContainer(article);
             if (!headerRow) return;
 
+            // ▼▼▼ スタイルの適用 ▼▼▼
             headerRow.style.display = 'flex';
             headerRow.style.flexDirection = 'row';
-            headerRow.style.flexWrap = 'nowrap';
             headerRow.style.alignItems = 'center';
             headerRow.style.justifyContent = 'flex-start';
             headerRow.style.columnGap = '4px';
+
+            // スペースが足りない場合に折り返しを許可する
+            headerRow.style.flexWrap = 'wrap';
+            // 折り返した際、上下の行に隙間を作る
+            headerRow.style.rowGap = '8px';
 
             let existing = headerRow.querySelector('.ft-tag-chip');
             const chip = ft_buildTagChip(tweetId);
@@ -5091,11 +5248,18 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             };
 
             const onDragOver = (ev) => {
+                // カーソルが .adv-folder (フォルダー) の上にある場合は、問答無用で背景ハイライトを消して終わる
+                if (ev.target.closest('.adv-folder')) {
+                    feedbackTargets.forEach(t => t.classList.remove(feedbackClass));
+                    return;
+                }
                 // dropイベントを発火させるために、dragoverでpreventDefaultが必要
                 // アイテムであり、ターゲットが panel/host/zoomRoot 自身の場合のみ許可
                 if (eventTargets.includes(ev.target) && ev.dataTransfer.types && !ev.dataTransfer.types.includes(SECT_MIME) && ev.dataTransfer.types.includes('text/plain')) {
                     ev.preventDefault();
                     ev.stopPropagation();
+                    /* ▼▼▼ 背景（隙間）にいるなら、フォルダーのハイライトは強制的に消す ▼▼▼ */
+                    document.querySelectorAll('.adv-folder[data-drop="1"]').forEach(el => delete el.dataset.drop);
                     // 破線は feedbackTargets に付け続ける
                     feedbackTargets.forEach(t => t.classList.add(feedbackClass));
                 } else {
@@ -5130,6 +5294,23 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 target.addEventListener('drop', onDrop);
             });
         };
+
+        // ドラッグ終了時（成功・キャンセル問わず）に、強制的にすべてのドロップハイライトを解除する
+        document.addEventListener('dragend', () => {
+            // 背景の破線を消す
+            document.querySelectorAll('.adv-bg-drop-active').forEach(el => {
+                el.classList.remove('adv-bg-drop-active');
+            });
+            // フォルダーヘッダー等のハイライトも念のため消す
+            document.querySelectorAll('[data-drop="1"]').forEach(el => {
+                delete el.dataset.drop;
+            });
+            // ドラッグ中のクラスも念のため消す
+            document.querySelectorAll('.adv-item.dragging').forEach(el => {
+                el.classList.remove('dragging');
+            });
+            document.body.classList.remove('adv-dragging');
+        });
 
         // --- generic unassign helper (de-duplicate) ---
         // Remove an item from all folders under FOLDERS_KEY,
@@ -7560,6 +7741,9 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             list.addEventListener('dragover', ev => {
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return; // セクションD&Dは無視
               ev.preventDefault(); ev.stopPropagation();
+              /* ▼▼▼ ここでフォルダーや背景のハイライトを強制的に消す ▼▼▼ */
+              document.querySelectorAll('.adv-folder[data-drop="1"]').forEach(el => delete el.dataset.drop);
+              document.querySelectorAll('.adv-bg-drop-active').forEach(el => el.classList.remove('adv-bg-drop-active'));
               const dragging = document.querySelector('.adv-item.dragging');
               if (!dragging) return;
               const after = getDragAfterElement(list, ev.clientY);
@@ -7685,11 +7869,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             section.addEventListener('dragover', (ev) => {
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
                 ev.preventDefault();
+                ev.stopPropagation();
                 const dragging = host.querySelector('.dragging-folder');
                 if (!dragging || dragging === section) return;
                 const after = getSectionAfterElement(host, ev.clientY);
                 if (after == null) host.appendChild(dragging);
                 else host.insertBefore(dragging, after);
+              } else {
+                 ev.preventDefault();
+                 ev.stopPropagation(); // これで「枠線」に乗った時に背景が光るのを防ぐ
+                 // ここでは section.dataset.drop='1' はしない（中身のリストに入った時に光らせたいので）
+                 // もし枠線でも光らせたい場合はここに dataset.drop='1' を書いてもOK
               }
             });
 
@@ -7745,6 +7935,9 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             header.addEventListener('dragover', ev => {
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
               ev.preventDefault();
+              ev.stopPropagation();
+              /* ▼▼▼ 背景の破線を強制的に消す ▼▼▼ */
+              document.querySelectorAll('.adv-bg-drop-active').forEach(el => el.classList.remove('adv-bg-drop-active'));
               // 排他制御: 他のフォルダのハイライトを消す
               document.querySelectorAll('.adv-folder[data-drop="1"]').forEach(el => {
                 if (el !== section) delete el.dataset.drop;
@@ -7773,6 +7966,9 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return; // ガード追加
               ev.preventDefault();
               ev.stopPropagation(); // 伝播停止も追加
+
+              /* ▼▼▼ 背景の破線を強制的に消す ▼▼▼ */
+              document.querySelectorAll('.adv-bg-drop-active').forEach(el => el.classList.remove('adv-bg-drop-active'));
 
               // 排他制御: 他のフォルダのハイライトを消す
               document.querySelectorAll('.adv-folder[data-drop="1"]').forEach(el => {
@@ -9307,7 +9503,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           if (!isListPath()) return;
           if (!force && listButtonInstalledAt === location.pathname) return;
 
-          const shareBtn = document.querySelector('button[data-testid="share-button"]');
+          // 可視状態にあるシェアボタンを厳密に特定する
+          const shareBtns = Array.from(document.querySelectorAll('button[data-testid="share-button"]'));
+          // offsetParent が null でない（＝表示されている）ボタンを探す
+          // SP時は TopNavBar 内にあることが多いため、それを優先しても良いが、可視チェックが最も汎用的
+          const shareBtn = shareBtns.find(btn => btn.offsetParent !== null);
           if (!shareBtn) return;
 
           const parent = shareBtn.parentElement;
@@ -10101,6 +10301,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         renderSaved();
         renderAccounts();
         renderMuted();
+        // スマホ対応用：タッチ操作をドラッグ操作へ変換するリスナーを登録
+        enableMobileDragSupport();
         // 保存された最後のタブを読み込んでアクティブにする
         const lastTab = kv.get(LAST_TAB_KEY, 'search');
         activateTab(lastTab || 'search');
