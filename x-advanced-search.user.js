@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.1.5
+// @version      6.1.6
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -216,6 +216,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "Close",
                 labelUILang: "Interface language",
                 optUILangAuto: "Auto",
+                labelInitialTab: "Startup tab",
+                optInitialTabLast: "Last opened (Default)",
                 labelImportExport: "Import / Export",
                 placeholderSettingsJSON: "Paste backup JSON here...",
                 tooltipSettings: "Open settings",
@@ -428,6 +430,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "閉じる",
                 labelUILang: "UI 言語",
                 optUILangAuto: "自動判定",
+                labelInitialTab: "起動時に開くタブ",
+                optInitialTabLast: "前回のタブ (デフォルト)",
                 labelImportExport: "インポート / エクスポート",
                 placeholderSettingsJSON: "ここにバックアップ JSON を貼り付けてください...",
                 tooltipSettings: "設定を開く",
@@ -638,6 +642,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "关闭",
                 labelUILang: "界面语言",
                 optUILangAuto: "自动",
+                labelInitialTab: "启动时打开的标签页",
+                optInitialTabLast: "上次打开的标签页 (默认)",
                 labelImportExport: "导入 / 导出",
                 placeholderSettingsJSON: "请在此粘贴备份 JSON...",
                 tooltipSettings: "打开设置",
@@ -847,6 +853,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "關閉",
                 labelUILang: "介面語言",
                 optUILangAuto: "自動",
+                labelInitialTab: "啟動時開啟的分頁",
+                optInitialTabLast: "上次開啟的分頁 (預設)",
                 labelImportExport: "匯入 / 匯出",
                 placeholderSettingsJSON: "請在此貼上備份 JSON...",
                 tooltipSettings: "打開設定",
@@ -1056,6 +1064,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "닫기",
                 labelUILang: "UI 언어",
                 optUILangAuto: "자동",
+                labelInitialTab: "시작 시 열 탭",
+                optInitialTabLast: "마지막에 연 탭 (기본)",
                 labelImportExport: "가져오기 / 내보내기",
                 placeholderSettingsJSON: "백업 JSON을 여기에 붙여넣으세요...",
                 tooltipSettings: "설정 열기",
@@ -1268,6 +1278,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "Fermer",
                 labelUILang: "Langue de l'interface",
                 optUILangAuto: "Auto",
+                labelInitialTab: "Onglet au démarrage",
+                optInitialTabLast: "Dernier ouvert (Défaut)",
                 labelImportExport: "Importer / Exporter",
                 placeholderSettingsJSON: "Collez le JSON de sauvegarde ici...",
                 tooltipSettings: "Ouvrir les paramètres",
@@ -1477,6 +1489,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "Cerrar",
                 labelUILang: "Idioma de interfaz",
                 optUILangAuto: "Automático",
+                labelInitialTab: "Pestaña de inicio",
+                optInitialTabLast: "Última abierta (Predeterminado)",
                 labelImportExport: "Importar / Exportar",
                 placeholderSettingsJSON: "Pega el JSON de respaldo aquí...",
                 tooltipSettings: "Abrir configuración",
@@ -1686,6 +1700,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "Schließen",
                 labelUILang: "Oberflächensprache",
                 optUILangAuto: "Automatisch",
+                labelInitialTab: "Start-Tab",
+                optInitialTabLast: "Zuletzt geöffnet (Standard)",
                 labelImportExport: "Import / Export",
                 placeholderSettingsJSON: "Backup-JSON hier einfügen...",
                 tooltipSettings: "Einstellungen öffnen",
@@ -1895,6 +1911,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "Fechar",
                 labelUILang: "Idioma da interface",
                 optUILangAuto: "Automático",
+                labelInitialTab: "Aba inicial",
+                optInitialTabLast: "Última aberta (Padrão)",
                 labelImportExport: "Importar / Exportar",
                 placeholderSettingsJSON: "Cole o JSON de backup aqui...",
                 tooltipSettings: "Abrir configurações",
@@ -2104,6 +2122,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "Закрыть",
                 labelUILang: "Язык интерфейса",
                 optUILangAuto: "Авто",
+                labelInitialTab: "Вкладка при запуске",
+                optInitialTabLast: "Последняя открытая (По умолч.)",
                 labelImportExport: "Импорт / Экспорт",
                 placeholderSettingsJSON: "Вставьте JSON резервной копии...",
                 tooltipSettings: "Открыть настройки",
@@ -4092,6 +4112,20 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                         </select>
                     </div>
 
+                      <div class="adv-settings-group">
+                          <label for="adv-settings-initial-tab" data-i18n="labelInitialTab"></label>
+                          <select id="adv-settings-initial-tab">
+                              <option value="last" data-i18n="optInitialTabLast"></option>
+                              <option value="search" data-i18n="tabSearch"></option>
+                              <option value="history" data-i18n="tabHistory"></option>
+                              <option value="saved" data-i18n="tabSaved"></option>
+                              <option value="favorites" data-i18n="tabFavorites"></option>
+                              <option value="mute" data-i18n="tabMute"></option>
+                              <option value="lists" data-i18n="tabLists"></option>
+                              <option value="accounts" data-i18n="tabAccounts"></option>
+                          </select>
+                      </div>
+
                       <div class="adv-settings-section-header" data-i18n="settingsTitleFeatures"></div>
                       <div class="adv-settings-group">
                         <div class="adv-settings-toggle-row">
@@ -5153,6 +5187,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
         const settingsModal = document.getElementById('adv-settings-modal');
         const settingsLangSel = document.getElementById('adv-settings-lang');
+        const settingsInitialTabSel = document.getElementById('adv-settings-initial-tab');
         const settingsFileInput = document.getElementById('adv-settings-file-input');
         const settingsOpenBtn = document.getElementById('adv-settings-button');
         const settingsCloseBtn = document.getElementById('adv-settings-close');
@@ -6013,6 +6048,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
         const MODAL_STATE_KEY   = 'advSearchModalState_v3.2';
         const TRIGGER_STATE_KEY = 'advSearchTriggerState_v1.0';
+        const INITIAL_TAB_KEY   = 'advInitialTab_v1';
         const HISTORY_KEY = 'advSearchHistory_v2';
         const SAVED_KEY   = 'advSearchSaved_v2';
         const SECRET_KEY  = 'advSearchSecretMode_v1';
@@ -6087,6 +6123,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
             // 言語・除外設定・ミュート
             lang: kv.get(LANG_OVERRIDE_KEY, ''),
+            initialTab: kv.get(INITIAL_TAB_KEY, 'last'),
             excludeFlags: loadExcludeFlags(),
             muteMaster: loadMuteMaster(),
             muted: loadMuted(),
@@ -6174,6 +6211,10 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             // --- 基本設定（v1/v2 共通） ---
             if (data.lang !== undefined) {
                 try { kv.set(LANG_OVERRIDE_KEY, data.lang || ''); } catch (_) {}
+            }
+
+            if (data.initialTab !== undefined) {
+                try { kv.set(INITIAL_TAB_KEY, data.initialTab || 'last'); } catch (_) {}
             }
 
             if (data.excludeFlags) {
@@ -6932,6 +6973,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             if (settingsLangSel) settingsLangSel.value = override || '';
           } catch (_) {}
 
+          try {
+            const initTab = kv.get(INITIAL_TAB_KEY, 'last');
+            if (settingsInitialTabSel) settingsInitialTabSel.value = initTab;
+          } catch (_) {}
+
           // タブ表示設定の読み込みと設定
           try {
             const visibility = loadTabsVisibility();
@@ -7068,6 +7114,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
               MODAL_STATE_KEY,
               TRIGGER_STATE_KEY,
               HISTORY_KEY,
+              INITIAL_TAB_KEY,
               SAVED_KEY,
               SECRET_KEY,
               MUTE_KEY,
@@ -7223,6 +7270,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             try { renderMuted(); } catch (_) {}
             try { renderFavorites(); } catch (_) {}
           });
+        }
+
+        if (settingsInitialTabSel) {
+            settingsInitialTabSel.addEventListener('change', () => {
+                kv.set(INITIAL_TAB_KEY, settingsInitialTabSel.value);
+            });
         }
 
         const loadSecret = () => { try { return kv.get(SECRET_KEY, '0') === '1'; } catch(_) { return false; } };
@@ -10304,8 +10357,20 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         // スマホ対応用：タッチ操作をドラッグ操作へ変換するリスナーを登録
         enableMobileDragSupport();
         // 保存された最後のタブを読み込んでアクティブにする
-        const lastTab = kv.get(LAST_TAB_KEY, 'search');
-        activateTab(lastTab || 'search');
+        const initTabSetting = kv.get(INITIAL_TAB_KEY, 'last'); // 設定を取得 (デフォルトは 'last')
+        let targetTab = 'search';
+
+        if (initTabSetting === 'last') {
+            // 'last' の場合は前回開いていたタブを使う
+            targetTab = kv.get(LAST_TAB_KEY, 'search');
+        } else {
+            // それ以外の場合は指定されたタブを使う
+            targetTab = initTabSetting;
+        }
+
+        // もし指定されたタブが設定で「非表示」になっている場合、activateTab 内部のロジックで
+        // 自動的に 'search' 等の表示可能なタブにフォールバックされるため、ここでは単純に渡すだけでOK
+        activateTab(targetTab || 'search');
         (async () => {
             const input = await waitForElement(searchInputSelectors.join(','), 7000);
             if (input) {
