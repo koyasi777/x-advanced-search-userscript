@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.1.9
+// @version      6.2.0
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -4577,10 +4577,6 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             return null;
         }
 
-        function ft_getTweetCardRoot(article) {
-            return article.closest('div[data-testid="cellInnerDiv"]') || article;
-        }
-
         // タグチップの挿入場所（ヘッダーメタ情報行）を特定する関数
         function ft_findHeaderMetaContainer(article) {
             // 1. User-Name を起点にする (タイムラインでも詳細表示でも必ずヘッダーに存在する)
@@ -5869,8 +5865,6 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
             return row;
         }
-
-        const advFavoritesListEl = document.getElementById('adv-favorites-list');
 
         // お気に入りタブ専用の現在の絞り込み状態（メモリ保持）
         let favFilterTagId = 'ALL'; // 'ALL', 'UNCAT', or tagId
