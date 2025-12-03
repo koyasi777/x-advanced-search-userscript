@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.2.0
+// @version      6.2.1
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -158,7 +158,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 emptyMuted: "No muted words.",
                 mutedListTitle: "Muted words",
                 mutedListHeading: "Muted items",
+                optMuteHidden: "Hidden",
+                optMuteCollapsed: "Collapsed",
+                muteLabel: "Muted: ",
+                buttonShow: "Show",
                 muteHit: "Mute hits in body",
+                buttonRemute: "Re-mute",
                 buttonImport: "Import",
                 buttonExport: "Export",
 
@@ -372,7 +377,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 emptyMuted: "ミュート語句はまだありません。",
                 mutedListTitle: "ミュート語句",
                 mutedListHeading: "ミュート一覧",
+                optMuteHidden: "非表示",
+                optMuteCollapsed: "折りたたみ",
+                muteLabel: "ミュート: ",
+                buttonShow: "表示する",
                 muteHit: "本文でのヒットをミュート",
+                buttonRemute: "再ミュート",
                 buttonImport: "インポート",
                 buttonExport: "エクスポート",
 
@@ -584,7 +594,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 emptyMuted: "暂无屏蔽词。",
                 mutedListTitle: "屏蔽词",
                 mutedListHeading: "屏蔽列表",
+                optMuteHidden: "隐藏",
+                optMuteCollapsed: "折叠",
+                muteLabel: "已屏蔽: ",
+                buttonShow: "显示",
                 muteHit: "屏蔽正文匹配项",
+                buttonRemute: "重新屏蔽",
                 buttonImport: "导入",
                 buttonExport: "导出",
 
@@ -795,7 +810,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 emptyMuted: "暫無靜音詞彙。",
                 mutedListTitle: "靜音詞彙",
                 mutedListHeading: "靜音清單",
+                optMuteHidden: "隱藏",
+                optMuteCollapsed: "收合",
+                muteLabel: "已靜音: ",
+                buttonShow: "顯示",
                 muteHit: "靜音內文相符項目",
+                buttonRemute: "重新靜音",
                 buttonImport: "匯入",
                 buttonExport: "匯出",
 
@@ -1006,7 +1026,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 emptyMuted: "뮤트된 단어가 없습니다.",
                 mutedListTitle: "뮤트 단어",
                 mutedListHeading: "뮤트 목록",
+                optMuteHidden: "숨기기",
+                optMuteCollapsed: "접기",
+                muteLabel: "뮤트됨: ",
+                buttonShow: "표시",
                 muteHit: "본문 일치 항목 뮤트",
+                buttonRemute: "다시 뮤트",
                 buttonImport: "가져오기",
                 buttonExport: "내보내기",
 
@@ -1220,7 +1245,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 emptyMuted: "Aucun mot masqué.",
                 mutedListTitle: "Mots masqués",
                 mutedListHeading: "Liste masquée",
+                optMuteHidden: "Masqué",
+                optMuteCollapsed: "Réduit",
+                muteLabel: "Masqué : ",
+                buttonShow: "Afficher",
                 muteHit: "Masquer les résultats dans le texte",
+                buttonRemute: "Masquer à nouveau",
                 buttonImport: "Importer",
                 buttonExport: "Exporter",
 
@@ -1431,7 +1461,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 emptyMuted: "No hay palabras silenciadas.",
                 mutedListTitle: "Palabras silenciadas",
                 mutedListHeading: "Lista de silenciados",
+                optMuteHidden: "Oculto",
+                optMuteCollapsed: "Colapsado",
+                muteLabel: "Silenciado: ",
+                buttonShow: "Mostrar",
                 muteHit: "Silenciar coincidencias en cuerpo",
+                buttonRemute: "Volver a silenciar",
                 buttonImport: "Importar",
                 buttonExport: "Exportar",
 
@@ -1642,7 +1677,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 emptyMuted: "Keine stummgeschalteten Wörter.",
                 mutedListTitle: "Stummgeschaltete Wörter",
                 mutedListHeading: "Stummgeschaltete Liste",
+                optMuteHidden: "Verborgen",
+                optMuteCollapsed: "Eingeklappt",
+                muteLabel: "Stummgeschaltet: ",
+                buttonShow: "Anzeigen",
                 muteHit: "Treffer im Text stummschalten",
+                buttonRemute: "Erneut stummschalten",
                 buttonImport: "Importieren",
                 buttonExport: "Exportieren",
 
@@ -1853,7 +1893,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 emptyMuted: "Nenhuma palavra silenciada.",
                 mutedListTitle: "Palavras silenciadas",
                 mutedListHeading: "Lista de silenciados",
+                optMuteHidden: "Oculto",
+                optMuteCollapsed: "Colapsado",
+                muteLabel: "Silenciado: ",
+                buttonShow: "Mostrar",
                 muteHit: "Silenciar resultados no corpo",
+                buttonRemute: "Silenciar novamente",
                 buttonImport: "Importar",
                 buttonExport: "Exportar",
 
@@ -2064,7 +2109,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 emptyMuted: "Нет скрытых слов.",
                 mutedListTitle: "Скрытые слова",
                 mutedListHeading: "Список скрытого",
+                optMuteHidden: "Скрыто",
+                optMuteCollapsed: "Свернуто",
+                muteLabel: "Скрыто: ",
+                buttonShow: "Показать",
                 muteHit: "Скрывать совпадения в тексте",
+                buttonRemute: "Скрыть снова",
                 buttonImport: "Импорт",
                 buttonExport: "Экспорт",
 
@@ -2926,8 +2976,37 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           font-size: 11px;
           line-height: 1;
         }
-        .adv-mute-header { display:flex; justify-content:space-between; align-items:center; margin:12px 0 6px; }
-        .adv-mute-title  { font-weight:700; color: var(--modal-text-primary,#e7e9ea); }
+        /* ▼▼▼ Mute Header Fix ▼▼▼ */
+        .adv-mute-header {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin:12px 0 6px;
+            gap: 10px;
+            flex-wrap: nowrap; /* 折り返しを禁止して1行に強制 */
+        }
+        .adv-mute-title {
+            font-weight:700;
+            color: var(--modal-text-primary,#e7e9ea);
+            white-space: nowrap; /* テキスト折り返し禁止 */
+            overflow: hidden;
+            text-overflow: ellipsis; /* 溢れたら...にする */
+            flex-shrink: 1; /* 幅不足時はタイトル側を縮める */
+            min-width: 0;
+        }
+        .adv-mute-header-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* 余白を少し詰める */
+            flex-shrink: 0; /* 操作パネルは縮めない */
+        }
+        #adv-mute-mode {
+            padding: 3px 24px 3px 8px; /* 矢印スペース考慮 */
+            font-size: 12px;
+            height: 28px;
+            cursor: pointer;
+            width: auto;
+        }
 
         /* マスター切替の一瞬だけ付けるガードクラス */
         .adv-no-anim, .adv-no-anim * {
@@ -3873,12 +3952,95 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
            display: inline-flex;
            align-items: center;
         }
+
+        /* --- Mute Collapse Styles --- */
+        /* Hard Mute: data-adv-hidden */
+        [data-testid="cellInnerDiv"][data-adv-hidden],
+        article[data-adv-hidden] {
+          display: none !important;
+          content-visibility: hidden;
+          contain: strict;
+        }
+
+        /* Soft Mute: data-adv-collapsed */
+        /* 1. Hide original content */
+        [data-testid="cellInnerDiv"][data-adv-collapsed] > div:not(.adv-collapsed-placeholder),
+        article[data-adv-collapsed] > div:not(.adv-collapsed-placeholder) {
+            display: none !important;
+        }
+
+        /* 2. Show placeholder */
+        .adv-collapsed-placeholder {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: var(--modal-input-bg, #202327);
+            border-bottom: 1px solid var(--modal-border, #38444d);
+            cursor: pointer;
+            user-select: none;
+        }
+        .adv-collapsed-placeholder:hover {
+            background-color: color-mix(in srgb, var(--modal-input-bg, #202327) 85%, var(--modal-text-primary, #e7e9ea));
+        }
+        [data-testid="cellInnerDiv"][data-adv-collapsed] .adv-collapsed-placeholder,
+        article[data-adv-collapsed] .adv-collapsed-placeholder {
+            display: flex !important;
+        }
+
+        .adv-collapsed-label {
+            flex: 1;
+            font-size: 13px;
+            color: var(--modal-text-secondary, #8b98a5);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 12px;
+        }
+        .adv-btn-show {
+            background: transparent;
+            border: 1px solid var(--modal-primary-color, #1d9bf0);
+            color: var(--modal-primary-color, #1d9bf0);
+            border-radius: 9999px;
+            padding: 4px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .adv-btn-show:hover {
+            background-color: rgba(29, 155, 240, 0.1);
+        }
+
         /* タグチップのサイズ微調整 */
         .adv-item-sub .ft-tag-chip {
             margin-left: 8px;
             font-size: 10px;
             padding: 0 6px;
             height: 18px;
+        }
+        /* ▼▼▼ 再ミュートボタンのスタイル ▼▼▼ */
+        .adv-btn-remute {
+            margin-left: 8px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 9999px;
+            border: 1px solid var(--modal-border, #38444d);
+            color: var(--modal-text-secondary, #8b98a5);
+            background: transparent;
+            cursor: pointer;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            height: 20px;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+        .adv-btn-remute:hover {
+            background: rgba(244, 33, 46, 0.1); /* Red tint */
+            color: rgb(244, 33, 46);
+            border-color: rgb(244, 33, 46);
         }
     `);
 
@@ -4091,12 +4253,18 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                       </div>
 
                       <!-- ▼ 新しい見出しブロック（ミュート一覧 + すべて有効/無効） -->
-                      <div class="adv-mute-header" style="margin-top:12px;">
+                      <div class="adv-mute-header">
                         <div class="adv-mute-title" data-i18n="mutedListHeading"></div>
-                        <label class="adv-toggle">
-                          <input type="checkbox" id="adv-mute-enable-all" checked>
-                          <span data-i18n="labelEnableAll"></span>
-                        </label>
+                        <div class="adv-mute-header-controls">
+                            <select id="adv-mute-mode" class="adv-select">
+                                <option value="hidden" data-i18n="optMuteHidden">Hidden</option>
+                                <option value="collapsed" data-i18n="optMuteCollapsed">Collapsed</option>
+                            </select>
+                            <label class="adv-toggle">
+                              <input type="checkbox" id="adv-mute-enable-all" checked>
+                              <span data-i18n="labelEnableAll"></span>
+                            </label>
+                        </div>
                       </div>
 
                       <div id="adv-mute-empty" class="adv-item-sub"></div>
@@ -6246,6 +6414,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             initialTab: kv.get(INITIAL_TAB_KEY, 'last'),
             excludeFlags: loadExcludeFlags(),
             muteMaster: loadMuteMaster(),
+            muteMode: loadMuteMode(),
             muted: loadMuted(),
 
             // 検索履歴・保存済み検索
@@ -6352,6 +6521,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
             if (typeof data.muteMaster === 'boolean') {
                 saveMuteMaster(data.muteMaster);
+            }
+
+            // ミュートモードの読み込みと保存
+            if (data.muteMode && (data.muteMode === 'hidden' || data.muteMode === 'collapsed')) {
+                saveMuteMode(data.muteMode);
             }
 
             // --- v2 以降で追加された保存データ ---
@@ -6483,11 +6657,14 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
         // マスターON/OFF（全体の適用を止めるだけ。各エントリの enabled は保持）
         const MUTE_MASTER_KEY = 'advMuteMasterEnabled_v1';
+        const MUTE_MODE_KEY = 'advMuteMode_v1';
         const LAST_TAB_KEY = 'advSearchLastTab_v1';
         const TABS_ORDER_KEY = 'advTabsOrder_v1';
-        const TABS_VISIBILITY_KEY = 'advTabsVisibility_v1'; // ★ 新規追加
+        const TABS_VISIBILITY_KEY = 'advTabsVisibility_v1';
         const loadMuteMaster = () => { try { return kv.get(MUTE_MASTER_KEY, '1') === '1'; } catch(_) { return true; } };
         const saveMuteMaster = (on) => { try { kv.set(MUTE_MASTER_KEY, on ? '1' : '0'); } catch(_) {} };
+        const loadMuteMode = () => { try { return kv.get(MUTE_MODE_KEY, 'hidden'); } catch(_) { return 'hidden'; } };
+        const saveMuteMode = (v) => { try { kv.set(MUTE_MODE_KEY, v); } catch(_) {} };
 
         const tabButtons = Array.from(document.querySelectorAll('.adv-tab-btn'));
 
@@ -7239,6 +7416,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
               SECRET_KEY,
               MUTE_KEY,
               MUTE_MASTER_KEY,
+              MUTE_MODE_KEY,
               LAST_TAB_KEY,
               TABS_ORDER_KEY,
               TABS_VISIBILITY_KEY,
@@ -7325,6 +7503,10 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
               renderLists();
               renderAccounts();
               renderMuted();
+              // ミュートモードの選択状態をUIに反映
+              if (muteModeSel) {
+                  muteModeSel.value = loadMuteMode();
+              }
               updateSaveButtonState();
               rescanAllTweetsForFilter();
 
@@ -8535,6 +8717,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           return article.closest('[data-testid="cellInnerDiv"]') || article;
         }
 
+        /* ▼ 戻り値を boolean から string|null (ヒットした単語) に変更 */
         function shouldHideTweetByNameHandle(article, flags, tokens) {
           const {
             requiredTerms = new Set(),
@@ -8544,17 +8727,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             hashtagSet
           } = tokens || {};
 
-          if (includeTerms.size === 0) return false;
+          if (includeTerms.size === 0) return null; // false -> null
 
           const { body, disp, handle, replyHandles } = pickTweetFields(article);
 
-          // 正規化系ユーティリティ（本文検索はスペース正規化）
-          const normSpace = (s) => String(s || '')
-            .toLowerCase()
-            .replace(/[_.\-]+/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-
+          const normSpace = (s) => String(s || '').toLowerCase().replace(/[_.\-]+/g, ' ').replace(/\s+/g, ' ').trim();
           const normId = (s) => String(s || '').replace(/^@/, '').toLowerCase();
           const stripNonAlnum = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9\u00c0-\u024f]+/gi, '');
 
@@ -8574,9 +8751,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             if (t && textBody.includes(t)) inBody.add(t);
           }
 
-          // 名前/ハンドルで命中した語を記録（本文に出ているものは除外して記録しない）
-          const inMeta = new Set(); // normSpace/stripNonAlnum の両方を入れる
-
+          const inMeta = new Set();
           const markMetaHit = (tSpace, tTight) => {
             if (tSpace && !inBody.has(tSpace)) inMeta.add(tSpace);
             if (tTight) inMeta.add(tTight);
@@ -8595,16 +8770,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             }
           }
 
-          // --- @ユーザー名ヒットの記録（演算子例外/短語ガード/境界） ---
           if (flags.handle) {
             for (const term of includeTerms) {
               const raw = String(term || '');
               const rawLC = raw.trim().toLowerCase();
-
-              // ハッシュタグは対象外
-              if (rawLC.startsWith('#') || (hashtagSet && hashtagSet.has(rawLC.startsWith('#') ? rawLC : '#' + rawLC))) {
-                continue;
-              }
+              if (rawLC.startsWith('#') || (hashtagSet && hashtagSet.has(rawLC.startsWith('#') ? rawLC : '#' + rawLC))) continue;
 
               const bare = raw.replace(/^@/, '').toLowerCase();
               if (opUsers && opUsers.has(bare)) continue; // from:/to:/@ 明示は例外
@@ -8646,45 +8816,94 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             }
           }
 
-          // === 最終判定 ===
-          // AND（requiredTerms）: “本文に出ていない & metaでのみヒット” が1語でもあれば隠す
+          // === 最終判定: マッチした単語を返す ===
           for (const t of requiredTerms) {
             const s = normSpace(t);
+            // 本文になく、メタ情報(名前/ID)でのみヒットした場合、その単語を返す
             if (s && !inBody.has(s) && (inMeta.has(s) || inMeta.has(stripNonAlnum(t)))) {
-              return true;
+              return t;
             }
           }
 
-          // OR（orGroups）: 各グループが「本文で満たされていないのに metaだけで満たされる」場合は隠す
           for (const group of orGroups) {
             let anyBody = false;
-            let anyMeta = false;
+            let metaHitWord = null;
             for (const w of group) {
               const s = normSpace(w);
               const tight = stripNonAlnum(w);
               if (s && inBody.has(s)) anyBody = true;
-              if (s && inMeta.has(s)) anyMeta = true;
-              if (tight && inMeta.has(tight)) anyMeta = true;
-              if (anyBody && anyMeta) break;
+              if ((s && inMeta.has(s)) || (tight && inMeta.has(tight))) {
+                  if (!metaHitWord) metaHitWord = w;
+              }
             }
-            if (!anyBody && anyMeta) return true;
+            if (!anyBody && metaHitWord) return metaHitWord;
           }
 
-          // ここまで来たら隠さない
-          return false;
+          return null;
         }
 
+        // ▼▼▼ 再ミュートボタンの注入/削除ロジック ▼▼▼
+        function injectRemuteButton(article, triggerWord, onRemute) {
+            // 既存があれば何もしない
+            if (article.querySelector('.adv-btn-remute')) return;
+
+            // ft_findHeaderMetaContainer を再利用してヘッダー行を見つける
+            const headerRow = typeof ft_findHeaderMetaContainer === 'function'
+                ? ft_findHeaderMetaContainer(article)
+                : null;
+
+            if (headerRow) {
+                // フレックスレイアウトを強制（タグチップ処理と同じ）
+                headerRow.style.display = 'flex';
+                headerRow.style.flexDirection = 'row';
+                headerRow.style.alignItems = 'center';
+                // スペース不足時の折り返し設定
+                headerRow.style.flexWrap = 'wrap';
+                // 必要に応じて行間などを調整（既存のタグチップとの兼ね合い）
+                // headerRow.style.rowGap = '4px';
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'adv-btn-remute';
+
+                // ラベルをシンプルに「再ミュート」のみに変更
+                btn.textContent = i18n.t('buttonRemute');
+
+                // ツールチップには詳細（何でミュートされたか）を出しておくと親切かもしれません（不要なら削除可）
+                btn.title = i18n.t('buttonRemute') + (triggerWord ? ` (${triggerWord})` : '');
+
+                // クリックイベント
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (onRemute) onRemute();
+                });
+
+                headerRow.appendChild(btn);
+            }
+        }
+
+        function removeRemuteButton(article) {
+            const btn = article.querySelector('.adv-btn-remute');
+            if (btn) btn.remove();
+        }
+
+        /* ▼ evaluateTweetForFiltering: triggerWord を特定して表示に使用 (Full Code) */
         function evaluateTweetForFiltering(art, flags, muteSettings, tokens) {
             const cell = getTweetCell(art);
             const reasons = [];
-            let tweetBodyText = null; // 本文テキストのキャッシュ用
+            let tweetBodyText = null;
+            let triggerWord = ''; // ★ヒットした単語を保持
 
-            const { hasMute, muteCI, muteCS } = muteSettings;
+            const { hasMute, muteCI, muteCS, muteMode } = muteSettings;
 
             // 1. 名前/ハンドル除外
             if ((flags.name || flags.handle) && tokens) {
-                const hideByNameHandle = shouldHideTweetByNameHandle(art, flags, tokens);
-                if (hideByNameHandle) reasons.push('name_handle_only');
+                const hitWord = shouldHideTweetByNameHandle(art, flags, tokens);
+                if (hitWord) {
+                    reasons.push('name_handle_only');
+                    if (!triggerWord) triggerWord = hitWord; // ヒット語句を記録
+                }
             }
 
             // 2. ミュートワード除外
@@ -8692,9 +8911,24 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 tweetBodyText = tweetBodyText ?? (art.querySelector('[data-testid="tweetText"]')?.innerText || '');
                 const bodyCI = tweetBodyText.toLowerCase();
                 let hideByMute = false;
-                for (const w of muteCI) { if (w && bodyCI.includes(w)) { hideByMute = true; break; } }
+
+                // 大文字小文字無視
+                for (const w of muteCI) {
+                    if (w && bodyCI.includes(w)) {
+                        hideByMute = true;
+                        if (!triggerWord) triggerWord = w; // ヒット語句を記録
+                        break;
+                    }
+                }
+                // 大文字小文字区別
                 if (!hideByMute) {
-                  for (const w of muteCS) { if (w && tweetBodyText.includes(w)) { hideByMute = true; break; } }
+                    for (const w of muteCS) {
+                        if (w && tweetBodyText.includes(w)) {
+                            hideByMute = true;
+                            if (!triggerWord) triggerWord = w; // ヒット語句を記録
+                            break;
+                        }
+                    }
                 }
                 if (hideByMute) reasons.push('muted_word');
             }
@@ -8707,6 +8941,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                     const isPinned = art.querySelector(`svg path[d="${pinIconPath}"]`);
                     if (!isPinned) {
                         reasons.push('repost');
+                        if (!triggerWord) triggerWord = 'Repost';
                     }
                 }
             }
@@ -8715,19 +8950,83 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             if (flags.hashtags) {
                 tweetBodyText = tweetBodyText ?? (art.querySelector('[data-testid="tweetText"]')?.innerText || '');
                 if (tweetBodyText.includes('#')) {
-                  reasons.push('hashtag');
+                    reasons.push('hashtag');
+                    if (!triggerWord) {
+                        // 最初のハッシュタグを抽出して表示
+                        const m = tweetBodyText.match(/#[^\s\u3000]+/);
+                        triggerWord = m ? m[0] : '#Hashtag';
+                    }
                 }
             }
 
-            // 最終判定
+            // ▼▼▼ 最終判定 & UI制御 ▼▼▼
             if (reasons.length > 0) {
-                cell.setAttribute('data-adv-hidden', reasons.join(' '));
-            } else {
-                cell.removeAttribute('data-adv-hidden');
-            }
+                // Case A: ミュート対象だが、ユーザーが既に「表示する」を押している場合
+                // (art.dataset.advMutedShown === '1' で判定)
+                if (art.dataset.advMutedShown === '1') {
+                    // コンテンツは隠さない
+                    cell.removeAttribute('data-adv-hidden');
+                    cell.removeAttribute('data-adv-collapsed');
 
-            // 処理済みフラグは呼び出し元(processNewTweets)で共通化するため、ここではセットしない
-            // art.setAttribute('data-adv-processed-filter', '1');
+                    // その代わり、ヘッダーに「再ミュート」ボタンを注入
+                    injectRemuteButton(art, triggerWord, () => {
+                        // 再ミュートクリック時の処理
+                        delete art.dataset.advMutedShown; // フラグを消す
+                        // 再帰呼び出しして即座に隠す
+                        evaluateTweetForFiltering(art, flags, muteSettings, tokens);
+                    });
+
+                } else {
+                    // Case B: ミュート対象で、まだ隠れている場合
+                    removeRemuteButton(art); // ボタンがあれば消す（念のため）
+
+                    if (muteMode === 'collapsed') {
+                        cell.removeAttribute('data-adv-hidden');
+                        cell.setAttribute('data-adv-collapsed', reasons.join(' '));
+
+                        let ph = cell.querySelector('.adv-collapsed-placeholder');
+                        if (!ph) {
+                            ph = document.createElement('div');
+                            ph.className = 'adv-collapsed-placeholder';
+
+                            // ここで triggerWord を表示する
+                            ph.innerHTML = `
+                                <div class="adv-collapsed-label">
+                                    <span style="opacity:0.8">${i18n.t('muteLabel')} ${escapeHTML(triggerWord)}</span>
+                                </div>
+                                <button class="adv-btn-show">${i18n.t('buttonShow')}</button>
+                            `;
+
+                            const uncollapse = (e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                // 属性を消すだけでなく、表示済みフラグを立てて再評価する
+                                // cell.removeAttribute('data-adv-collapsed'); // ←これは再評価で自動的に消えるので不要
+                                art.dataset.advMutedShown = '1';
+                                evaluateTweetForFiltering(art, flags, muteSettings, tokens);
+                            };
+                            ph.addEventListener('click', uncollapse);
+                            ph.querySelector('button').addEventListener('click', uncollapse);
+
+                            cell.appendChild(ph);
+                        } else {
+                            // 既存プレースホルダーのラベルだけ更新（再利用時など）
+                            const labelEl = ph.querySelector('.adv-collapsed-label span');
+                            if (labelEl) labelEl.innerHTML = `${i18n.t('muteLabel')} ${escapeHTML(triggerWord)}`;
+                        }
+                    } else {
+                        // hiddenモード (完全非表示)
+                        cell.removeAttribute('data-adv-collapsed');
+                        cell.setAttribute('data-adv-hidden', reasons.join(' '));
+                    }
+                }
+            } else {
+                // Case C: ミュート対象ではない
+                delete art.dataset.advMutedShown; // 不要なフラグは掃除
+                cell.removeAttribute('data-adv-hidden');
+                cell.removeAttribute('data-adv-collapsed');
+                removeRemuteButton(art);
+            }
         }
 
         // ▼ ミュート設定変更時などに、全ツイートを強制再スキャンする
@@ -8741,18 +9040,22 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 };
 
                 const masterOn = loadMuteMaster();
+                const muteMode = loadMuteMode(); // モード読み込み
                 const muted = loadMuted();
                 const hasMute = masterOn && muted.length > 0;
                 const enabledMuted = hasMute ? muted.filter(m => m.enabled !== false) : [];
                 const muteSettings = {
                     hasMute,
+                    muteMode,
                     muteCI: enabledMuted.length ? new Set(enabledMuted.filter(m => !m.cs).map(m => m.word.toLowerCase())) : new Set(),
                     muteCS: enabledMuted.length ? enabledMuted.filter(m => m.cs).map(m => m.word) : [],
                 };
 
+                // 全て無効なら属性を一掃して終了
                 if (!flags.name && !flags.handle && !hasMute && !flags.reposts && !flags.hashtags) {
-                    document.querySelectorAll('[data-adv-hidden]').forEach(cell => {
+                    document.querySelectorAll('[data-adv-hidden], [data-adv-collapsed]').forEach(cell => {
                         cell.removeAttribute('data-adv-hidden');
+                        cell.removeAttribute('data-adv-collapsed');
                     });
                     cleanupAdjacentSeparators();
                     return;
@@ -9935,20 +10238,28 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         });
 
         const muteEnableAllEl = document.getElementById('adv-mute-enable-all');
+        const muteModeSel = document.getElementById('adv-mute-mode');
+
         if (muteEnableAllEl && !muteEnableAllEl._advBound) {
           muteEnableAllEl._advBound = true;
-          // 初期状態はマスター値をそのまま反映
-          try {
-            muteEnableAllEl.checked = loadMuteMaster();
-          } catch {}
-          applyMuteVisualState();    // 初期描画でリスト外観を整える
+          try { muteEnableAllEl.checked = loadMuteMaster(); } catch {}
+          applyMuteVisualState();
 
           muteEnableAllEl.addEventListener('change', () => {
             saveMuteMaster(!!muteEnableAllEl.checked);
-            applyMuteVisualState();   // 視覚の即時反映（リスト半透明/通常）
-            rescanAllTweetsForFilter();    // 機能面の反映（既存）
+            applyMuteVisualState();
+            rescanAllTweetsForFilter();
           });
+        }
 
+        // モード選択の初期化とイベント
+        if (muteModeSel && !muteModeSel._advBound) {
+            muteModeSel._advBound = true;
+            try { muteModeSel.value = loadMuteMode(); } catch {}
+            muteModeSel.addEventListener('change', () => {
+                saveMuteMode(muteModeSel.value);
+                rescanAllTweetsForFilter();
+            });
         }
 
         const installNavigationHooks = (onRouteChange) => {
@@ -10256,6 +10567,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
             // 3. Advanced Search Filtering ...
             const masterOn = loadMuteMaster();
+            const muteMode = loadMuteMode();
             const muted = loadMuted();
             const hasMute = masterOn && muted.length > 0;
 
@@ -10263,6 +10575,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 const enabledMuted = hasMute ? muted.filter(m => m.enabled !== false) : [];
                 const muteSettings = {
                     hasMute,
+                    muteMode,
                     muteCI: enabledMuted.length ? new Set(enabledMuted.filter(m => !m.cs).map(m => m.word.toLowerCase())) : new Set(),
                     muteCS: enabledMuted.length ? enabledMuted.filter(m => m.cs).map(m => m.word) : [],
                 };
