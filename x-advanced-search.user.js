@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.2.2
+// @version      6.2.3
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -161,6 +161,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 mutedListHeading: "Muted items",
                 optMuteHidden: "Hidden",
                 optMuteCollapsed: "Collapsed",
+                placeholderFilterMute: "Filter muted words...",
                 muteLabel: "Muted: ",
                 buttonShow: "Show",
                 muteHit: "Mute hits in body",
@@ -381,6 +382,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 mutedListHeading: "ミュート一覧",
                 optMuteHidden: "非表示",
                 optMuteCollapsed: "折りたたみ",
+                placeholderFilterMute: "ミュートを検索...",
                 muteLabel: "ミュート: ",
                 buttonShow: "表示する",
                 muteHit: "本文でのヒットをミュート",
@@ -599,6 +601,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 mutedListHeading: "屏蔽列表",
                 optMuteHidden: "隐藏",
                 optMuteCollapsed: "折叠",
+                placeholderFilterMute: "筛选屏蔽词...",
                 muteLabel: "已屏蔽: ",
                 buttonShow: "显示",
                 muteHit: "屏蔽正文匹配项",
@@ -816,6 +819,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 mutedListHeading: "靜音清單",
                 optMuteHidden: "隱藏",
                 optMuteCollapsed: "收合",
+                placeholderFilterMute: "篩選靜音詞彙...",
                 muteLabel: "已靜音: ",
                 buttonShow: "顯示",
                 muteHit: "靜音內文相符項目",
@@ -1033,6 +1037,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 mutedListHeading: "뮤트 목록",
                 optMuteHidden: "숨기기",
                 optMuteCollapsed: "접기",
+                placeholderFilterMute: "뮤트 단어 검색...",
                 muteLabel: "뮤트됨: ",
                 buttonShow: "표시",
                 muteHit: "본문 일치 항목 뮤트",
@@ -1253,6 +1258,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 mutedListHeading: "Liste masquée",
                 optMuteHidden: "Masqué",
                 optMuteCollapsed: "Réduit",
+                placeholderFilterMute: "Filtrer les mots masqués...",
                 muteLabel: "Masqué : ",
                 buttonShow: "Afficher",
                 muteHit: "Masquer les résultats dans le texte",
@@ -1470,6 +1476,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 mutedListHeading: "Lista de silenciados",
                 optMuteHidden: "Oculto",
                 optMuteCollapsed: "Colapsado",
+                placeholderFilterMute: "Filtrar palabras silenciadas...",
                 muteLabel: "Silenciado: ",
                 buttonShow: "Mostrar",
                 muteHit: "Silenciar coincidencias en cuerpo",
@@ -1687,6 +1694,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 mutedListHeading: "Stummgeschaltete Liste",
                 optMuteHidden: "Verborgen",
                 optMuteCollapsed: "Eingeklappt",
+                placeholderFilterMute: "Stummgeschaltete Wörter filtern...",
                 muteLabel: "Stummgeschaltet: ",
                 buttonShow: "Anzeigen",
                 muteHit: "Treffer im Text stummschalten",
@@ -1904,6 +1912,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 mutedListHeading: "Lista de silenciados",
                 optMuteHidden: "Oculto",
                 optMuteCollapsed: "Colapsado",
+                placeholderFilterMute: "Filtrar palavras silenciadas...",
                 muteLabel: "Silenciado: ",
                 buttonShow: "Mostrar",
                 muteHit: "Silenciar resultados no corpo",
@@ -2121,6 +2130,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 mutedListHeading: "Список скрытого",
                 optMuteHidden: "Скрыто",
                 optMuteCollapsed: "Свернуто",
+                placeholderFilterMute: "Фильтр скрытых слов...",
                 muteLabel: "Скрыто: ",
                 buttonShow: "Показать",
                 muteHit: "Скрывать совпадения в тексте",
@@ -3014,9 +3024,23 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             display:flex;
             justify-content:space-between;
             align-items:center;
-            margin:18px 0 6px;
+            margin: 4px 0 12px;
             gap: 10px;
             flex-wrap: nowrap; /* 折り返しを禁止して1行に強制 */
+        }
+        .adv-mute-header input[type="text"] {
+            flex: 1;
+            min-width: 0;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 14px;
+            background-color: var(--modal-input-bg,#202327);
+            border: 1px solid var(--modal-input-border,#38444d);
+            color: var(--modal-text-primary,#e7e9ea);
+        }
+        .adv-mute-header input[type="text"]:focus {
+            outline: 0;
+            border-color: var(--modal-primary-color);
         }
         .adv-mute-title {
             font-weight:700;
@@ -4291,9 +4315,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                         <button id="adv-mute-add" class="adv-modal-button" data-i18n="buttonAdd"></button>
                       </div>
 
+                      <hr class="adv-separator" style="margin-top:12px; margin-bottom:12px;">
+
                       <!-- ▼ 新しい見出しブロック（ミュート一覧 + すべて有効/無効） -->
                       <div class="adv-mute-header">
-                        <div class="adv-mute-title" data-i18n="mutedListHeading"></div>
+                        <input type="text" id="adv-mute-filter" data-i18n-placeholder="placeholderFilterMute">
+
                         <div class="adv-mute-header-controls">
                             <select id="adv-mute-mode" class="adv-select">
                                 <option value="hidden" data-i18n="optMuteHidden">Hidden</option>
@@ -10268,12 +10295,24 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         const muteEmptyEl = document.getElementById('adv-mute-empty');
         const muteListEl  = document.getElementById('adv-mute-list');
         const muteInputEl = document.getElementById('adv-mute-input');
+        const muteFilterEl = document.getElementById('adv-mute-filter');
         const muteCsEl    = document.getElementById('adv-mute-cs');
         const muteWbEl    = document.getElementById('adv-mute-wb');
         const muteAddBtn  = document.getElementById('adv-mute-add');
 
+        if (muteFilterEl) {
+            muteFilterEl.addEventListener('input', () => renderMuted());
+        }
+
         const renderMuted = () => {
-          const list = loadMuted();
+          let list = loadMuted();
+          // 検索ボックスに値があればフィルタリング
+          if (muteFilterEl) {
+              const q = muteFilterEl.value.trim().toLowerCase();
+              if (q) {
+                  list = list.filter(item => item.word.toLowerCase().includes(q));
+              }
+          }
           muteListEl.innerHTML = '';
           muteEmptyEl.textContent = list.length ? '' : i18n.t('emptyMuted');
           list.forEach(item => {
