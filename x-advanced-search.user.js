@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.1.7
+// @version      6.18
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -3590,7 +3590,22 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           display: flex;
           flex-direction: column;
           gap: 6px;
-          margin-bottom: 10px;
+          padding-bottom: 30px; /* 余白を大きく取る */
+          min-height: 100px;    /* 空っぽでもドロップできるように */
+          position: relative;   /* ルートドロップの枠線表示用 */
+          box-sizing: content-box; /* paddingを含めない高さ計算 */
+        }
+
+        /* 一番下の余白にドラッグした時に、リスト全体の下に枠線を出すクラス */
+        .ft-modal-tag-list.ft-drag-to-root::after {
+            content: '';
+            position: absolute;
+            bottom: 20px; /* 余白の中ほどに線を引く */
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--modal-primary-color, #1d9bf0);
+            box-shadow: 0 0 4px var(--modal-primary-color, #1d9bf0);
         }
         .ft-modal-tag-item {
           position: relative;
@@ -3609,21 +3624,35 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         .ft-modal-tag-item-dragging {
           opacity: 0.6;
         }
-        .ft-modal-tag-item-drop-before::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: -4px;
-          border-top: 2px solid var(--ft-border-accent);
-        }
+        .ft-modal-tag-item-drop-before::before,
         .ft-modal-tag-item-drop-after::after {
-          content: '';
-          position: absolute;
-          left: 0;
-          right: 0;
-          bottom: -4px;
-          border-bottom: 2px solid var(--ft-border-accent);
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            /* 従来の色（白っぽいグレー） */
+            background-color: var(--ft-border-accent, rgba(239, 243, 244, 0.8));
+            border: none; /* border-top/bottom を background-color に変更して統一 */
+            pointer-events: none;
+        }
+        .ft-modal-tag-item-drop-before::before { top: -3.5px; }
+        .ft-modal-tag-item-drop-after::after { bottom: -3.5px; }
+
+        /* ルート階層用（青い線） */
+        .ft-modal-tag-item.ft-is-root-ref.ft-modal-tag-item-drop-before::before,
+        .ft-modal-tag-item.ft-is-root-ref.ft-modal-tag-item-drop-after::after {
+            background-color: var(--modal-primary-color, #1d9bf0);
+            box-shadow: 0 0 4px var(--modal-primary-color, #1d9bf0); /* 発光させて強調 */
+            height: 2px;
+            z-index: 10;
+        }
+        /* 青い線の位置（太くなった分、あるいは強調のため少し外側に広げる） */
+        .ft-modal-tag-item.ft-is-root-ref.ft-modal-tag-item-drop-before::before {
+            top: -4.2px;
+        }
+        .ft-modal-tag-item.ft-is-root-ref.ft-modal-tag-item-drop-after::after {
+            bottom: -4.2px;
         }
         .ft-modal-tag-item-drop-child {
           background: var(--ft-hover-bg-strong);
@@ -4956,13 +4985,27 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             }
             function getDropTargetInfoFromY(y) {
                 const items = Array.from(tagListEl.querySelectorAll('.ft-modal-tag-item'));
-                if (!items.length) return null;
+                if (!items.length) return { row: null, mode: 'root-end' }; // 空ならルート追加
+
                 const rects = items.map(row => row.getBoundingClientRect());
+
+                // 一番下の要素の「底辺」より下なら、無条件でルート末尾移動とする
+                const lastRect = rects[rects.length - 1];
+                // 少しでも下(0px以上)にあればルート扱いにする（CSSで余白を作ったためこれでOK）
+                if (y > lastRect.bottom) {
+                    return { row: null, mode: 'root-end' };
+                }
+
                 const boundaries = [rects[0].top];
                 for (let i = 1; i < items.length; i++) boundaries.push((rects[i - 1].bottom + rects[i].top) / 2);
                 boundaries.push(rects[items.length - 1].bottom);
+
                 let idx = 0; let min = Infinity;
-                for (let i = 0; i < boundaries.length; i++) { const d = Math.abs(y - boundaries[i]); if (d < min) { min = d; idx = i; } }
+                for (let i = 0; i < boundaries.length; i++) {
+                    const d = Math.abs(y - boundaries[i]);
+                    if (d < min) { min = d; idx = i; }
+                }
+
                 if (idx === 0) return { row: items[0], mode: 'before' };
                 if (idx === items.length) return { row: items[items.length - 1], mode: 'after' };
                 return { row: items[idx], mode: 'before' };
@@ -5027,22 +5070,104 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 });
             }
             tagListEl.ondragover = (ev) => {
-                if (!ft_dragSrcEntry) return; if (ev.defaultPrevented) return;
-                ev.preventDefault(); clearDropClasses();
+                if (!ft_dragSrcEntry) return;
+                if (ev.defaultPrevented) return;
+
+                ev.preventDefault();
+                clearDropClasses();
+                tagListEl.classList.remove('ft-drag-to-root');
+
+                // クラスリセット: すべての行からルート判定クラスを一旦消す
+                tagListEl.querySelectorAll('.ft-is-root-ref').forEach(el => el.classList.remove('ft-is-root-ref'));
+
                 const info = getDropTargetInfoFromY(ev.clientY);
-                if (info) info.row.classList.add(info.mode === 'before' ? 'ft-modal-tag-item-drop-before' : 'ft-modal-tag-item-drop-after');
+
+                // 1. 一番下の余白へのドロップ（ルート末尾）
+                if (info.mode === 'root-end') {
+                    tagListEl.classList.add('ft-drag-to-root');
+                }
+                // 2. 行へのドロップ（隙間 or 親子化）
+                else if (info.row) {
+                    // 自分自身へのドロップでない場合
+                    if (info.row.dataset.tagId !== ft_dragSrcEntry.tagId) {
+
+                        const targetId = info.row.dataset.tagId;
+                        const targetKind = info.row.dataset.kind;
+
+                        // ▼▼▼ ルート階層かどうかの判定 ▼▼▼
+                        let isRoot = false;
+                        if (targetKind === 'uncat') {
+                            // 「未分類」は常にルート
+                            isRoot = true;
+                        } else if (targetId) {
+                            // タグの場合、親ID(parentId)が無ければルート
+                            const tTag = ft_getTagById(targetId);
+                            if (tTag && !tTag.parentId) {
+                                isRoot = true;
+                            }
+                        }
+
+                        // ルート階層なら専用クラスを付与（→ CSSで青線になる）
+                        if (isRoot) {
+                            info.row.classList.add('ft-is-root-ref');
+                        }
+
+                        // 前後(before/after) または 親子(child) のクラスを付与
+                        info.row.classList.add(
+                            info.mode === 'before' ? 'ft-modal-tag-item-drop-before' : 'ft-modal-tag-item-drop-after'
+                        );
+
+                        // 親子化（行の中央ドロップ）の判定がある場合は上書き
+                        const rect = info.row.getBoundingClientRect();
+                        const ratio = (ev.clientY - rect.top) / rect.height;
+                        if (ratio > 0.3 && ratio < 0.7) {
+                            // 中央ドロップは「入れ子」なので、線のクラスを消して背景クラスを付ける
+                            info.row.classList.remove('ft-modal-tag-item-drop-before', 'ft-modal-tag-item-drop-after');
+                            info.row.classList.add('ft-modal-tag-item-drop-child');
+                        }
+                    }
+                }
             };
             tagListEl.ondrop = (ev) => {
-                if (!ft_dragSrcEntry) return; if (ev.defaultPrevented) return;
-                ev.preventDefault(); clearDropClasses();
+                if (!ft_dragSrcEntry) return;
+                if (ev.defaultPrevented) return;
+
+                ev.preventDefault();
+                clearDropClasses();
+                tagListEl.classList.remove('ft-drag-to-root'); // クラス削除
+
                 const info = getDropTargetInfoFromY(ev.clientY);
-                if (!info) return;
                 const srcTag = ft_getTagById(ft_dragSrcEntry.tagId);
-                if (info.row.dataset.kind === 'tag') {
-                   const tTag = ft_getTagById(info.row.dataset.tagId);
-                   if (info.mode === 'before') moveTagBefore(srcTag, tTag); else moveTagAfter(srcTag, tTag);
+                if (!srcTag) return;
+
+                // root-end なら「親なし」にして「一番下」へ
+                if (info.mode === 'root-end') {
+                    srcTag.parentId = null; // 親を解除
+
+                    // ルート要素の中での最大order + 1 を設定して末尾へ
+                    const rootTags = ft_state.tags.filter(t => !t.parentId);
+                    const maxOrder = rootTags.length ? Math.max(...rootTags.map(t => t.order || 0)) : 0;
+                    srcTag.order = maxOrder + 1;
+
+                    ft_normalizeTagOrders();
+                    ft_clampUncategorizedOrder();
+                    ft_saveState();
+                    rebuildTagList();
+                    return;
+                }
+
+                // 既存の処理（行間へのドロップ）
+                if (info.row && info.row.dataset.kind === 'tag') {
+                    const targetId = info.row.dataset.tagId;
+                    // 自分自身へのドロップは無視
+                    if (targetId === srcTag.id) return;
+
+                    const tTag = ft_getTagById(targetId);
+                    if (info.mode === 'before') moveTagBefore(srcTag, tTag);
+                    else moveTagAfter(srcTag, tTag);
                 } else {
-                   moveTagToRootRelativeToUncat(srcTag, info.mode);
+                    // 未分類(Uncategorized)との位置関係処理
+                    moveTagToRootRelativeToUncat(srcTag, info.mode);
                 }
                 rebuildTagList();
             };
