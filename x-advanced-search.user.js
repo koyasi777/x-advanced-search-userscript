@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.1.8
+// @version      6.1.9
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -2336,7 +2336,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
         const onTouchStart = (e) => {
             // ハンドル、またはドラッグ可能な要素自体へのタッチか判定
-            const handle = e.target.closest('.adv-item-handle, .adv-folder-header, .adv-tab-btn');
+            const handle = e.target.closest('.adv-item-handle, .adv-folder-header, .adv-tab-btn, .ft-modal-tag-drag-handle');
             if (!handle) return;
 
             const draggable = handle.closest('[draggable="true"]');
@@ -2390,12 +2390,9 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             dataTransferStore = {};
         };
 
-        // モーダル全体、あるいは document に対してリスナーを登録
-        // イベント委譲で処理するため、動的に追加される要素にも対応可能
-        const root = document.getElementById('advanced-search-modal') || document.body;
-        root.addEventListener('touchstart', onTouchStart, { passive: false });
-        root.addEventListener('touchmove', onTouchMove, { passive: false });
-        root.addEventListener('touchend', onTouchEnd);
+        document.addEventListener('touchstart', onTouchStart, { passive: false });
+        document.addEventListener('touchmove', onTouchMove, { passive: false });
+        document.addEventListener('touchend', onTouchEnd);
     }
 
     function decodeURIComponentSafe(s) {
@@ -3698,6 +3695,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           cursor: grab;
           color: var(--ft-text-secondary);
           user-select: none;
+          touch-action: none;
         }
         .ft-modal-tag-drag-handle:hover {
           background: var(--ft-hover-bg-strong);
