@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.2.1
+// @version      6.2.2
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -152,6 +152,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "Add mute word",
                 placeholderMuteWord: "e.g., spoiler",
                 labelCaseSensitive: "Case sensitive",
+                labelWordBoundary: "Whole word",
                 labelEnabled: "Enabled",
                 labelEnableAll: "Enable all",
                 buttonAdd: "Add",
@@ -371,6 +372,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "ミュート語句の追加",
                 placeholderMuteWord: "例: ネタバレ",
                 labelCaseSensitive: "大文字小文字を区別",
+                labelWordBoundary: "完全一致(単語)",
                 labelEnabled: "有効",
                 labelEnableAll: "すべて有効",
                 buttonAdd: "追加",
@@ -588,6 +590,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "添加屏蔽词",
                 placeholderMuteWord: "例如：剧透",
                 labelCaseSensitive: "区分大小写",
+                labelWordBoundary: "全字匹配",
                 labelEnabled: "已启用",
                 labelEnableAll: "全部启用",
                 buttonAdd: "添加",
@@ -804,6 +807,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "新增靜音詞彙",
                 placeholderMuteWord: "例如：劇透",
                 labelCaseSensitive: "區分大小寫",
+                labelWordBoundary: "全字匹配",
                 labelEnabled: "已啟用",
                 labelEnableAll: "全部啟用",
                 buttonAdd: "新增",
@@ -1020,6 +1024,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "뮤트 단어 추가",
                 placeholderMuteWord: "예: 스포일러",
                 labelCaseSensitive: "대소문자 구분",
+                labelWordBoundary: "단어 단위",
                 labelEnabled: "활성화",
                 labelEnableAll: "모두 활성화",
                 buttonAdd: "추가",
@@ -1239,6 +1244,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "Ajouter un mot masqué",
                 placeholderMuteWord: "ex: spoiler",
                 labelCaseSensitive: "Sensible à la casse",
+                labelWordBoundary: "Mot entier",
                 labelEnabled: "Activé",
                 labelEnableAll: "Tout activer",
                 buttonAdd: "Ajouter",
@@ -1455,6 +1461,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "Añadir palabra silenciada",
                 placeholderMuteWord: "ej. spoiler",
                 labelCaseSensitive: "Distinguir mayúsculas",
+                labelWordBoundary: "Palabra completa",
                 labelEnabled: "Habilitado",
                 labelEnableAll: "Habilitar todo",
                 buttonAdd: "Añadir",
@@ -1671,6 +1678,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "Stummes Wort hinzufügen",
                 placeholderMuteWord: "z.B. Spoiler",
                 labelCaseSensitive: "Groß-/Kleinschreibung",
+                labelWordBoundary: "Ganzes Wort",
                 labelEnabled: "Aktiviert",
                 labelEnableAll: "Alle aktivieren",
                 buttonAdd: "Hinzufügen",
@@ -1887,6 +1895,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "Adicionar palavra silenciada",
                 placeholderMuteWord: "ex: spoiler",
                 labelCaseSensitive: "Diferenciar maiúsculas",
+                labelWordBoundary: "Palavra inteira",
                 labelEnabled: "Ativado",
                 labelEnableAll: "Ativar tudo",
                 buttonAdd: "Adicionar",
@@ -2103,6 +2112,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "Добавить скрытое слово",
                 placeholderMuteWord: "напр., спойлер",
                 labelCaseSensitive: "Учитывать регистр",
+                labelWordBoundary: "Слово целиком",
                 labelEnabled: "Включено",
                 labelEnableAll: "Включить все",
                 buttonAdd: "Добавить",
@@ -2447,6 +2457,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
     function decodeURIComponentSafe(s) {
       try { return decodeURIComponent(s); } catch { return s; }
+    }
+
+    // 正規表現の特殊文字をエスケープする
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
     // “ ” 『』などのスマート引用を ASCII の " に寄せる
@@ -2923,11 +2938,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           border:1px solid var(--modal-input-border,#38444d);
           background:var(--modal-input-bg,#202327);
           border-radius:8px;
-          padding:8px;
+          padding:8px 10px;
           display:flex;
-          flex-wrap: wrap;
-          gap:8px;
-          align-items:flex-start;
+          gap:10px;
+          justify-content: space-between;
+          align-items:center;
           transition: opacity .15s ease, filter .15s ease, border-color .15s ease;
         }
         .adv-mute-item.disabled {
@@ -2940,19 +2955,37 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           text-decoration: line-through;
         }
 
+        /* 左側のコンテナ（単語＋オプション） */
+        .adv-mute-content-left {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          flex: 1;
+          min-width: 0;
+        }
+
         .adv-mute-word {
           font-weight:700;
           color:var(--modal-text-primary,#e7e9ea);
           word-break:break-word;
+          font-size: 14px;
         }
 
-        .adv-mute-actions {
+        /* 左下のオプション群 */
+        .adv-mute-options-row {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+
+        /* 右側のコンテナ（削除ボタンのみ） */
+        .adv-mute-actions-right {
           display:flex;
-          gap:6px;
           align-items:center;
+          justify-content:center;
           flex: 0 0 auto;
           white-space: nowrap;
-          margin-left: auto;
+          padding-left: 4px;
         }
         @media (max-width: 480px) {
           .adv-mute-actions { margin-top: 4px; }
@@ -2981,7 +3014,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             display:flex;
             justify-content:space-between;
             align-items:center;
-            margin:12px 0 6px;
+            margin:18px 0 6px;
             gap: 10px;
             flex-wrap: nowrap; /* 折り返しを禁止して1行に強制 */
         }
@@ -4245,11 +4278,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                       <!-- 追加する並び：まず“追加”UI -->
                       <div class="adv-mute-add">
                         <input type="text" id="adv-mute-input" data-i18n-placeholder="placeholderMuteWord">
+                        <div style="display:flex; flex-direction:column; gap:2px; margin-left:4px; margin-right:4px;">
+                            <label class="adv-toggle" title="">
+                              <input type="checkbox" id="adv-mute-wb">
+                              <span data-i18n="labelWordBoundary"></span>
+                            </label>
+                            <label class="adv-toggle" title="">
+                              <input type="checkbox" id="adv-mute-cs">
+                              <span data-i18n="labelCaseSensitive"></span>
+                            </label>
+                        </div>
                         <button id="adv-mute-add" class="adv-modal-button" data-i18n="buttonAdd"></button>
-                        <label class="adv-toggle" title="">
-                          <input type="checkbox" id="adv-mute-cs">
-                          <span data-i18n="labelCaseSensitive"></span>
-                        </label>
                       </div>
 
                       <!-- ▼ 新しい見出しブロック（ミュート一覧 + すべて有効/無効） -->
@@ -6349,6 +6388,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                   id: it.id || uid(),
                   word: (it.word||'').trim(),
                   cs: !!it.cs,
+                  wb: !!it.wb, // wb (Word Boundary) を維持
                   enabled: it.enabled !== false,
                   ts: it.ts || Date.now()
                 }))
@@ -6357,12 +6397,14 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         const loadMuted = () => migrateMuted(loadJSON(MUTE_KEY, []));
         const saveMuted = (arr) => saveJSON(MUTE_KEY, migrateMuted(arr));
 
-        const addMuted = (word, cs=false) => {
+        // 引数に wb を追加
+        const addMuted = (word, cs=false, wb=false) => {
           const w = (word||'').trim();
           if (!w) return;
           const list = loadMuted();
-          if (list.some(it => it.word === w && !!it.cs === !!cs)) return;
-          list.unshift({ id: uid(), word: w, cs: !!cs, enabled: true, ts: Date.now() });
+          // 重複チェックに wb も含める
+          if (list.some(it => it.word === w && !!it.cs === !!cs && !!it.wb === !!wb)) return;
+          list.unshift({ id: uid(), word: w, cs: !!cs, wb: !!wb, enabled: true, ts: Date.now() });
           saveMuted(list);
           renderMuted();
           rescanAllTweetsForFilter();
@@ -6377,6 +6419,14 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
         const toggleMutedCS = (id) => {
           const list = loadMuted().map(it => it.id === id ? { ...it, cs: !it.cs, ts: Date.now() } : it);
+          saveMuted(list);
+          renderMuted();
+          rescanAllTweetsForFilter();
+        };
+
+        // 単語単位の一致切り替え
+        const toggleMutedWB = (id) => {
+          const list = loadMuted().map(it => it.id === id ? { ...it, wb: !it.wb, ts: Date.now() } : it);
           saveMuted(list);
           renderMuted();
           rescanAllTweetsForFilter();
@@ -8912,24 +8962,38 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 const bodyCI = tweetBodyText.toLowerCase();
                 let hideByMute = false;
 
-                // 大文字小文字無視
-                for (const w of muteCI) {
-                    if (w && bodyCI.includes(w)) {
-                        hideByMute = true;
-                        if (!triggerWord) triggerWord = w; // ヒット語句を記録
-                        break;
-                    }
-                }
-                // 大文字小文字区別
-                if (!hideByMute) {
-                    for (const w of muteCS) {
-                        if (w && tweetBodyText.includes(w)) {
+                // A. 単純一致 (Case Insensitive)
+                if (muteSettings.simpleCI && muteSettings.simpleCI.size > 0) {
+                    for (const w of muteSettings.simpleCI) {
+                        if (bodyCI.includes(w)) {
                             hideByMute = true;
-                            if (!triggerWord) triggerWord = w; // ヒット語句を記録
+                            if (!triggerWord) triggerWord = w;
                             break;
                         }
                     }
                 }
+                // B. 単純一致 (Case Sensitive)
+                if (!hideByMute && muteSettings.simpleCS && muteSettings.simpleCS.size > 0) {
+                    for (const w of muteSettings.simpleCS) {
+                        if (tweetBodyText.includes(w)) {
+                            hideByMute = true;
+                            if (!triggerWord) triggerWord = w;
+                            break;
+                        }
+                    }
+                }
+                // C. 正規表現/単語単位 (wb=true)
+                if (!hideByMute && muteSettings.regexRules && muteSettings.regexRules.length > 0) {
+                    for (const rule of muteSettings.regexRules) {
+                        // rule.rx は (?:^|[^a-zA-Z0-9_])word(?:$|[^a-zA-Z0-9_]) の形
+                        if (rule.rx.test(tweetBodyText)) {
+                            hideByMute = true;
+                            if (!triggerWord) triggerWord = rule.word;
+                            break;
+                        }
+                    }
+                }
+
                 if (hideByMute) reasons.push('muted_word');
             }
 
@@ -9043,12 +9107,36 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 const muteMode = loadMuteMode(); // モード読み込み
                 const muted = loadMuted();
                 const hasMute = masterOn && muted.length > 0;
-                const enabledMuted = hasMute ? muted.filter(m => m.enabled !== false) : [];
+                // 正規表現ルールと単純一致ルールを準備
+                const regexRules = [];
+                const simpleCI = new Set();
+                const simpleCS = new Set();
+
+                if (hasMute) {
+                    muted.filter(m => m.enabled !== false).forEach(m => {
+                        if (m.wb) {
+                            // 単語単位(Word Boundary)の場合は正規表現を作成
+                            // #ad -> (?:^|[^a-zA-Z0-9_])#ad(?:$|[^a-zA-Z0-9_]) というパターンを生成して
+                            // 前後に英数字(とアンダースコア)がないことを確認する
+                            const flags = m.cs ? 'g' : 'gi';
+                            const esc = escapeRegExp(m.word);
+                            // 英数字以外を境界とする
+                            const pattern = `(?:^|[^a-zA-Z0-9_])${esc}(?:$|[^a-zA-Z0-9_])`;
+                            regexRules.push({ rx: new RegExp(pattern, flags), word: m.word });
+                        } else {
+                            // 部分一致の場合は高速なSet/Includesを使用
+                            if (m.cs) simpleCS.add(m.word);
+                            else simpleCI.add(m.word.toLowerCase());
+                        }
+                    });
+                }
+
                 const muteSettings = {
                     hasMute,
                     muteMode,
-                    muteCI: enabledMuted.length ? new Set(enabledMuted.filter(m => !m.cs).map(m => m.word.toLowerCase())) : new Set(),
-                    muteCS: enabledMuted.length ? enabledMuted.filter(m => m.cs).map(m => m.word) : [],
+                    regexRules,
+                    simpleCI,
+                    simpleCS
                 };
 
                 // 全て無効なら属性を一掃して終了
@@ -10181,6 +10269,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         const muteListEl  = document.getElementById('adv-mute-list');
         const muteInputEl = document.getElementById('adv-mute-input');
         const muteCsEl    = document.getElementById('adv-mute-cs');
+        const muteWbEl    = document.getElementById('adv-mute-wb');
         const muteAddBtn  = document.getElementById('adv-mute-add');
 
         const renderMuted = () => {
@@ -10192,21 +10281,30 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             row.className = 'adv-mute-item';
             if (!item.enabled) row.classList.add('disabled');
             row.innerHTML = `
-              <div class="adv-mute-word">${escapeHTML(item.word)}</div>
-              <div class="adv-mute-actions">
-                <label class="adv-toggle">
-                  <input type="checkbox" ${item.enabled ? 'checked' : ''} data-action="toggle-enabled">
-                  <span data-i18n="labelEnabled">${i18n.t('labelEnabled')}</span>
-                </label>
-                <label class="adv-toggle">
-                  <input type="checkbox" ${item.cs ? 'checked' : ''} data-action="toggle-cs">
-                  <span data-i18n="labelCaseSensitive">${i18n.t('labelCaseSensitive')}</span>
-                </label>
-                <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
+              <div class="adv-mute-content-left">
+                  <div class="adv-mute-word">${escapeHTML(item.word)}</div>
+                  <div class="adv-mute-options-row">
+                    <label class="adv-toggle">
+                      <input type="checkbox" ${item.enabled ? 'checked' : ''} data-action="toggle-enabled">
+                      <span data-i18n="labelEnabled">${i18n.t('labelEnabled')}</span>
+                    </label>
+                    <label class="adv-toggle">
+                      <input type="checkbox" ${item.wb ? 'checked' : ''} data-action="toggle-wb">
+                      <span data-i18n="labelWordBoundary">${i18n.t('labelWordBoundary')}</span>
+                    </label>
+                    <label class="adv-toggle">
+                      <input type="checkbox" ${item.cs ? 'checked' : ''} data-action="toggle-cs">
+                      <span data-i18n="labelCaseSensitive">${i18n.t('labelCaseSensitive')}</span>
+                    </label>
+                  </div>
+              </div>
+              <div class="adv-mute-actions-right">
+                <button class="adv-chip danger" data-action="delete" style="padding:2px 8px; font-size:11px;">${i18n.t('delete')}</button>
               </div>
             `;
             row.querySelector('[data-action="toggle-enabled"]').addEventListener('change', () => toggleMutedEnabled(item.id));
             row.querySelector('[data-action="toggle-cs"]').addEventListener('change', () => toggleMutedCS(item.id));
+            row.querySelector('[data-action="toggle-wb"]').addEventListener('change', () => toggleMutedWB(item.id));
             row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteMuted(item.id));
             muteListEl.appendChild(row);
           });
@@ -10229,9 +10327,10 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         }
 
         muteAddBtn.addEventListener('click', () => {
-          addMuted(muteInputEl.value, !!muteCsEl.checked);
+          addMuted(muteInputEl.value, !!muteCsEl.checked, !!(muteWbEl && muteWbEl.checked));
           muteInputEl.value = '';
           muteCsEl.checked = false;
+          if(muteWbEl) muteWbEl.checked = false;
         });
         muteInputEl.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') { e.preventDefault(); muteAddBtn.click(); }
@@ -10572,12 +10671,32 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             const hasMute = masterOn && muted.length > 0;
 
             if (flags.name || flags.handle || hasMute || flags.reposts || flags.hashtags) {
-                const enabledMuted = hasMute ? muted.filter(m => m.enabled !== false) : [];
+                const regexRules = [];
+                const simpleCI = new Set();
+                const simpleCS = new Set();
+
+                if (hasMute) {
+                    muted.filter(m => m.enabled !== false).forEach(m => {
+                        if (m.wb) {
+                            // 単語単位: 正規表現を生成
+                            const flags = m.cs ? 'g' : 'gi';
+                            const esc = escapeRegExp(m.word);
+                            const pattern = `(?:^|[^a-zA-Z0-9_])${esc}(?:$|[^a-zA-Z0-9_])`;
+                            regexRules.push({ rx: new RegExp(pattern, flags), word: m.word });
+                        } else {
+                            // 通常一致: Setに振り分け
+                            if (m.cs) simpleCS.add(m.word);
+                            else simpleCI.add(m.word.toLowerCase());
+                        }
+                    });
+                }
+
                 const muteSettings = {
                     hasMute,
                     muteMode,
-                    muteCI: enabledMuted.length ? new Set(enabledMuted.filter(m => !m.cs).map(m => m.word.toLowerCase())) : new Set(),
-                    muteCS: enabledMuted.length ? enabledMuted.filter(m => m.cs).map(m => m.word) : [],
+                    regexRules,
+                    simpleCI,
+                    simpleCS
                 };
                 const tokens = (flags.name || flags.handle) ? parseSearchTokens() : null;
                 try {
