@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.2.3
+// @version      6.2.4
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -9053,7 +9053,6 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             // ▼▼▼ 最終判定 & UI制御 ▼▼▼
             if (reasons.length > 0) {
                 // Case A: ミュート対象だが、ユーザーが既に「表示する」を押している場合
-                // (art.dataset.advMutedShown === '1' で判定)
                 if (art.dataset.advMutedShown === '1') {
                     // コンテンツは隠さない
                     cell.removeAttribute('data-adv-hidden');
@@ -9071,7 +9070,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                     // Case B: ミュート対象で、まだ隠れている場合
                     removeRemuteButton(art); // ボタンがあれば消す（念のため）
 
-                    if (muteMode === 'collapsed') {
+                    // 「ミュートワード(muted_word)」以外の理由が含まれているか判定
+                    // 含まれている場合(isHardHide = true)は、設定が「折りたたみ」でも強制的に「非表示」にする
+                    const isHardHide = reasons.some(r => r !== 'muted_word');
+
+                    if (!isHardHide && muteMode === 'collapsed') {
+                        // [折りたたみモード] (ミュートワードのみヒットした場合)
                         cell.removeAttribute('data-adv-hidden');
                         cell.setAttribute('data-adv-collapsed', reasons.join(' '));
 
@@ -9091,8 +9095,6 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                             const uncollapse = (e) => {
                                 e.stopPropagation();
                                 e.preventDefault();
-                                // 属性を消すだけでなく、表示済みフラグを立てて再評価する
-                                // cell.removeAttribute('data-adv-collapsed'); // ←これは再評価で自動的に消えるので不要
                                 art.dataset.advMutedShown = '1';
                                 evaluateTweetForFiltering(art, flags, muteSettings, tokens);
                             };
@@ -9101,12 +9103,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
                             cell.appendChild(ph);
                         } else {
-                            // 既存プレースホルダーのラベルだけ更新（再利用時など）
                             const labelEl = ph.querySelector('.adv-collapsed-label span');
                             if (labelEl) labelEl.innerHTML = `${i18n.t('muteLabel')} ${escapeHTML(triggerWord)}`;
                         }
                     } else {
-                        // hiddenモード (完全非表示)
+                        // [完全非表示モード] (Hard Hide または hidden設定)
                         cell.removeAttribute('data-adv-collapsed');
                         cell.setAttribute('data-adv-hidden', reasons.join(' '));
                     }
