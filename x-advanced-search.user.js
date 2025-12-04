@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.2.5
+// @version      6.2.6
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -4078,9 +4078,9 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         }
         /* ▼▼▼ 再ミュートボタンのスタイル ▼▼▼ */
         .adv-btn-remute {
-            margin-left: 8px;
-            padding: 2px 8px;
-            font-size: 11px;
+            margin-right: 12px; /* Caret(…)との間隔を確保 */
+            padding: 4px 12px;  /* クリックしやすいよう少し拡大 */
+            font-size: 12px;
             font-weight: 700;
             border-radius: 9999px;
             border: 1px solid var(--modal-border, #38444d);
@@ -4090,7 +4090,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             white-space: nowrap;
             display: inline-flex;
             align-items: center;
-            height: 20px;
+            height: 28px;       /* ヘッダーのアクションボタンの高さに合わせる */
             line-height: 1;
             transition: all 0.2s;
         }
@@ -8924,39 +8924,33 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             // 既存があれば何もしない
             if (article.querySelector('.adv-btn-remute')) return;
 
-            // ft_findHeaderMetaContainer を再利用してヘッダー行を見つける
-            const headerRow = typeof ft_findHeaderMetaContainer === 'function'
-                ? ft_findHeaderMetaContainer(article)
-                : null;
+            // 1. まずGrokボタンを探す (言語依存対策で "Grok" を含むラベルを検索)
+            const grokBtn = article.querySelector('button[aria-label*="Grok"]');
+            // 2. なければCaret(…)ボタンを探す
+            const caretBtn = article.querySelector('[data-testid="caret"]');
 
-            if (headerRow) {
-                // フレックスレイアウトを強制（タグチップ処理と同じ）
-                headerRow.style.display = 'flex';
-                headerRow.style.flexDirection = 'row';
-                headerRow.style.alignItems = 'center';
-                // スペース不足時の折り返し設定
-                headerRow.style.flexWrap = 'wrap';
-                // 必要に応じて行間などを調整（既存のタグチップとの兼ね合い）
-                // headerRow.style.rowGap = '4px';
+            // 挿入基準となるボタンを決定（Grok優先、なければCaret）
+            const targetBtn = grokBtn || caretBtn;
+            if (!targetBtn) return;
 
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'adv-btn-remute';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'adv-btn-remute';
 
-                // ラベルをシンプルに「再ミュート」のみに変更
-                btn.textContent = i18n.t('buttonRemute');
+            // ラベルの設定
+            btn.textContent = i18n.t('buttonRemute');
+            btn.title = i18n.t('buttonRemute') + (triggerWord ? ` (${triggerWord})` : '');
 
-                // ツールチップには詳細（何でミュートされたか）を出しておくと親切かもしれません（不要なら削除可）
-                btn.title = i18n.t('buttonRemute') + (triggerWord ? ` (${triggerWord})` : '');
+            // クリックイベント
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (onRemute) onRemute();
+            });
 
-                // クリックイベント
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    if (onRemute) onRemute();
-                });
-
-                headerRow.appendChild(btn);
+            // ターゲットとなるボタン(Grok または Caret)の直前に挿入する
+            if (targetBtn.parentElement) {
+                targetBtn.parentElement.insertBefore(btn, targetBtn);
             }
         }
 
