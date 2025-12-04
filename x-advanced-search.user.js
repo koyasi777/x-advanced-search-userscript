@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.2.4
+// @version      6.2.5
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -9146,7 +9146,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                             // 単語単位(Word Boundary)の場合は正規表現を作成
                             // #ad -> (?:^|[^a-zA-Z0-9_])#ad(?:$|[^a-zA-Z0-9_]) というパターンを生成して
                             // 前後に英数字(とアンダースコア)がないことを確認する
-                            const flags = m.cs ? 'g' : 'gi';
+                            const flags = m.cs ? '' : 'i';
                             const esc = escapeRegExp(m.word);
                             // 英数字以外を境界とする
                             const pattern = `(?:^|[^a-zA-Z0-9_])${esc}(?:$|[^a-zA-Z0-9_])`;
@@ -10719,7 +10719,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                     muted.filter(m => m.enabled !== false).forEach(m => {
                         if (m.wb) {
                             // 単語単位: 正規表現を生成
-                            const flags = m.cs ? 'g' : 'gi';
+                            const flags = m.cs ? '' : 'i';
                             const esc = escapeRegExp(m.word);
                             const pattern = `(?:^|[^a-zA-Z0-9_])${esc}(?:$|[^a-zA-Z0-9_])`;
                             regexRules.push({ rx: new RegExp(pattern, flags), word: m.word });
