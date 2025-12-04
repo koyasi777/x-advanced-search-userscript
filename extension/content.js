@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.1.3
+// @version      6.2.6
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -33,10 +33,13 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
+// @grant        GM_info
 // @run-at       document-idle
 // @license      MIT
 // @homepageURL  https://github.com/koyasi777/advanced-search-for-x-twitter
 // @supportURL   https://github.com/koyasi777/advanced-search-for-x-twitter/issues
+// @updateURL    https://raw.githubusercontent.com/koyasi777/advanced-search-for-x-twitter/main/x-advanced-search.user.js
+// @downloadURL  https://raw.githubusercontent.com/koyasi777/advanced-search-for-x-twitter/main/x-advanced-search.user.js
 // ==/UserScript==
 
 const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
@@ -149,13 +152,20 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "Add mute word",
                 placeholderMuteWord: "e.g., spoiler",
                 labelCaseSensitive: "Case sensitive",
+                labelWordBoundary: "Whole word",
                 labelEnabled: "Enabled",
                 labelEnableAll: "Enable all",
                 buttonAdd: "Add",
                 emptyMuted: "No muted words.",
                 mutedListTitle: "Muted words",
                 mutedListHeading: "Muted items",
+                optMuteHidden: "Hidden",
+                optMuteCollapsed: "Collapsed",
+                placeholderFilterMute: "Filter muted words...",
+                muteLabel: "Muted: ",
+                buttonShow: "Show",
                 muteHit: "Mute hits in body",
+                buttonRemute: "Re-mute",
                 buttonImport: "Import",
                 buttonExport: "Export",
 
@@ -213,6 +223,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "Close",
                 labelUILang: "Interface language",
                 optUILangAuto: "Auto",
+                labelInitialTab: "Startup tab",
+                optInitialTabLast: "Last opened (Default)",
                 labelImportExport: "Import / Export",
                 placeholderSettingsJSON: "Paste backup JSON here...",
                 tooltipSettings: "Open settings",
@@ -361,13 +373,20 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "ミュート語句の追加",
                 placeholderMuteWord: "例: ネタバレ",
                 labelCaseSensitive: "大文字小文字を区別",
+                labelWordBoundary: "完全一致(単語)",
                 labelEnabled: "有効",
                 labelEnableAll: "すべて有効",
                 buttonAdd: "追加",
                 emptyMuted: "ミュート語句はまだありません。",
                 mutedListTitle: "ミュート語句",
                 mutedListHeading: "ミュート一覧",
+                optMuteHidden: "非表示",
+                optMuteCollapsed: "折りたたみ",
+                placeholderFilterMute: "ミュートを検索...",
+                muteLabel: "ミュート: ",
+                buttonShow: "表示する",
                 muteHit: "本文でのヒットをミュート",
+                buttonRemute: "再ミュート",
                 buttonImport: "インポート",
                 buttonExport: "エクスポート",
 
@@ -425,6 +444,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "閉じる",
                 labelUILang: "UI 言語",
                 optUILangAuto: "自動判定",
+                labelInitialTab: "起動時に開くタブ",
+                optInitialTabLast: "前回のタブ (デフォルト)",
                 labelImportExport: "インポート / エクスポート",
                 placeholderSettingsJSON: "ここにバックアップ JSON を貼り付けてください...",
                 tooltipSettings: "設定を開く",
@@ -571,13 +592,20 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "添加屏蔽词",
                 placeholderMuteWord: "例如：剧透",
                 labelCaseSensitive: "区分大小写",
+                labelWordBoundary: "全字匹配",
                 labelEnabled: "已启用",
                 labelEnableAll: "全部启用",
                 buttonAdd: "添加",
                 emptyMuted: "暂无屏蔽词。",
                 mutedListTitle: "屏蔽词",
                 mutedListHeading: "屏蔽列表",
+                optMuteHidden: "隐藏",
+                optMuteCollapsed: "折叠",
+                placeholderFilterMute: "筛选屏蔽词...",
+                muteLabel: "已屏蔽: ",
+                buttonShow: "显示",
                 muteHit: "屏蔽正文匹配项",
+                buttonRemute: "重新屏蔽",
                 buttonImport: "导入",
                 buttonExport: "导出",
 
@@ -635,6 +663,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "关闭",
                 labelUILang: "界面语言",
                 optUILangAuto: "自动",
+                labelInitialTab: "启动时打开的标签页",
+                optInitialTabLast: "上次打开的标签页 (默认)",
                 labelImportExport: "导入 / 导出",
                 placeholderSettingsJSON: "请在此粘贴备份 JSON...",
                 tooltipSettings: "打开设置",
@@ -780,13 +810,20 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "新增靜音詞彙",
                 placeholderMuteWord: "例如：劇透",
                 labelCaseSensitive: "區分大小寫",
+                labelWordBoundary: "全字匹配",
                 labelEnabled: "已啟用",
                 labelEnableAll: "全部啟用",
                 buttonAdd: "新增",
                 emptyMuted: "暫無靜音詞彙。",
                 mutedListTitle: "靜音詞彙",
                 mutedListHeading: "靜音清單",
+                optMuteHidden: "隱藏",
+                optMuteCollapsed: "收合",
+                placeholderFilterMute: "篩選靜音詞彙...",
+                muteLabel: "已靜音: ",
+                buttonShow: "顯示",
                 muteHit: "靜音內文相符項目",
+                buttonRemute: "重新靜音",
                 buttonImport: "匯入",
                 buttonExport: "匯出",
 
@@ -844,6 +881,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "關閉",
                 labelUILang: "介面語言",
                 optUILangAuto: "自動",
+                labelInitialTab: "啟動時開啟的分頁",
+                optInitialTabLast: "上次開啟的分頁 (預設)",
                 labelImportExport: "匯入 / 匯出",
                 placeholderSettingsJSON: "請在此貼上備份 JSON...",
                 tooltipSettings: "打開設定",
@@ -989,13 +1028,20 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "뮤트 단어 추가",
                 placeholderMuteWord: "예: 스포일러",
                 labelCaseSensitive: "대소문자 구분",
+                labelWordBoundary: "단어 단위",
                 labelEnabled: "활성화",
                 labelEnableAll: "모두 활성화",
                 buttonAdd: "추가",
                 emptyMuted: "뮤트된 단어가 없습니다.",
                 mutedListTitle: "뮤트 단어",
                 mutedListHeading: "뮤트 목록",
+                optMuteHidden: "숨기기",
+                optMuteCollapsed: "접기",
+                placeholderFilterMute: "뮤트 단어 검색...",
+                muteLabel: "뮤트됨: ",
+                buttonShow: "표시",
                 muteHit: "본문 일치 항목 뮤트",
+                buttonRemute: "다시 뮤트",
                 buttonImport: "가져오기",
                 buttonExport: "내보내기",
 
@@ -1053,6 +1099,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "닫기",
                 labelUILang: "UI 언어",
                 optUILangAuto: "자동",
+                labelInitialTab: "시작 시 열 탭",
+                optInitialTabLast: "마지막에 연 탭 (기본)",
                 labelImportExport: "가져오기 / 내보내기",
                 placeholderSettingsJSON: "백업 JSON을 여기에 붙여넣으세요...",
                 tooltipSettings: "설정 열기",
@@ -1201,13 +1249,20 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "Ajouter un mot masqué",
                 placeholderMuteWord: "ex: spoiler",
                 labelCaseSensitive: "Sensible à la casse",
+                labelWordBoundary: "Mot entier",
                 labelEnabled: "Activé",
                 labelEnableAll: "Tout activer",
                 buttonAdd: "Ajouter",
                 emptyMuted: "Aucun mot masqué.",
                 mutedListTitle: "Mots masqués",
                 mutedListHeading: "Liste masquée",
+                optMuteHidden: "Masqué",
+                optMuteCollapsed: "Réduit",
+                placeholderFilterMute: "Filtrer les mots masqués...",
+                muteLabel: "Masqué : ",
+                buttonShow: "Afficher",
                 muteHit: "Masquer les résultats dans le texte",
+                buttonRemute: "Masquer à nouveau",
                 buttonImport: "Importer",
                 buttonExport: "Exporter",
 
@@ -1265,6 +1320,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "Fermer",
                 labelUILang: "Langue de l'interface",
                 optUILangAuto: "Auto",
+                labelInitialTab: "Onglet au démarrage",
+                optInitialTabLast: "Dernier ouvert (Défaut)",
                 labelImportExport: "Importer / Exporter",
                 placeholderSettingsJSON: "Collez le JSON de sauvegarde ici...",
                 tooltipSettings: "Ouvrir les paramètres",
@@ -1410,13 +1467,20 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "Añadir palabra silenciada",
                 placeholderMuteWord: "ej. spoiler",
                 labelCaseSensitive: "Distinguir mayúsculas",
+                labelWordBoundary: "Palabra completa",
                 labelEnabled: "Habilitado",
                 labelEnableAll: "Habilitar todo",
                 buttonAdd: "Añadir",
                 emptyMuted: "No hay palabras silenciadas.",
                 mutedListTitle: "Palabras silenciadas",
                 mutedListHeading: "Lista de silenciados",
+                optMuteHidden: "Oculto",
+                optMuteCollapsed: "Colapsado",
+                placeholderFilterMute: "Filtrar palabras silenciadas...",
+                muteLabel: "Silenciado: ",
+                buttonShow: "Mostrar",
                 muteHit: "Silenciar coincidencias en cuerpo",
+                buttonRemute: "Volver a silenciar",
                 buttonImport: "Importar",
                 buttonExport: "Exportar",
 
@@ -1474,6 +1538,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "Cerrar",
                 labelUILang: "Idioma de interfaz",
                 optUILangAuto: "Automático",
+                labelInitialTab: "Pestaña de inicio",
+                optInitialTabLast: "Última abierta (Predeterminado)",
                 labelImportExport: "Importar / Exportar",
                 placeholderSettingsJSON: "Pega el JSON de respaldo aquí...",
                 tooltipSettings: "Abrir configuración",
@@ -1619,13 +1685,20 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "Stummes Wort hinzufügen",
                 placeholderMuteWord: "z.B. Spoiler",
                 labelCaseSensitive: "Groß-/Kleinschreibung",
+                labelWordBoundary: "Ganzes Wort",
                 labelEnabled: "Aktiviert",
                 labelEnableAll: "Alle aktivieren",
                 buttonAdd: "Hinzufügen",
                 emptyMuted: "Keine stummgeschalteten Wörter.",
                 mutedListTitle: "Stummgeschaltete Wörter",
                 mutedListHeading: "Stummgeschaltete Liste",
+                optMuteHidden: "Verborgen",
+                optMuteCollapsed: "Eingeklappt",
+                placeholderFilterMute: "Stummgeschaltete Wörter filtern...",
+                muteLabel: "Stummgeschaltet: ",
+                buttonShow: "Anzeigen",
                 muteHit: "Treffer im Text stummschalten",
+                buttonRemute: "Erneut stummschalten",
                 buttonImport: "Importieren",
                 buttonExport: "Exportieren",
 
@@ -1683,6 +1756,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "Schließen",
                 labelUILang: "Oberflächensprache",
                 optUILangAuto: "Automatisch",
+                labelInitialTab: "Start-Tab",
+                optInitialTabLast: "Zuletzt geöffnet (Standard)",
                 labelImportExport: "Import / Export",
                 placeholderSettingsJSON: "Backup-JSON hier einfügen...",
                 tooltipSettings: "Einstellungen öffnen",
@@ -1828,13 +1903,20 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "Adicionar palavra silenciada",
                 placeholderMuteWord: "ex: spoiler",
                 labelCaseSensitive: "Diferenciar maiúsculas",
+                labelWordBoundary: "Palavra inteira",
                 labelEnabled: "Ativado",
                 labelEnableAll: "Ativar tudo",
                 buttonAdd: "Adicionar",
                 emptyMuted: "Nenhuma palavra silenciada.",
                 mutedListTitle: "Palavras silenciadas",
                 mutedListHeading: "Lista de silenciados",
+                optMuteHidden: "Oculto",
+                optMuteCollapsed: "Colapsado",
+                placeholderFilterMute: "Filtrar palavras silenciadas...",
+                muteLabel: "Silenciado: ",
+                buttonShow: "Mostrar",
                 muteHit: "Silenciar resultados no corpo",
+                buttonRemute: "Silenciar novamente",
                 buttonImport: "Importar",
                 buttonExport: "Exportar",
 
@@ -1892,6 +1974,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "Fechar",
                 labelUILang: "Idioma da interface",
                 optUILangAuto: "Automático",
+                labelInitialTab: "Aba inicial",
+                optInitialTabLast: "Última aberta (Padrão)",
                 labelImportExport: "Importar / Exportar",
                 placeholderSettingsJSON: "Cole o JSON de backup aqui...",
                 tooltipSettings: "Abrir configurações",
@@ -2037,13 +2121,20 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 labelMuteWord: "Добавить скрытое слово",
                 placeholderMuteWord: "напр., спойлер",
                 labelCaseSensitive: "Учитывать регистр",
+                labelWordBoundary: "Слово целиком",
                 labelEnabled: "Включено",
                 labelEnableAll: "Включить все",
                 buttonAdd: "Добавить",
                 emptyMuted: "Нет скрытых слов.",
                 mutedListTitle: "Скрытые слова",
                 mutedListHeading: "Список скрытого",
+                optMuteHidden: "Скрыто",
+                optMuteCollapsed: "Свернуто",
+                placeholderFilterMute: "Фильтр скрытых слов...",
+                muteLabel: "Скрыто: ",
+                buttonShow: "Показать",
                 muteHit: "Скрывать совпадения в тексте",
+                buttonRemute: "Скрыть снова",
                 buttonImport: "Импорт",
                 buttonExport: "Экспорт",
 
@@ -2101,6 +2192,8 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 buttonClose: "Закрыть",
                 labelUILang: "Язык интерфейса",
                 optUILangAuto: "Авто",
+                labelInitialTab: "Вкладка при запуске",
+                optInitialTabLast: "Последняя открытая (По умолч.)",
                 labelImportExport: "Импорт / Экспорт",
                 placeholderSettingsJSON: "Вставьте JSON резервной копии...",
                 tooltipSettings: "Открыть настройки",
@@ -2227,18 +2320,21 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 '--modal-input-bg': '#eff3f4', '--modal-input-border': '#cfd9de', '--modal-button-hover-bg': 'rgba(15, 20, 25, 0.1)',
                 '--modal-scrollbar-thumb': '#aab8c2', '--modal-scrollbar-track': '#eff3f4', '--modal-close-color': '#0f1419',
                 '--modal-close-hover-bg': 'rgba(15, 20, 25, 0.1)', '--hr-color': '#eff3f4',
+                '--modal-tabs-shadow': '0 1px 12px rgba(0, 0, 0, 0.22)',
             },
             dim: {
                 '--modal-bg': '#15202b', '--modal-text-primary': '#f7f9f9', '--modal-text-secondary': '#8899a6', '--modal-border': '#38444d',
                 '--modal-input-bg': '#192734', '--modal-input-border': '#38444d', '--modal-button-hover-bg': 'rgba(247, 249, 249, 0.1)',
                 '--modal-scrollbar-thumb': '#536471', '--modal-scrollbar-track': '#192734', '--modal-close-color': '#f7f9f9',
                 '--modal-close-hover-bg': 'rgba(247, 249, 249, 0.1)', '--hr-color': '#38444d',
+                '--modal-tabs-shadow': '0 5px 12px rgba(0, 0, 0, 0.27)',
             },
             dark: {
                 '--modal-bg': '#000000', '--modal-text-primary': '#e7e9ea', '--modal-text-secondary': '#71767b', '--modal-border': '#2f3336',
                 '--modal-input-bg': '#16181c', '--modal-input-border': '#54595d', '--modal-button-hover-bg': 'rgba(231, 233, 234, 0.1)',
                 '--modal-scrollbar-thumb': '#536471', '--modal-scrollbar-track': '#16181c', '--modal-close-color': '#e7e9ea',
                 '--modal-close-hover-bg': 'rgba(231, 233, 234, 0.1)', '--hr-color': '#2f3336',
+                '--modal-tabs-shadow': '0 5px 12px rgba(0, 0, 0, 0.27)',
             }
         },
         applyTheme: function(modalElement, triggerEl) {
@@ -2276,8 +2372,106 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         }
     };
 
+    /**
+     * Mobile Drag & Drop Shim
+     * タッチイベントを検知し、HTML5 Drag & Dropイベント(dragstart, dragover, drop等)を発火させる
+     */
+    function enableMobileDragSupport() {
+        let dragSource = null;
+        let lastTarget = null;
+        // DataTransferのデータを保持する擬似ストア
+        let dataTransferStore = {};
+
+        // 擬似的な DragEvent を作成するヘルパー
+        const createEvent = (type, touch, target) => {
+            const event = new CustomEvent(type, { bubbles: true, cancelable: true });
+            // dataTransfer オブジェクトを擬似的に再現
+            event.dataTransfer = {
+                effectAllowed: 'move',
+                dropEffect: 'move',
+                types: Object.keys(dataTransferStore),
+                setData: (format, data) => { dataTransferStore[format] = data; },
+                getData: (format) => dataTransferStore[format],
+                clearData: () => { dataTransferStore = {}; }
+            };
+            // 座標情報を付与 (getDragAfterElement 等の計算に必要)
+            event.clientX = touch.clientX;
+            event.clientY = touch.clientY;
+            event.pageX = touch.pageX;
+            event.pageY = touch.pageY;
+            // ターゲット要素を上書き設定 (CustomEventの制約回避)
+            Object.defineProperty(event, 'target', { value: target, enumerable: true });
+            return event;
+        };
+
+        const onTouchStart = (e) => {
+            // ハンドル、またはドラッグ可能な要素自体へのタッチか判定
+            const handle = e.target.closest('.adv-item-handle, .adv-folder-header, .adv-tab-btn, .ft-modal-tag-drag-handle');
+            if (!handle) return;
+
+            const draggable = handle.closest('[draggable="true"]');
+            if (!draggable) return;
+
+            dragSource = draggable;
+            dataTransferStore = {}; // データ初期化
+
+            const touch = e.changedTouches[0];
+            const evt = createEvent('dragstart', touch, dragSource);
+            dragSource.dispatchEvent(evt);
+        };
+
+        const onTouchMove = (e) => {
+            if (!dragSource) return;
+            // スクロール防止（CSSのtouch-actionで防げない場合用）
+            if (e.cancelable) e.preventDefault();
+
+            const touch = e.changedTouches[0];
+            // 指の下にある要素を取得
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (!element) return;
+
+            // dragover は頻繁に発火させる必要がある
+            // ターゲットが変わった場合は dragenter/dragleave も検討すべきだが、
+            // このアプリのロジック(並び替え)では dragover がメインのため、そこに集中する
+
+            // 既存ロジックが .closest('.adv-item') 等を使っているため、適切なターゲットに対して発火
+            // ここでは elementFromPoint で取れた要素に対して dragover を投げる
+            const evt = createEvent('dragover', touch, element);
+            element.dispatchEvent(evt);
+            lastTarget = element;
+        };
+
+        const onTouchEnd = (e) => {
+            if (!dragSource) return;
+            const touch = e.changedTouches[0];
+
+            // 最後に指があった要素に対して drop を発火
+            if (lastTarget) {
+                const evtDrop = createEvent('drop', touch, lastTarget);
+                lastTarget.dispatchEvent(evtDrop);
+            }
+
+            const evtEnd = createEvent('dragend', touch, dragSource);
+            dragSource.dispatchEvent(evtEnd);
+
+            // クリーンアップ
+            dragSource = null;
+            lastTarget = null;
+            dataTransferStore = {};
+        };
+
+        document.addEventListener('touchstart', onTouchStart, { passive: false });
+        document.addEventListener('touchmove', onTouchMove, { passive: false });
+        document.addEventListener('touchend', onTouchEnd);
+    }
+
     function decodeURIComponentSafe(s) {
       try { return decodeURIComponent(s); } catch { return s; }
+    }
+
+    // 正規表現の特殊文字をエスケープする
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
     // “ ” 『』などのスマート引用を ASCII の " に寄せる
@@ -2563,12 +2757,15 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             padding: 0 8px 0 6px;
             gap: 4px;
             align-items: stretch;
-
-            /* 幅不足の時は隠さず、2行にする */
             flex-wrap: wrap;
-
-            /* 幅検知の基準にする */
             container-type: inline-size;
+
+            /* ▼ 固定表示設定 */
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: var(--modal-bg, #000);
+            box-shadow: var(--modal-tabs-shadow);
         }
 
         .adv-tab-btn {
@@ -2643,7 +2840,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         .adv-list { display:flex; flex-direction:column; gap:8px; }
         .adv-item { position: relative; border:1px solid var(--modal-input-border,#38444d); background:var(--modal-input-bg,#202327); border-radius:8px; padding:8px; display:flex; gap:8px; align-items:flex-start; }
         .adv-item.dragging { opacity:.6; }
-        .adv-item-handle { cursor:grab; user-select:none; padding:4px 6px; border-radius:6px; border:1px dashed var(--modal-border,#333); }
+        .adv-item-handle { cursor:grab; user-select:none; padding:4px 6px; border-radius:6px; border:1px dashed var(--modal-border,#333); touch-action: none; }
         .adv-item-avatar { width:36px; height:36px; border-radius:9999px; object-fit:cover; flex:0 0 auto; background:var(--modal-border,#333); }
         a.adv-link { color: inherit; text-decoration: none; }
         a.adv-link:hover { text-decoration: underline; cursor: pointer; }
@@ -2751,11 +2948,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           border:1px solid var(--modal-input-border,#38444d);
           background:var(--modal-input-bg,#202327);
           border-radius:8px;
-          padding:8px;
+          padding:8px 10px;
           display:flex;
-          flex-wrap: wrap;
-          gap:8px;
-          align-items:flex-start;
+          gap:10px;
+          justify-content: space-between;
+          align-items:center;
           transition: opacity .15s ease, filter .15s ease, border-color .15s ease;
         }
         .adv-mute-item.disabled {
@@ -2768,19 +2965,37 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           text-decoration: line-through;
         }
 
+        /* 左側のコンテナ（単語＋オプション） */
+        .adv-mute-content-left {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          flex: 1;
+          min-width: 0;
+        }
+
         .adv-mute-word {
           font-weight:700;
           color:var(--modal-text-primary,#e7e9ea);
           word-break:break-word;
+          font-size: 14px;
         }
 
-        .adv-mute-actions {
+        /* 左下のオプション群 */
+        .adv-mute-options-row {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+
+        /* 右側のコンテナ（削除ボタンのみ） */
+        .adv-mute-actions-right {
           display:flex;
-          gap:6px;
           align-items:center;
+          justify-content:center;
           flex: 0 0 auto;
           white-space: nowrap;
-          margin-left: auto;
+          padding-left: 4px;
         }
         @media (max-width: 480px) {
           .adv-mute-actions { margin-top: 4px; }
@@ -2804,8 +3019,51 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           font-size: 11px;
           line-height: 1;
         }
-        .adv-mute-header { display:flex; justify-content:space-between; align-items:center; margin:12px 0 6px; }
-        .adv-mute-title  { font-weight:700; color: var(--modal-text-primary,#e7e9ea); }
+        /* ▼▼▼ Mute Header Fix ▼▼▼ */
+        .adv-mute-header {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin: 4px 0 12px;
+            gap: 10px;
+            flex-wrap: nowrap; /* 折り返しを禁止して1行に強制 */
+        }
+        .adv-mute-header input[type="text"] {
+            flex: 1;
+            min-width: 0;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 14px;
+            background-color: var(--modal-input-bg,#202327);
+            border: 1px solid var(--modal-input-border,#38444d);
+            color: var(--modal-text-primary,#e7e9ea);
+        }
+        .adv-mute-header input[type="text"]:focus {
+            outline: 0;
+            border-color: var(--modal-primary-color);
+        }
+        .adv-mute-title {
+            font-weight:700;
+            color: var(--modal-text-primary,#e7e9ea);
+            white-space: nowrap; /* テキスト折り返し禁止 */
+            overflow: hidden;
+            text-overflow: ellipsis; /* 溢れたら...にする */
+            flex-shrink: 1; /* 幅不足時はタイトル側を縮める */
+            min-width: 0;
+        }
+        .adv-mute-header-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* 余白を少し詰める */
+            flex-shrink: 0; /* 操作パネルは縮めない */
+        }
+        #adv-mute-mode {
+            padding: 3px 24px 3px 8px; /* 矢印スペース考慮 */
+            font-size: 12px;
+            height: 28px;
+            cursor: pointer;
+            width: auto;
+        }
 
         /* マスター切替の一瞬だけ付けるガードクラス */
         .adv-no-anim, .adv-no-anim * {
@@ -2867,6 +3125,23 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           /* 検索アイコンは stroke="currentColor" を使っているので配色は自動追従 */
         }
 
+        /* リストコンテナ自体に十分な高さを確保し、下部にドロップ用の余白を強制的に広げる */
+        #adv-accounts-list,
+        #adv-lists-list,
+        #adv-saved-list {
+            min-height: 200px;      /* アイテムが空でもドロップできるようにする */
+            padding-bottom: 20px;
+            box-sizing: content-box; /* padding分を確実に高さに加える */
+        }
+
+        /* 未分類セクションが空の時も、ドラッグ中は少し広げて受け入れやすくする */
+        body.adv-dragging .adv-unassigned {
+            min-height: 60px;
+            background-color: rgba(128, 128, 128, 0.05); /* 視覚的にエリアを暗示 */
+            border-radius: 8px;
+            transition: min-height 0.2s ease, background-color 0.2s;
+        }
+
         /* === Folders === */
         .adv-folder { border:1px solid var(--modal-input-border,#38444d); border-radius:10px; margin-bottom:10px; }
         .adv-folder-header {
@@ -2881,7 +3156,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         .adv-folder-collapsed .adv-list { display:none; }
 
         /* ▶ Folder headers: show grab cursor except on action buttons */
-        .adv-folder-header { cursor: grab; }
+        .adv-folder-header { cursor: grab; touch-action: none; }
         .adv-folder-header:active { cursor: grabbing; }
 
         /* ボタン上では通常のポインタ（=ドラッグ開始させない見た目） */
@@ -3197,6 +3472,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           white-space: nowrap;
           background: rgba(255, 255, 255, 0.03); /* これは静的なまま (ほぼ透明なので) */
           flex: 0 0 auto;
+          order: 9999;
         }
         .ft-tag-chip-label {
           max-width: 150px;
@@ -3447,7 +3723,22 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           display: flex;
           flex-direction: column;
           gap: 6px;
-          margin-bottom: 10px;
+          padding-bottom: 30px; /* 余白を大きく取る */
+          min-height: 100px;    /* 空っぽでもドロップできるように */
+          position: relative;   /* ルートドロップの枠線表示用 */
+          box-sizing: content-box; /* paddingを含めない高さ計算 */
+        }
+
+        /* 一番下の余白にドラッグした時に、リスト全体の下に枠線を出すクラス */
+        .ft-modal-tag-list.ft-drag-to-root::after {
+            content: '';
+            position: absolute;
+            bottom: 20px; /* 余白の中ほどに線を引く */
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--modal-primary-color, #1d9bf0);
+            box-shadow: 0 0 4px var(--modal-primary-color, #1d9bf0);
         }
         .ft-modal-tag-item {
           position: relative;
@@ -3466,21 +3757,35 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         .ft-modal-tag-item-dragging {
           opacity: 0.6;
         }
-        .ft-modal-tag-item-drop-before::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: -4px;
-          border-top: 2px solid var(--ft-border-accent);
-        }
+        .ft-modal-tag-item-drop-before::before,
         .ft-modal-tag-item-drop-after::after {
-          content: '';
-          position: absolute;
-          left: 0;
-          right: 0;
-          bottom: -4px;
-          border-bottom: 2px solid var(--ft-border-accent);
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            /* 従来の色（白っぽいグレー） */
+            background-color: var(--ft-border-accent, rgba(239, 243, 244, 0.8));
+            border: none; /* border-top/bottom を background-color に変更して統一 */
+            pointer-events: none;
+        }
+        .ft-modal-tag-item-drop-before::before { top: -3.5px; }
+        .ft-modal-tag-item-drop-after::after { bottom: -3.5px; }
+
+        /* ルート階層用（青い線） */
+        .ft-modal-tag-item.ft-is-root-ref.ft-modal-tag-item-drop-before::before,
+        .ft-modal-tag-item.ft-is-root-ref.ft-modal-tag-item-drop-after::after {
+            background-color: var(--modal-primary-color, #1d9bf0);
+            box-shadow: 0 0 4px var(--modal-primary-color, #1d9bf0); /* 発光させて強調 */
+            height: 2px;
+            z-index: 10;
+        }
+        /* 青い線の位置（太くなった分、あるいは強調のため少し外側に広げる） */
+        .ft-modal-tag-item.ft-is-root-ref.ft-modal-tag-item-drop-before::before {
+            top: -4.2px;
+        }
+        .ft-modal-tag-item.ft-is-root-ref.ft-modal-tag-item-drop-after::after {
+            bottom: -4.2px;
         }
         .ft-modal-tag-item-drop-child {
           background: var(--ft-hover-bg-strong);
@@ -3526,6 +3831,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           cursor: grab;
           color: var(--ft-text-secondary);
           user-select: none;
+          touch-action: none;
         }
         .ft-modal-tag-drag-handle:hover {
           background: var(--ft-hover-bg-strong);
@@ -3703,12 +4009,95 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
            display: inline-flex;
            align-items: center;
         }
+
+        /* --- Mute Collapse Styles --- */
+        /* Hard Mute: data-adv-hidden */
+        [data-testid="cellInnerDiv"][data-adv-hidden],
+        article[data-adv-hidden] {
+          display: none !important;
+          content-visibility: hidden;
+          contain: strict;
+        }
+
+        /* Soft Mute: data-adv-collapsed */
+        /* 1. Hide original content */
+        [data-testid="cellInnerDiv"][data-adv-collapsed] > div:not(.adv-collapsed-placeholder),
+        article[data-adv-collapsed] > div:not(.adv-collapsed-placeholder) {
+            display: none !important;
+        }
+
+        /* 2. Show placeholder */
+        .adv-collapsed-placeholder {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: var(--modal-input-bg, #202327);
+            border-bottom: 1px solid var(--modal-border, #38444d);
+            cursor: pointer;
+            user-select: none;
+        }
+        .adv-collapsed-placeholder:hover {
+            background-color: color-mix(in srgb, var(--modal-input-bg, #202327) 85%, var(--modal-text-primary, #e7e9ea));
+        }
+        [data-testid="cellInnerDiv"][data-adv-collapsed] .adv-collapsed-placeholder,
+        article[data-adv-collapsed] .adv-collapsed-placeholder {
+            display: flex !important;
+        }
+
+        .adv-collapsed-label {
+            flex: 1;
+            font-size: 13px;
+            color: var(--modal-text-secondary, #8b98a5);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 12px;
+        }
+        .adv-btn-show {
+            background: transparent;
+            border: 1px solid var(--modal-primary-color, #1d9bf0);
+            color: var(--modal-primary-color, #1d9bf0);
+            border-radius: 9999px;
+            padding: 4px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .adv-btn-show:hover {
+            background-color: rgba(29, 155, 240, 0.1);
+        }
+
         /* タグチップのサイズ微調整 */
         .adv-item-sub .ft-tag-chip {
             margin-left: 8px;
             font-size: 10px;
             padding: 0 6px;
             height: 18px;
+        }
+        /* ▼▼▼ 再ミュートボタンのスタイル ▼▼▼ */
+        .adv-btn-remute {
+            margin-right: 12px; /* Caret(…)との間隔を確保 */
+            padding: 4px 12px;  /* クリックしやすいよう少し拡大 */
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 9999px;
+            border: 1px solid var(--modal-border, #38444d);
+            color: var(--modal-text-secondary, #8b98a5);
+            background: transparent;
+            cursor: pointer;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            height: 28px;       /* ヘッダーのアクションボタンの高さに合わせる */
+            line-height: 1;
+            transition: all 0.2s;
+        }
+        .adv-btn-remute:hover {
+            background: rgba(244, 33, 46, 0.1); /* Red tint */
+            color: rgb(244, 33, 46);
+            border-color: rgb(244, 33, 46);
         }
     `);
 
@@ -3913,20 +4302,35 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                       <!-- 追加する並び：まず“追加”UI -->
                       <div class="adv-mute-add">
                         <input type="text" id="adv-mute-input" data-i18n-placeholder="placeholderMuteWord">
+                        <div style="display:flex; flex-direction:column; gap:2px; margin-left:4px; margin-right:4px;">
+                            <label class="adv-toggle" title="">
+                              <input type="checkbox" id="adv-mute-wb">
+                              <span data-i18n="labelWordBoundary"></span>
+                            </label>
+                            <label class="adv-toggle" title="">
+                              <input type="checkbox" id="adv-mute-cs">
+                              <span data-i18n="labelCaseSensitive"></span>
+                            </label>
+                        </div>
                         <button id="adv-mute-add" class="adv-modal-button" data-i18n="buttonAdd"></button>
-                        <label class="adv-toggle" title="">
-                          <input type="checkbox" id="adv-mute-cs">
-                          <span data-i18n="labelCaseSensitive"></span>
-                        </label>
                       </div>
 
+                      <hr class="adv-separator" style="margin-top:12px; margin-bottom:12px;">
+
                       <!-- ▼ 新しい見出しブロック（ミュート一覧 + すべて有効/無効） -->
-                      <div class="adv-mute-header" style="margin-top:12px;">
-                        <div class="adv-mute-title" data-i18n="mutedListHeading"></div>
-                        <label class="adv-toggle">
-                          <input type="checkbox" id="adv-mute-enable-all" checked>
-                          <span data-i18n="labelEnableAll"></span>
-                        </label>
+                      <div class="adv-mute-header">
+                        <input type="text" id="adv-mute-filter" data-i18n-placeholder="placeholderFilterMute">
+
+                        <div class="adv-mute-header-controls">
+                            <select id="adv-mute-mode" class="adv-select">
+                                <option value="hidden" data-i18n="optMuteHidden">Hidden</option>
+                                <option value="collapsed" data-i18n="optMuteCollapsed">Collapsed</option>
+                            </select>
+                            <label class="adv-toggle">
+                              <input type="checkbox" id="adv-mute-enable-all" checked>
+                              <span data-i18n="labelEnableAll"></span>
+                            </label>
+                        </div>
                       </div>
 
                       <div id="adv-mute-empty" class="adv-item-sub"></div>
@@ -3971,6 +4375,20 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                             <option value="zh-TW">繁體中文</option>
                         </select>
                     </div>
+
+                      <div class="adv-settings-group">
+                          <label for="adv-settings-initial-tab" data-i18n="labelInitialTab"></label>
+                          <select id="adv-settings-initial-tab">
+                              <option value="last" data-i18n="optInitialTabLast"></option>
+                              <option value="search" data-i18n="tabSearch"></option>
+                              <option value="history" data-i18n="tabHistory"></option>
+                              <option value="saved" data-i18n="tabSaved"></option>
+                              <option value="favorites" data-i18n="tabFavorites"></option>
+                              <option value="mute" data-i18n="tabMute"></option>
+                              <option value="lists" data-i18n="tabLists"></option>
+                              <option value="accounts" data-i18n="tabAccounts"></option>
+                          </select>
+                      </div>
 
                       <div class="adv-settings-section-header" data-i18n="settingsTitleFeatures"></div>
                       <div class="adv-settings-group">
@@ -4393,19 +4811,50 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             return null;
         }
 
-        function ft_getTweetCardRoot(article) {
-            return article.closest('div[data-testid="cellInnerDiv"]') || article;
-        }
-
+        // タグチップの挿入場所（ヘッダーメタ情報行）を特定する関数
         function ft_findHeaderMetaContainer(article) {
-            const timeEl = article.querySelector('time');
-            if (!timeEl) return null;
-            const anchor = timeEl.closest('a');
-            if (!anchor) return null;
-            let container = anchor.parentElement;
-            if (container && container.parentElement) container = container.parentElement;
-            if (!container || !container.parentElement) return null;
-            return container.parentElement;
+            // 1. User-Name を起点にする (タイムラインでも詳細表示でも必ずヘッダーに存在する)
+            const userName = article.querySelector('[data-testid="User-Name"]');
+
+            if (userName) {
+                // User-Name の親を遡り、ハンドルネーム(@...)や時間表示を含む「行コンテナ」を探す
+                // 構造: [Container] -> [NameWrapper] -> [User-Name]
+                //             L-> [HandleWrapper] -> [@handle]
+                let p = userName.parentElement;
+
+                // 親を数回遡って、兄弟要素に「@から始まるテキスト（ハンドル）」を含むコンテナを探す
+                // ※通常は2～3階層上
+                while (p && p !== article) {
+                    // 自分の親の直下(兄弟要素)に、自分以外で「@」から始まるテキストを持つ要素があるか確認
+                    const hasHandleSibling = Array.from(p.children).some(sib => {
+                        // 自分自身のラッパーは除外
+                        if (sib.contains(userName)) return false;
+                        // テキストを取得して @ で始まっているか判定
+                        const txt = sib.innerText || '';
+                        return txt.trim().startsWith('@');
+                    });
+
+                    if (hasHandleSibling) {
+                        // ハンドルネームと並んでいるコンテナが見つかったら、ここが挿入場所
+                        return p;
+                    }
+                    p = p.parentElement;
+                }
+            }
+
+            // 2. フォールバック: 従来のTime検索 (ただし引用ツイート内のTimeは厳密に除外する)
+            const allTimes = article.querySelectorAll('time');
+            for (const timeEl of allTimes) {
+                // 引用(role="link")の中にあるtimeは無視してスキップ
+                if (timeEl.closest('div[role="link"]')) continue;
+
+                const anchor = timeEl.closest('a');
+                if (anchor && anchor.parentElement && anchor.parentElement.parentElement) {
+                    return anchor.parentElement.parentElement;
+                }
+            }
+
+            return null;
         }
 
         // ------------- タグチップ描画（イベント委譲対応） ------------- //
@@ -4440,12 +4889,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             const headerRow = ft_findHeaderMetaContainer(article);
             if (!headerRow) return;
 
+            // ▼▼▼ スタイルの適用 ▼▼▼
             headerRow.style.display = 'flex';
             headerRow.style.flexDirection = 'row';
-            headerRow.style.flexWrap = 'nowrap';
             headerRow.style.alignItems = 'center';
             headerRow.style.justifyContent = 'flex-start';
             headerRow.style.columnGap = '4px';
+
+            // スペースが足りない場合に折り返しを許可する
+            headerRow.style.flexWrap = 'wrap';
+            // 折り返した際、上下の行に隙間を作る
+            headerRow.style.rowGap = '8px';
 
             let existing = headerRow.querySelector('.ft-tag-chip');
             const chip = ft_buildTagChip(tweetId);
@@ -4759,13 +5213,27 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             }
             function getDropTargetInfoFromY(y) {
                 const items = Array.from(tagListEl.querySelectorAll('.ft-modal-tag-item'));
-                if (!items.length) return null;
+                if (!items.length) return { row: null, mode: 'root-end' }; // 空ならルート追加
+
                 const rects = items.map(row => row.getBoundingClientRect());
+
+                // 一番下の要素の「底辺」より下なら、無条件でルート末尾移動とする
+                const lastRect = rects[rects.length - 1];
+                // 少しでも下(0px以上)にあればルート扱いにする（CSSで余白を作ったためこれでOK）
+                if (y > lastRect.bottom) {
+                    return { row: null, mode: 'root-end' };
+                }
+
                 const boundaries = [rects[0].top];
                 for (let i = 1; i < items.length; i++) boundaries.push((rects[i - 1].bottom + rects[i].top) / 2);
                 boundaries.push(rects[items.length - 1].bottom);
+
                 let idx = 0; let min = Infinity;
-                for (let i = 0; i < boundaries.length; i++) { const d = Math.abs(y - boundaries[i]); if (d < min) { min = d; idx = i; } }
+                for (let i = 0; i < boundaries.length; i++) {
+                    const d = Math.abs(y - boundaries[i]);
+                    if (d < min) { min = d; idx = i; }
+                }
+
                 if (idx === 0) return { row: items[0], mode: 'before' };
                 if (idx === items.length) return { row: items[items.length - 1], mode: 'after' };
                 return { row: items[idx], mode: 'before' };
@@ -4830,22 +5298,104 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 });
             }
             tagListEl.ondragover = (ev) => {
-                if (!ft_dragSrcEntry) return; if (ev.defaultPrevented) return;
-                ev.preventDefault(); clearDropClasses();
+                if (!ft_dragSrcEntry) return;
+                if (ev.defaultPrevented) return;
+
+                ev.preventDefault();
+                clearDropClasses();
+                tagListEl.classList.remove('ft-drag-to-root');
+
+                // クラスリセット: すべての行からルート判定クラスを一旦消す
+                tagListEl.querySelectorAll('.ft-is-root-ref').forEach(el => el.classList.remove('ft-is-root-ref'));
+
                 const info = getDropTargetInfoFromY(ev.clientY);
-                if (info) info.row.classList.add(info.mode === 'before' ? 'ft-modal-tag-item-drop-before' : 'ft-modal-tag-item-drop-after');
+
+                // 1. 一番下の余白へのドロップ（ルート末尾）
+                if (info.mode === 'root-end') {
+                    tagListEl.classList.add('ft-drag-to-root');
+                }
+                // 2. 行へのドロップ（隙間 or 親子化）
+                else if (info.row) {
+                    // 自分自身へのドロップでない場合
+                    if (info.row.dataset.tagId !== ft_dragSrcEntry.tagId) {
+
+                        const targetId = info.row.dataset.tagId;
+                        const targetKind = info.row.dataset.kind;
+
+                        // ▼▼▼ ルート階層かどうかの判定 ▼▼▼
+                        let isRoot = false;
+                        if (targetKind === 'uncat') {
+                            // 「未分類」は常にルート
+                            isRoot = true;
+                        } else if (targetId) {
+                            // タグの場合、親ID(parentId)が無ければルート
+                            const tTag = ft_getTagById(targetId);
+                            if (tTag && !tTag.parentId) {
+                                isRoot = true;
+                            }
+                        }
+
+                        // ルート階層なら専用クラスを付与（→ CSSで青線になる）
+                        if (isRoot) {
+                            info.row.classList.add('ft-is-root-ref');
+                        }
+
+                        // 前後(before/after) または 親子(child) のクラスを付与
+                        info.row.classList.add(
+                            info.mode === 'before' ? 'ft-modal-tag-item-drop-before' : 'ft-modal-tag-item-drop-after'
+                        );
+
+                        // 親子化（行の中央ドロップ）の判定がある場合は上書き
+                        const rect = info.row.getBoundingClientRect();
+                        const ratio = (ev.clientY - rect.top) / rect.height;
+                        if (ratio > 0.3 && ratio < 0.7) {
+                            // 中央ドロップは「入れ子」なので、線のクラスを消して背景クラスを付ける
+                            info.row.classList.remove('ft-modal-tag-item-drop-before', 'ft-modal-tag-item-drop-after');
+                            info.row.classList.add('ft-modal-tag-item-drop-child');
+                        }
+                    }
+                }
             };
             tagListEl.ondrop = (ev) => {
-                if (!ft_dragSrcEntry) return; if (ev.defaultPrevented) return;
-                ev.preventDefault(); clearDropClasses();
+                if (!ft_dragSrcEntry) return;
+                if (ev.defaultPrevented) return;
+
+                ev.preventDefault();
+                clearDropClasses();
+                tagListEl.classList.remove('ft-drag-to-root'); // クラス削除
+
                 const info = getDropTargetInfoFromY(ev.clientY);
-                if (!info) return;
                 const srcTag = ft_getTagById(ft_dragSrcEntry.tagId);
-                if (info.row.dataset.kind === 'tag') {
-                   const tTag = ft_getTagById(info.row.dataset.tagId);
-                   if (info.mode === 'before') moveTagBefore(srcTag, tTag); else moveTagAfter(srcTag, tTag);
+                if (!srcTag) return;
+
+                // root-end なら「親なし」にして「一番下」へ
+                if (info.mode === 'root-end') {
+                    srcTag.parentId = null; // 親を解除
+
+                    // ルート要素の中での最大order + 1 を設定して末尾へ
+                    const rootTags = ft_state.tags.filter(t => !t.parentId);
+                    const maxOrder = rootTags.length ? Math.max(...rootTags.map(t => t.order || 0)) : 0;
+                    srcTag.order = maxOrder + 1;
+
+                    ft_normalizeTagOrders();
+                    ft_clampUncategorizedOrder();
+                    ft_saveState();
+                    rebuildTagList();
+                    return;
+                }
+
+                // 既存の処理（行間へのドロップ）
+                if (info.row && info.row.dataset.kind === 'tag') {
+                    const targetId = info.row.dataset.tagId;
+                    // 自分自身へのドロップは無視
+                    if (targetId === srcTag.id) return;
+
+                    const tTag = ft_getTagById(targetId);
+                    if (info.mode === 'before') moveTagBefore(srcTag, tTag);
+                    else moveTagAfter(srcTag, tTag);
                 } else {
-                   moveTagToRootRelativeToUncat(srcTag, info.mode);
+                    // 未分類(Uncategorized)との位置関係処理
+                    moveTagToRootRelativeToUncat(srcTag, info.mode);
                 }
                 rebuildTagList();
             };
@@ -4993,6 +5543,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
         const settingsModal = document.getElementById('adv-settings-modal');
         const settingsLangSel = document.getElementById('adv-settings-lang');
+        const settingsInitialTabSel = document.getElementById('adv-settings-initial-tab');
         const settingsFileInput = document.getElementById('adv-settings-file-input');
         const settingsOpenBtn = document.getElementById('adv-settings-button');
         const settingsCloseBtn = document.getElementById('adv-settings-close');
@@ -5088,11 +5639,18 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             };
 
             const onDragOver = (ev) => {
+                // カーソルが .adv-folder (フォルダー) の上にある場合は、問答無用で背景ハイライトを消して終わる
+                if (ev.target.closest('.adv-folder')) {
+                    feedbackTargets.forEach(t => t.classList.remove(feedbackClass));
+                    return;
+                }
                 // dropイベントを発火させるために、dragoverでpreventDefaultが必要
                 // アイテムであり、ターゲットが panel/host/zoomRoot 自身の場合のみ許可
                 if (eventTargets.includes(ev.target) && ev.dataTransfer.types && !ev.dataTransfer.types.includes(SECT_MIME) && ev.dataTransfer.types.includes('text/plain')) {
                     ev.preventDefault();
                     ev.stopPropagation();
+                    /* ▼▼▼ 背景（隙間）にいるなら、フォルダーのハイライトは強制的に消す ▼▼▼ */
+                    document.querySelectorAll('.adv-folder[data-drop="1"]').forEach(el => delete el.dataset.drop);
                     // 破線は feedbackTargets に付け続ける
                     feedbackTargets.forEach(t => t.classList.add(feedbackClass));
                 } else {
@@ -5127,6 +5685,23 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 target.addEventListener('drop', onDrop);
             });
         };
+
+        // ドラッグ終了時（成功・キャンセル問わず）に、強制的にすべてのドロップハイライトを解除する
+        document.addEventListener('dragend', () => {
+            // 背景の破線を消す
+            document.querySelectorAll('.adv-bg-drop-active').forEach(el => {
+                el.classList.remove('adv-bg-drop-active');
+            });
+            // フォルダーヘッダー等のハイライトも念のため消す
+            document.querySelectorAll('[data-drop="1"]').forEach(el => {
+                delete el.dataset.drop;
+            });
+            // ドラッグ中のクラスも念のため消す
+            document.querySelectorAll('.adv-item.dragging').forEach(el => {
+                el.classList.remove('dragging');
+            });
+            document.body.classList.remove('adv-dragging');
+        });
 
         // --- generic unassign helper (de-duplicate) ---
         // Remove an item from all folders under FOLDERS_KEY,
@@ -5525,8 +6100,6 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             return row;
         }
 
-        const advFavoritesListEl = document.getElementById('adv-favorites-list');
-
         // お気に入りタブ専用の現在の絞り込み状態（メモリ保持）
         let favFilterTagId = 'ALL'; // 'ALL', 'UNCAT', or tagId
         let favSearchQuery = '';
@@ -5829,6 +6402,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
         const MODAL_STATE_KEY   = 'advSearchModalState_v3.2';
         const TRIGGER_STATE_KEY = 'advSearchTriggerState_v1.0';
+        const INITIAL_TAB_KEY   = 'advInitialTab_v1';
         const HISTORY_KEY = 'advSearchHistory_v2';
         const SAVED_KEY   = 'advSearchSaved_v2';
         const SECRET_KEY  = 'advSearchSecretMode_v1';
@@ -5841,6 +6415,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                   id: it.id || uid(),
                   word: (it.word||'').trim(),
                   cs: !!it.cs,
+                  wb: !!it.wb, // wb (Word Boundary) を維持
                   enabled: it.enabled !== false,
                   ts: it.ts || Date.now()
                 }))
@@ -5849,12 +6424,14 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         const loadMuted = () => migrateMuted(loadJSON(MUTE_KEY, []));
         const saveMuted = (arr) => saveJSON(MUTE_KEY, migrateMuted(arr));
 
-        const addMuted = (word, cs=false) => {
+        // 引数に wb を追加
+        const addMuted = (word, cs=false, wb=false) => {
           const w = (word||'').trim();
           if (!w) return;
           const list = loadMuted();
-          if (list.some(it => it.word === w && !!it.cs === !!cs)) return;
-          list.unshift({ id: uid(), word: w, cs: !!cs, enabled: true, ts: Date.now() });
+          // 重複チェックに wb も含める
+          if (list.some(it => it.word === w && !!it.cs === !!cs && !!it.wb === !!wb)) return;
+          list.unshift({ id: uid(), word: w, cs: !!cs, wb: !!wb, enabled: true, ts: Date.now() });
           saveMuted(list);
           renderMuted();
           rescanAllTweetsForFilter();
@@ -5869,6 +6446,14 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
         const toggleMutedCS = (id) => {
           const list = loadMuted().map(it => it.id === id ? { ...it, cs: !it.cs, ts: Date.now() } : it);
+          saveMuted(list);
+          renderMuted();
+          rescanAllTweetsForFilter();
+        };
+
+        // 単語単位の一致切り替え
+        const toggleMutedWB = (id) => {
+          const list = loadMuted().map(it => it.id === id ? { ...it, wb: !it.wb, ts: Date.now() } : it);
           saveMuted(list);
           renderMuted();
           rescanAllTweetsForFilter();
@@ -5903,8 +6488,10 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
             // 言語・除外設定・ミュート
             lang: kv.get(LANG_OVERRIDE_KEY, ''),
+            initialTab: kv.get(INITIAL_TAB_KEY, 'last'),
             excludeFlags: loadExcludeFlags(),
             muteMaster: loadMuteMaster(),
+            muteMode: loadMuteMode(),
             muted: loadMuted(),
 
             // 検索履歴・保存済み検索
@@ -5992,6 +6579,10 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 try { kv.set(LANG_OVERRIDE_KEY, data.lang || ''); } catch (_) {}
             }
 
+            if (data.initialTab !== undefined) {
+                try { kv.set(INITIAL_TAB_KEY, data.initialTab || 'last'); } catch (_) {}
+            }
+
             if (data.excludeFlags) {
                 saveExcludeFlags({
                     name: !!data.excludeFlags.name,
@@ -6007,6 +6598,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
             if (typeof data.muteMaster === 'boolean') {
                 saveMuteMaster(data.muteMaster);
+            }
+
+            // ミュートモードの読み込みと保存
+            if (data.muteMode && (data.muteMode === 'hidden' || data.muteMode === 'collapsed')) {
+                saveMuteMode(data.muteMode);
             }
 
             // --- v2 以降で追加された保存データ ---
@@ -6138,11 +6734,14 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
         // マスターON/OFF（全体の適用を止めるだけ。各エントリの enabled は保持）
         const MUTE_MASTER_KEY = 'advMuteMasterEnabled_v1';
+        const MUTE_MODE_KEY = 'advMuteMode_v1';
         const LAST_TAB_KEY = 'advSearchLastTab_v1';
         const TABS_ORDER_KEY = 'advTabsOrder_v1';
-        const TABS_VISIBILITY_KEY = 'advTabsVisibility_v1'; // ★ 新規追加
+        const TABS_VISIBILITY_KEY = 'advTabsVisibility_v1';
         const loadMuteMaster = () => { try { return kv.get(MUTE_MASTER_KEY, '1') === '1'; } catch(_) { return true; } };
         const saveMuteMaster = (on) => { try { kv.set(MUTE_MASTER_KEY, on ? '1' : '0'); } catch(_) {} };
+        const loadMuteMode = () => { try { return kv.get(MUTE_MODE_KEY, 'hidden'); } catch(_) { return 'hidden'; } };
+        const saveMuteMode = (v) => { try { kv.set(MUTE_MODE_KEY, v); } catch(_) {} };
 
         const tabButtons = Array.from(document.querySelectorAll('.adv-tab-btn'));
 
@@ -6748,6 +7347,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             if (settingsLangSel) settingsLangSel.value = override || '';
           } catch (_) {}
 
+          try {
+            const initTab = kv.get(INITIAL_TAB_KEY, 'last');
+            if (settingsInitialTabSel) settingsInitialTabSel.value = initTab;
+          } catch (_) {}
+
           // タブ表示設定の読み込みと設定
           try {
             const visibility = loadTabsVisibility();
@@ -6884,10 +7488,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
               MODAL_STATE_KEY,
               TRIGGER_STATE_KEY,
               HISTORY_KEY,
+              INITIAL_TAB_KEY,
               SAVED_KEY,
               SECRET_KEY,
               MUTE_KEY,
               MUTE_MASTER_KEY,
+              MUTE_MODE_KEY,
               LAST_TAB_KEY,
               TABS_ORDER_KEY,
               TABS_VISIBILITY_KEY,
@@ -6974,6 +7580,10 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
               renderLists();
               renderAccounts();
               renderMuted();
+              // ミュートモードの選択状態をUIに反映
+              if (muteModeSel) {
+                  muteModeSel.value = loadMuteMode();
+              }
               updateSaveButtonState();
               rescanAllTweetsForFilter();
 
@@ -7039,6 +7649,12 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             try { renderMuted(); } catch (_) {}
             try { renderFavorites(); } catch (_) {}
           });
+        }
+
+        if (settingsInitialTabSel) {
+            settingsInitialTabSel.addEventListener('change', () => {
+                kv.set(INITIAL_TAB_KEY, settingsInitialTabSel.value);
+            });
         }
 
         const loadSecret = () => { try { return kv.get(SECRET_KEY, '0') === '1'; } catch(_) { return false; } };
@@ -7557,6 +8173,9 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             list.addEventListener('dragover', ev => {
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return; // セクションD&Dは無視
               ev.preventDefault(); ev.stopPropagation();
+              /* ▼▼▼ ここでフォルダーや背景のハイライトを強制的に消す ▼▼▼ */
+              document.querySelectorAll('.adv-folder[data-drop="1"]').forEach(el => delete el.dataset.drop);
+              document.querySelectorAll('.adv-bg-drop-active').forEach(el => el.classList.remove('adv-bg-drop-active'));
               const dragging = document.querySelector('.adv-item.dragging');
               if (!dragging) return;
               const after = getDragAfterElement(list, ev.clientY);
@@ -7682,11 +8301,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             section.addEventListener('dragover', (ev) => {
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) {
                 ev.preventDefault();
+                ev.stopPropagation();
                 const dragging = host.querySelector('.dragging-folder');
                 if (!dragging || dragging === section) return;
                 const after = getSectionAfterElement(host, ev.clientY);
                 if (after == null) host.appendChild(dragging);
                 else host.insertBefore(dragging, after);
+              } else {
+                 ev.preventDefault();
+                 ev.stopPropagation(); // これで「枠線」に乗った時に背景が光るのを防ぐ
+                 // ここでは section.dataset.drop='1' はしない（中身のリストに入った時に光らせたいので）
+                 // もし枠線でも光らせたい場合はここに dataset.drop='1' を書いてもOK
               }
             });
 
@@ -7742,6 +8367,9 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             header.addEventListener('dragover', ev => {
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return;
               ev.preventDefault();
+              ev.stopPropagation();
+              /* ▼▼▼ 背景の破線を強制的に消す ▼▼▼ */
+              document.querySelectorAll('.adv-bg-drop-active').forEach(el => el.classList.remove('adv-bg-drop-active'));
               // 排他制御: 他のフォルダのハイライトを消す
               document.querySelectorAll('.adv-folder[data-drop="1"]').forEach(el => {
                 if (el !== section) delete el.dataset.drop;
@@ -7770,6 +8398,9 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
               if (ev.dataTransfer.types && ev.dataTransfer.types.includes(SECT_MIME)) return; // ガード追加
               ev.preventDefault();
               ev.stopPropagation(); // 伝播停止も追加
+
+              /* ▼▼▼ 背景の破線を強制的に消す ▼▼▼ */
+              document.querySelectorAll('.adv-bg-drop-active').forEach(el => el.classList.remove('adv-bg-drop-active'));
 
               // 排他制御: 他のフォルダのハイライトを消す
               document.querySelectorAll('.adv-folder[data-drop="1"]').forEach(el => {
@@ -8163,6 +8794,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           return article.closest('[data-testid="cellInnerDiv"]') || article;
         }
 
+        /* ▼ 戻り値を boolean から string|null (ヒットした単語) に変更 */
         function shouldHideTweetByNameHandle(article, flags, tokens) {
           const {
             requiredTerms = new Set(),
@@ -8172,17 +8804,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             hashtagSet
           } = tokens || {};
 
-          if (includeTerms.size === 0) return false;
+          if (includeTerms.size === 0) return null; // false -> null
 
           const { body, disp, handle, replyHandles } = pickTweetFields(article);
 
-          // 正規化系ユーティリティ（本文検索はスペース正規化）
-          const normSpace = (s) => String(s || '')
-            .toLowerCase()
-            .replace(/[_.\-]+/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-
+          const normSpace = (s) => String(s || '').toLowerCase().replace(/[_.\-]+/g, ' ').replace(/\s+/g, ' ').trim();
           const normId = (s) => String(s || '').replace(/^@/, '').toLowerCase();
           const stripNonAlnum = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9\u00c0-\u024f]+/gi, '');
 
@@ -8202,9 +8828,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             if (t && textBody.includes(t)) inBody.add(t);
           }
 
-          // 名前/ハンドルで命中した語を記録（本文に出ているものは除外して記録しない）
-          const inMeta = new Set(); // normSpace/stripNonAlnum の両方を入れる
-
+          const inMeta = new Set();
           const markMetaHit = (tSpace, tTight) => {
             if (tSpace && !inBody.has(tSpace)) inMeta.add(tSpace);
             if (tTight) inMeta.add(tTight);
@@ -8223,16 +8847,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             }
           }
 
-          // --- @ユーザー名ヒットの記録（演算子例外/短語ガード/境界） ---
           if (flags.handle) {
             for (const term of includeTerms) {
               const raw = String(term || '');
               const rawLC = raw.trim().toLowerCase();
-
-              // ハッシュタグは対象外
-              if (rawLC.startsWith('#') || (hashtagSet && hashtagSet.has(rawLC.startsWith('#') ? rawLC : '#' + rawLC))) {
-                continue;
-              }
+              if (rawLC.startsWith('#') || (hashtagSet && hashtagSet.has(rawLC.startsWith('#') ? rawLC : '#' + rawLC))) continue;
 
               const bare = raw.replace(/^@/, '').toLowerCase();
               if (opUsers && opUsers.has(bare)) continue; // from:/to:/@ 明示は例外
@@ -8274,45 +8893,88 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             }
           }
 
-          // === 最終判定 ===
-          // AND（requiredTerms）: “本文に出ていない & metaでのみヒット” が1語でもあれば隠す
+          // === 最終判定: マッチした単語を返す ===
           for (const t of requiredTerms) {
             const s = normSpace(t);
+            // 本文になく、メタ情報(名前/ID)でのみヒットした場合、その単語を返す
             if (s && !inBody.has(s) && (inMeta.has(s) || inMeta.has(stripNonAlnum(t)))) {
-              return true;
+              return t;
             }
           }
 
-          // OR（orGroups）: 各グループが「本文で満たされていないのに metaだけで満たされる」場合は隠す
           for (const group of orGroups) {
             let anyBody = false;
-            let anyMeta = false;
+            let metaHitWord = null;
             for (const w of group) {
               const s = normSpace(w);
               const tight = stripNonAlnum(w);
               if (s && inBody.has(s)) anyBody = true;
-              if (s && inMeta.has(s)) anyMeta = true;
-              if (tight && inMeta.has(tight)) anyMeta = true;
-              if (anyBody && anyMeta) break;
+              if ((s && inMeta.has(s)) || (tight && inMeta.has(tight))) {
+                  if (!metaHitWord) metaHitWord = w;
+              }
             }
-            if (!anyBody && anyMeta) return true;
+            if (!anyBody && metaHitWord) return metaHitWord;
           }
 
-          // ここまで来たら隠さない
-          return false;
+          return null;
         }
 
+        // ▼▼▼ 再ミュートボタンの注入/削除ロジック ▼▼▼
+        function injectRemuteButton(article, triggerWord, onRemute) {
+            // 既存があれば何もしない
+            if (article.querySelector('.adv-btn-remute')) return;
+
+            // 1. まずGrokボタンを探す (言語依存対策で "Grok" を含むラベルを検索)
+            const grokBtn = article.querySelector('button[aria-label*="Grok"]');
+            // 2. なければCaret(…)ボタンを探す
+            const caretBtn = article.querySelector('[data-testid="caret"]');
+
+            // 挿入基準となるボタンを決定（Grok優先、なければCaret）
+            const targetBtn = grokBtn || caretBtn;
+            if (!targetBtn) return;
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'adv-btn-remute';
+
+            // ラベルの設定
+            btn.textContent = i18n.t('buttonRemute');
+            btn.title = i18n.t('buttonRemute') + (triggerWord ? ` (${triggerWord})` : '');
+
+            // クリックイベント
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (onRemute) onRemute();
+            });
+
+            // ターゲットとなるボタン(Grok または Caret)の直前に挿入する
+            if (targetBtn.parentElement) {
+                targetBtn.parentElement.insertBefore(btn, targetBtn);
+            }
+        }
+
+        function removeRemuteButton(article) {
+            const btn = article.querySelector('.adv-btn-remute');
+            if (btn) btn.remove();
+        }
+
+        /* ▼ evaluateTweetForFiltering: triggerWord を特定して表示に使用 (Full Code) */
         function evaluateTweetForFiltering(art, flags, muteSettings, tokens) {
             const cell = getTweetCell(art);
             const reasons = [];
-            let tweetBodyText = null; // 本文テキストのキャッシュ用
+            let tweetBodyText = null;
+            let triggerWord = ''; // ★ヒットした単語を保持
 
-            const { hasMute, muteCI, muteCS } = muteSettings;
+            const { hasMute, muteCI, muteCS, muteMode } = muteSettings;
 
             // 1. 名前/ハンドル除外
             if ((flags.name || flags.handle) && tokens) {
-                const hideByNameHandle = shouldHideTweetByNameHandle(art, flags, tokens);
-                if (hideByNameHandle) reasons.push('name_handle_only');
+                const hitWord = shouldHideTweetByNameHandle(art, flags, tokens);
+                if (hitWord) {
+                    reasons.push('name_handle_only');
+                    if (!triggerWord) triggerWord = hitWord; // ヒット語句を記録
+                }
             }
 
             // 2. ミュートワード除外
@@ -8320,10 +8982,39 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 tweetBodyText = tweetBodyText ?? (art.querySelector('[data-testid="tweetText"]')?.innerText || '');
                 const bodyCI = tweetBodyText.toLowerCase();
                 let hideByMute = false;
-                for (const w of muteCI) { if (w && bodyCI.includes(w)) { hideByMute = true; break; } }
-                if (!hideByMute) {
-                  for (const w of muteCS) { if (w && tweetBodyText.includes(w)) { hideByMute = true; break; } }
+
+                // A. 単純一致 (Case Insensitive)
+                if (muteSettings.simpleCI && muteSettings.simpleCI.size > 0) {
+                    for (const w of muteSettings.simpleCI) {
+                        if (bodyCI.includes(w)) {
+                            hideByMute = true;
+                            if (!triggerWord) triggerWord = w;
+                            break;
+                        }
+                    }
                 }
+                // B. 単純一致 (Case Sensitive)
+                if (!hideByMute && muteSettings.simpleCS && muteSettings.simpleCS.size > 0) {
+                    for (const w of muteSettings.simpleCS) {
+                        if (tweetBodyText.includes(w)) {
+                            hideByMute = true;
+                            if (!triggerWord) triggerWord = w;
+                            break;
+                        }
+                    }
+                }
+                // C. 正規表現/単語単位 (wb=true)
+                if (!hideByMute && muteSettings.regexRules && muteSettings.regexRules.length > 0) {
+                    for (const rule of muteSettings.regexRules) {
+                        // rule.rx は (?:^|[^a-zA-Z0-9_])word(?:$|[^a-zA-Z0-9_]) の形
+                        if (rule.rx.test(tweetBodyText)) {
+                            hideByMute = true;
+                            if (!triggerWord) triggerWord = rule.word;
+                            break;
+                        }
+                    }
+                }
+
                 if (hideByMute) reasons.push('muted_word');
             }
 
@@ -8335,6 +9026,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                     const isPinned = art.querySelector(`svg path[d="${pinIconPath}"]`);
                     if (!isPinned) {
                         reasons.push('repost');
+                        if (!triggerWord) triggerWord = 'Repost';
                     }
                 }
             }
@@ -8343,19 +9035,84 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             if (flags.hashtags) {
                 tweetBodyText = tweetBodyText ?? (art.querySelector('[data-testid="tweetText"]')?.innerText || '');
                 if (tweetBodyText.includes('#')) {
-                  reasons.push('hashtag');
+                    reasons.push('hashtag');
+                    if (!triggerWord) {
+                        // 最初のハッシュタグを抽出して表示
+                        const m = tweetBodyText.match(/#[^\s\u3000]+/);
+                        triggerWord = m ? m[0] : '#Hashtag';
+                    }
                 }
             }
 
-            // 最終判定
+            // ▼▼▼ 最終判定 & UI制御 ▼▼▼
             if (reasons.length > 0) {
-                cell.setAttribute('data-adv-hidden', reasons.join(' '));
-            } else {
-                cell.removeAttribute('data-adv-hidden');
-            }
+                // Case A: ミュート対象だが、ユーザーが既に「表示する」を押している場合
+                if (art.dataset.advMutedShown === '1') {
+                    // コンテンツは隠さない
+                    cell.removeAttribute('data-adv-hidden');
+                    cell.removeAttribute('data-adv-collapsed');
 
-            // 処理済みフラグは呼び出し元(processNewTweets)で共通化するため、ここではセットしない
-            // art.setAttribute('data-adv-processed-filter', '1');
+                    // その代わり、ヘッダーに「再ミュート」ボタンを注入
+                    injectRemuteButton(art, triggerWord, () => {
+                        // 再ミュートクリック時の処理
+                        delete art.dataset.advMutedShown; // フラグを消す
+                        // 再帰呼び出しして即座に隠す
+                        evaluateTweetForFiltering(art, flags, muteSettings, tokens);
+                    });
+
+                } else {
+                    // Case B: ミュート対象で、まだ隠れている場合
+                    removeRemuteButton(art); // ボタンがあれば消す（念のため）
+
+                    // 「ミュートワード(muted_word)」以外の理由が含まれているか判定
+                    // 含まれている場合(isHardHide = true)は、設定が「折りたたみ」でも強制的に「非表示」にする
+                    const isHardHide = reasons.some(r => r !== 'muted_word');
+
+                    if (!isHardHide && muteMode === 'collapsed') {
+                        // [折りたたみモード] (ミュートワードのみヒットした場合)
+                        cell.removeAttribute('data-adv-hidden');
+                        cell.setAttribute('data-adv-collapsed', reasons.join(' '));
+
+                        let ph = cell.querySelector('.adv-collapsed-placeholder');
+                        if (!ph) {
+                            ph = document.createElement('div');
+                            ph.className = 'adv-collapsed-placeholder';
+
+                            // ここで triggerWord を表示する
+                            ph.innerHTML = `
+                                <div class="adv-collapsed-label">
+                                    <span style="opacity:0.8">${i18n.t('muteLabel')} ${escapeHTML(triggerWord)}</span>
+                                </div>
+                                <button class="adv-btn-show">${i18n.t('buttonShow')}</button>
+                            `;
+
+                            const uncollapse = (e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                art.dataset.advMutedShown = '1';
+                                evaluateTweetForFiltering(art, flags, muteSettings, tokens);
+                            };
+                            ph.addEventListener('click', uncollapse);
+                            ph.querySelector('button').addEventListener('click', uncollapse);
+
+                            cell.appendChild(ph);
+                        } else {
+                            const labelEl = ph.querySelector('.adv-collapsed-label span');
+                            if (labelEl) labelEl.innerHTML = `${i18n.t('muteLabel')} ${escapeHTML(triggerWord)}`;
+                        }
+                    } else {
+                        // [完全非表示モード] (Hard Hide または hidden設定)
+                        cell.removeAttribute('data-adv-collapsed');
+                        cell.setAttribute('data-adv-hidden', reasons.join(' '));
+                    }
+                }
+            } else {
+                // Case C: ミュート対象ではない
+                delete art.dataset.advMutedShown; // 不要なフラグは掃除
+                cell.removeAttribute('data-adv-hidden');
+                cell.removeAttribute('data-adv-collapsed');
+                removeRemuteButton(art);
+            }
         }
 
         // ▼ ミュート設定変更時などに、全ツイートを強制再スキャンする
@@ -8369,18 +9126,46 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 };
 
                 const masterOn = loadMuteMaster();
+                const muteMode = loadMuteMode(); // モード読み込み
                 const muted = loadMuted();
                 const hasMute = masterOn && muted.length > 0;
-                const enabledMuted = hasMute ? muted.filter(m => m.enabled !== false) : [];
+                // 正規表現ルールと単純一致ルールを準備
+                const regexRules = [];
+                const simpleCI = new Set();
+                const simpleCS = new Set();
+
+                if (hasMute) {
+                    muted.filter(m => m.enabled !== false).forEach(m => {
+                        if (m.wb) {
+                            // 単語単位(Word Boundary)の場合は正規表現を作成
+                            // #ad -> (?:^|[^a-zA-Z0-9_])#ad(?:$|[^a-zA-Z0-9_]) というパターンを生成して
+                            // 前後に英数字(とアンダースコア)がないことを確認する
+                            const flags = m.cs ? '' : 'i';
+                            const esc = escapeRegExp(m.word);
+                            // 英数字以外を境界とする
+                            const pattern = `(?:^|[^a-zA-Z0-9_])${esc}(?:$|[^a-zA-Z0-9_])`;
+                            regexRules.push({ rx: new RegExp(pattern, flags), word: m.word });
+                        } else {
+                            // 部分一致の場合は高速なSet/Includesを使用
+                            if (m.cs) simpleCS.add(m.word);
+                            else simpleCI.add(m.word.toLowerCase());
+                        }
+                    });
+                }
+
                 const muteSettings = {
                     hasMute,
-                    muteCI: enabledMuted.length ? new Set(enabledMuted.filter(m => !m.cs).map(m => m.word.toLowerCase())) : new Set(),
-                    muteCS: enabledMuted.length ? enabledMuted.filter(m => m.cs).map(m => m.word) : [],
+                    muteMode,
+                    regexRules,
+                    simpleCI,
+                    simpleCS
                 };
 
+                // 全て無効なら属性を一掃して終了
                 if (!flags.name && !flags.handle && !hasMute && !flags.reposts && !flags.hashtags) {
-                    document.querySelectorAll('[data-adv-hidden]').forEach(cell => {
+                    document.querySelectorAll('[data-adv-hidden], [data-adv-collapsed]').forEach(cell => {
                         cell.removeAttribute('data-adv-hidden');
+                        cell.removeAttribute('data-adv-collapsed');
                     });
                     cleanupAdjacentSeparators();
                     return;
@@ -9304,7 +10089,11 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
           if (!isListPath()) return;
           if (!force && listButtonInstalledAt === location.pathname) return;
 
-          const shareBtn = document.querySelector('button[data-testid="share-button"]');
+          // 可視状態にあるシェアボタンを厳密に特定する
+          const shareBtns = Array.from(document.querySelectorAll('button[data-testid="share-button"]'));
+          // offsetParent が null でない（＝表示されている）ボタンを探す
+          // SP時は TopNavBar 内にあることが多いため、それを優先しても良いが、可視チェックが最も汎用的
+          const shareBtn = shareBtns.find(btn => btn.offsetParent !== null);
           if (!shareBtn) return;
 
           const parent = shareBtn.parentElement;
@@ -9501,11 +10290,24 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         const muteEmptyEl = document.getElementById('adv-mute-empty');
         const muteListEl  = document.getElementById('adv-mute-list');
         const muteInputEl = document.getElementById('adv-mute-input');
+        const muteFilterEl = document.getElementById('adv-mute-filter');
         const muteCsEl    = document.getElementById('adv-mute-cs');
+        const muteWbEl    = document.getElementById('adv-mute-wb');
         const muteAddBtn  = document.getElementById('adv-mute-add');
 
+        if (muteFilterEl) {
+            muteFilterEl.addEventListener('input', () => renderMuted());
+        }
+
         const renderMuted = () => {
-          const list = loadMuted();
+          let list = loadMuted();
+          // 検索ボックスに値があればフィルタリング
+          if (muteFilterEl) {
+              const q = muteFilterEl.value.trim().toLowerCase();
+              if (q) {
+                  list = list.filter(item => item.word.toLowerCase().includes(q));
+              }
+          }
           muteListEl.innerHTML = '';
           muteEmptyEl.textContent = list.length ? '' : i18n.t('emptyMuted');
           list.forEach(item => {
@@ -9513,21 +10315,30 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             row.className = 'adv-mute-item';
             if (!item.enabled) row.classList.add('disabled');
             row.innerHTML = `
-              <div class="adv-mute-word">${escapeHTML(item.word)}</div>
-              <div class="adv-mute-actions">
-                <label class="adv-toggle">
-                  <input type="checkbox" ${item.enabled ? 'checked' : ''} data-action="toggle-enabled">
-                  <span data-i18n="labelEnabled">${i18n.t('labelEnabled')}</span>
-                </label>
-                <label class="adv-toggle">
-                  <input type="checkbox" ${item.cs ? 'checked' : ''} data-action="toggle-cs">
-                  <span data-i18n="labelCaseSensitive">${i18n.t('labelCaseSensitive')}</span>
-                </label>
-                <button class="adv-chip danger" data-action="delete">${i18n.t('delete')}</button>
+              <div class="adv-mute-content-left">
+                  <div class="adv-mute-word">${escapeHTML(item.word)}</div>
+                  <div class="adv-mute-options-row">
+                    <label class="adv-toggle">
+                      <input type="checkbox" ${item.enabled ? 'checked' : ''} data-action="toggle-enabled">
+                      <span data-i18n="labelEnabled">${i18n.t('labelEnabled')}</span>
+                    </label>
+                    <label class="adv-toggle">
+                      <input type="checkbox" ${item.wb ? 'checked' : ''} data-action="toggle-wb">
+                      <span data-i18n="labelWordBoundary">${i18n.t('labelWordBoundary')}</span>
+                    </label>
+                    <label class="adv-toggle">
+                      <input type="checkbox" ${item.cs ? 'checked' : ''} data-action="toggle-cs">
+                      <span data-i18n="labelCaseSensitive">${i18n.t('labelCaseSensitive')}</span>
+                    </label>
+                  </div>
+              </div>
+              <div class="adv-mute-actions-right">
+                <button class="adv-chip danger" data-action="delete" style="padding:2px 8px; font-size:11px;">${i18n.t('delete')}</button>
               </div>
             `;
             row.querySelector('[data-action="toggle-enabled"]').addEventListener('change', () => toggleMutedEnabled(item.id));
             row.querySelector('[data-action="toggle-cs"]').addEventListener('change', () => toggleMutedCS(item.id));
+            row.querySelector('[data-action="toggle-wb"]').addEventListener('change', () => toggleMutedWB(item.id));
             row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteMuted(item.id));
             muteListEl.appendChild(row);
           });
@@ -9550,29 +10361,38 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         }
 
         muteAddBtn.addEventListener('click', () => {
-          addMuted(muteInputEl.value, !!muteCsEl.checked);
+          addMuted(muteInputEl.value, !!muteCsEl.checked, !!(muteWbEl && muteWbEl.checked));
           muteInputEl.value = '';
           muteCsEl.checked = false;
+          if(muteWbEl) muteWbEl.checked = false;
         });
         muteInputEl.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') { e.preventDefault(); muteAddBtn.click(); }
         });
 
         const muteEnableAllEl = document.getElementById('adv-mute-enable-all');
+        const muteModeSel = document.getElementById('adv-mute-mode');
+
         if (muteEnableAllEl && !muteEnableAllEl._advBound) {
           muteEnableAllEl._advBound = true;
-          // 初期状態はマスター値をそのまま反映
-          try {
-            muteEnableAllEl.checked = loadMuteMaster();
-          } catch {}
-          applyMuteVisualState();    // 初期描画でリスト外観を整える
+          try { muteEnableAllEl.checked = loadMuteMaster(); } catch {}
+          applyMuteVisualState();
 
           muteEnableAllEl.addEventListener('change', () => {
             saveMuteMaster(!!muteEnableAllEl.checked);
-            applyMuteVisualState();   // 視覚の即時反映（リスト半透明/通常）
-            rescanAllTweetsForFilter();    // 機能面の反映（既存）
+            applyMuteVisualState();
+            rescanAllTweetsForFilter();
           });
+        }
 
+        // モード選択の初期化とイベント
+        if (muteModeSel && !muteModeSel._advBound) {
+            muteModeSel._advBound = true;
+            try { muteModeSel.value = loadMuteMode(); } catch {}
+            muteModeSel.addEventListener('change', () => {
+                saveMuteMode(muteModeSel.value);
+                rescanAllTweetsForFilter();
+            });
         }
 
         const installNavigationHooks = (onRouteChange) => {
@@ -9880,15 +10700,37 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
 
             // 3. Advanced Search Filtering ...
             const masterOn = loadMuteMaster();
+            const muteMode = loadMuteMode();
             const muted = loadMuted();
             const hasMute = masterOn && muted.length > 0;
 
             if (flags.name || flags.handle || hasMute || flags.reposts || flags.hashtags) {
-                const enabledMuted = hasMute ? muted.filter(m => m.enabled !== false) : [];
+                const regexRules = [];
+                const simpleCI = new Set();
+                const simpleCS = new Set();
+
+                if (hasMute) {
+                    muted.filter(m => m.enabled !== false).forEach(m => {
+                        if (m.wb) {
+                            // 単語単位: 正規表現を生成
+                            const flags = m.cs ? '' : 'i';
+                            const esc = escapeRegExp(m.word);
+                            const pattern = `(?:^|[^a-zA-Z0-9_])${esc}(?:$|[^a-zA-Z0-9_])`;
+                            regexRules.push({ rx: new RegExp(pattern, flags), word: m.word });
+                        } else {
+                            // 通常一致: Setに振り分け
+                            if (m.cs) simpleCS.add(m.word);
+                            else simpleCI.add(m.word.toLowerCase());
+                        }
+                    });
+                }
+
                 const muteSettings = {
                     hasMute,
-                    muteCI: enabledMuted.length ? new Set(enabledMuted.filter(m => !m.cs).map(m => m.word.toLowerCase())) : new Set(),
-                    muteCS: enabledMuted.length ? enabledMuted.filter(m => m.cs).map(m => m.word) : [],
+                    muteMode,
+                    regexRules,
+                    simpleCI,
+                    simpleCS
                 };
                 const tokens = (flags.name || flags.handle) ? parseSearchTokens() : null;
                 try {
@@ -10098,9 +10940,23 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         renderSaved();
         renderAccounts();
         renderMuted();
+        // スマホ対応用：タッチ操作をドラッグ操作へ変換するリスナーを登録
+        enableMobileDragSupport();
         // 保存された最後のタブを読み込んでアクティブにする
-        const lastTab = kv.get(LAST_TAB_KEY, 'search');
-        activateTab(lastTab || 'search');
+        const initTabSetting = kv.get(INITIAL_TAB_KEY, 'last'); // 設定を取得 (デフォルトは 'last')
+        let targetTab = 'search';
+
+        if (initTabSetting === 'last') {
+            // 'last' の場合は前回開いていたタブを使う
+            targetTab = kv.get(LAST_TAB_KEY, 'search');
+        } else {
+            // それ以外の場合は指定されたタブを使う
+            targetTab = initTabSetting;
+        }
+
+        // もし指定されたタブが設定で「非表示」になっている場合、activateTab 内部のロジックで
+        // 自動的に 'search' 等の表示可能なタブにフォールバックされるため、ここでは単純に渡すだけでOK
+        activateTab(targetTab || 'search');
         (async () => {
             const input = await waitForElement(searchInputSelectors.join(','), 7000);
             if (input) {
