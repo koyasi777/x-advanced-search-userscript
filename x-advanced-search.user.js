@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.2.6
+// @version      6.2.7
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -2703,22 +2703,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         .adv-form-group input[type=text],.adv-form-group input[type=number],.adv-form-group input[type=date],.adv-form-group select{width:100%;background-color:var(--modal-input-bg,#202327);border:1px solid var(--modal-input-border,#38444d);border-radius:4px;padding:8px 12px;color:var(--modal-text-primary,#e7e9ea);font-size:15px;box-sizing:border-box}
         .adv-form-group input:focus,.adv-form-group select:focus{outline:0;border-color:var(--modal-primary-color)}
         .adv-form-group input::placeholder{color:var(--modal-text-secondary,#536471)}
-        .adv-form-group-date-container{display:flex;gap:10px}
+        .adv-form-group-date-container {display:flex;gap:8px;align-items: center;}
+        .adv-form-group-date-container input[type=date] {flex:1;min-width: 0;width: auto !important;}
+        .adv-date-separator {color:var(--modal-text-secondary, #8b98a5);font-weight:700;user-select:none;flex-shrink:0;padding: 0 2px;}
         .adv-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .adv-checkbox-group{background-color:var(--modal-input-bg,#202327);border:1px solid var(--modal-input-border,#38444d);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}
         .adv-checkbox-group span{font-weight:700;font-size:14px;color:var(--modal-text-primary,#e7e9ea)}
         .adv-checkbox-item{display:flex;align-items:center}
         .adv-checkbox-item input{margin-right:8px; accent-color:var(--modal-primary-color);}
         .adv-checkbox-item label{color:var(--modal-text-secondary,#8b98a5);margin-bottom:0}
-        .adv-checkbox-item input[type="checkbox"]:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .adv-checkbox-item input[type="checkbox"]:disabled + label {
-          opacity: 0.5;
-          cursor: not-allowed;
-          text-decoration: line-through;
-        }
+        .adv-checkbox-item input[type="checkbox"]:disabled {opacity:0.5; cursor:not-allowed;}
+        .adv-checkbox-item input[type="checkbox"]:disabled + label {opacity:0.5;cursor:not-allowed;text-decoration:line-through;}
         .adv-modal-footer{padding:12px 16px;border-top:1px solid var(--modal-border,#333);display:flex;justify-content:flex-end;gap:12px}
         .adv-modal-button{padding:5px 16px;border-radius:9999px;border:1px solid var(--modal-text-secondary,#536471);background-color:transparent;color:var(--modal-text-primary,#e7e9ea);font-weight:700;cursor:pointer;transition:background-color .2s}
         .adv-modal-button:hover{background-color:var(--modal-button-hover-bg,rgba(231,233,234,.1))}
@@ -4217,6 +4212,7 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                             <label data-i18n="labelDateRange"></label>
                             <div class="adv-form-group-date-container">
                                 <input type="date" id="adv-since" data-i18n-title="tooltipSince">
+                                <span class="adv-date-separator">~</span>
                                 <input type="date" id="adv-until" data-i18n-title="tooltipUntil">
                             </div>
                         </div>
