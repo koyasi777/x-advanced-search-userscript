@@ -10,7 +10,7 @@
 // @name:de      Advanced Search for X (Twitter) 🔍
 // @name:pt-BR   Advanced Search for X (Twitter) 🔍
 // @name:ru      Advanced Search for X (Twitter) 🔍
-// @version      6.2.6
+// @version      6.2.8
 // @description      Adds a floating modal for advanced search on X.com (Twitter). Syncs with search box and remembers position/display state. The top-right search icon is now draggable and its position persists.
 // @description:ja   X.com（Twitter）に高度な検索機能を呼び出せるフローティング・モーダルを追加します。検索ボックスと双方向で同期し、位置や表示状態も記憶します。右上の検索アイコンはドラッグで移動でき、位置は保存されます。
 // @description:en   Adds a floating modal for advanced search on X.com (formerly Twitter). Syncs with search box and remembers position/display state. The top-right search icon is draggable with persistent position.
@@ -99,6 +99,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 placeholderMinLikes: "Min likes",
                 placeholderMinRetweets: "Min reposts",
                 labelDateRange: "Date range",
+                labelDateShortcut: "Quick Range",
+                optDate1Day: "Past 24h",
+                optDate1Week: "Past week",
+                optDate1Month: "Past month",
+                optDate3Months: "Past 3 months",
+                optDate6Months: "Past 6 months",
+                optDate1Year: "Past year",
+                optDate2Years: "Past 2 years",
+                optDate3Years: "Past 3 years",
+                optDate5Years: "Past 5 years",
+                optDateClear: "Clear dates",
                 tooltipSince: "From this date",
                 tooltipUntil: "Until this date",
                 labelFromUser: "From these accounts (from:)",
@@ -320,6 +331,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 placeholderMinLikes: "最小いいね数",
                 placeholderMinRetweets: "最小リポスト数",
                 labelDateRange: "期間指定",
+                labelDateShortcut: "期間ショートカット",
+                optDate1Day: "過去24時間",
+                optDate1Week: "過去1週間",
+                optDate1Month: "過去1ヶ月",
+                optDate3Months: "過去3ヶ月",
+                optDate6Months: "過去6ヶ月",
+                optDate1Year: "過去1年",
+                optDate2Years: "過去2年",
+                optDate3Years: "過去3年",
+                optDate5Years: "過去5年",
+                optDateClear: "日付クリア",
                 tooltipSince: "この日以降",
                 tooltipUntil: "この日以前",
                 labelFromUser: "このアカウントから (from:)",
@@ -539,6 +561,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 placeholderMinLikes: "最少喜欢",
                 placeholderMinRetweets: "最少转发",
                 labelDateRange: "日期范围",
+                labelDateShortcut: "快速选择",
+                optDate1Day: "过去 24 小时",
+                optDate1Week: "过去 1 周",
+                optDate1Month: "过去 1 个月",
+                optDate3Months: "过去 3 个月",
+                optDate6Months: "过去 6 个月",
+                optDate1Year: "过去 1 年",
+                optDate2Years: "过去 2 年",
+                optDate3Years: "过去 3 年",
+                optDate5Years: "过去 5 年",
+                optDateClear: "清除日期",
                 tooltipSince: "起始日期",
                 tooltipUntil: "结束日期",
                 labelFromUser: "来自这些账号 (from:)",
@@ -757,6 +790,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 placeholderMinLikes: "最少喜歡",
                 placeholderMinRetweets: "最少轉發",
                 labelDateRange: "日期範圍",
+                labelDateShortcut: "快速範圍",
+                optDate1Day: "過去 24 小時",
+                optDate1Week: "過去 1 週",
+                optDate1Month: "過去 1 個月",
+                optDate3Months: "過去 3 個月",
+                optDate6Months: "過去 6 個月",
+                optDate1Year: "過去 1 年",
+                optDate2Years: "過去 2 年",
+                optDate3Years: "過去 3 年",
+                optDate5Years: "過去 5 年",
+                optDateClear: "清除日期",
                 tooltipSince: "開始日期",
                 tooltipUntil: "結束日期",
                 labelFromUser: "來自這些帳號 (from:)",
@@ -975,6 +1019,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 placeholderMinLikes: "최소 마음에 들어요 수",
                 placeholderMinRetweets: "최소 재게시 수",
                 labelDateRange: "날짜 범위",
+                labelDateShortcut: "빠른 범위 설정",
+                optDate1Day: "지난 24시간",
+                optDate1Week: "지난 1주",
+                optDate1Month: "지난 1개월",
+                optDate3Months: "지난 3개월",
+                optDate6Months: "지난 6개월",
+                optDate1Year: "지난 1년",
+                optDate2Years: "지난 2년",
+                optDate3Years: "지난 3년",
+                optDate5Years: "지난 5년",
+                optDateClear: "날짜 초기화",
                 tooltipSince: "시작일",
                 tooltipUntil: "종료일",
                 labelFromUser: "다음 계정에서 (from:)",
@@ -1196,6 +1251,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 placeholderMinLikes: "Min J'aime",
                 placeholderMinRetweets: "Min republications",
                 labelDateRange: "Période",
+                labelDateShortcut: "Plage rapide",
+                optDate1Day: "Dernières 24h",
+                optDate1Week: "Semaine dernière",
+                optDate1Month: "Mois dernier",
+                optDate3Months: "3 derniers mois",
+                optDate6Months: "6 derniers mois",
+                optDate1Year: "Année dernière",
+                optDate2Years: "2 dernières années",
+                optDate3Years: "3 dernières années",
+                optDate5Years: "5 dernières années",
+                optDateClear: "Effacer les dates",
                 tooltipSince: "Depuis cette date",
                 tooltipUntil: "Jusqu'à cette date",
                 labelFromUser: "De ces comptes (from:)",
@@ -1414,6 +1480,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 placeholderMinLikes: "Mín. Me gusta",
                 placeholderMinRetweets: "Mín. reposts",
                 labelDateRange: "Rango de fechas",
+                labelDateShortcut: "Rango rápido",
+                optDate1Day: "Últimas 24 horas",
+                optDate1Week: "Última semana",
+                optDate1Month: "Último mes",
+                optDate3Months: "Últimos 3 meses",
+                optDate6Months: "Últimos 6 meses",
+                optDate1Year: "Último año",
+                optDate2Years: "Últimos 2 años",
+                optDate3Years: "Últimos 3 años",
+                optDate5Years: "Últimos 5 años",
+                optDateClear: "Borrar fechas",
                 tooltipSince: "Desde esta fecha",
                 tooltipUntil: "Hasta esta fecha",
                 labelFromUser: "De estas cuentas (from:)",
@@ -1632,6 +1709,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 placeholderMinLikes: "Min. Gefällt mir",
                 placeholderMinRetweets: "Min. Reposts",
                 labelDateRange: "Zeitraum",
+                labelDateShortcut: "Schnellauswahl",
+                optDate1Day: "Letzte 24 Std.",
+                optDate1Week: "Letzte Woche",
+                optDate1Month: "Letzter Monat",
+                optDate3Months: "Letzte 3 Monate",
+                optDate6Months: "Letzte 6 Monate",
+                optDate1Year: "Letztes Jahr",
+                optDate2Years: "Letzte 2 Jahre",
+                optDate3Years: "Letzte 3 Jahre",
+                optDate5Years: "Letzte 5 Jahre",
+                optDateClear: "Datum löschen",
                 tooltipSince: "Seit diesem Datum",
                 tooltipUntil: "Bis zu diesem Datum",
                 labelFromUser: "Von diesen Konten (from:)",
@@ -1850,6 +1938,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 placeholderMinLikes: "Mín curtidas",
                 placeholderMinRetweets: "Mín reposts",
                 labelDateRange: "Período",
+                labelDateShortcut: "Intervalo rápido",
+                optDate1Day: "Últimas 24h",
+                optDate1Week: "Última semana",
+                optDate1Month: "Último mês",
+                optDate3Months: "Últimos 3 meses",
+                optDate6Months: "Últimos 6 meses",
+                optDate1Year: "Último ano",
+                optDate2Years: "Últimos 2 anos",
+                optDate3Years: "Últimos 3 anos",
+                optDate5Years: "Últimos 5 anos",
+                optDateClear: "Limpar datas",
                 tooltipSince: "A partir desta data",
                 tooltipUntil: "Até esta data",
                 labelFromUser: "Destas contas (from:)",
@@ -2068,6 +2167,17 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                 placeholderMinLikes: "Мин. лайков",
                 placeholderMinRetweets: "Мин. репостов",
                 labelDateRange: "Диапазон дат",
+                labelDateShortcut: "Быстрый выбор",
+                optDate1Day: "За 24 часа",
+                optDate1Week: "За неделю",
+                optDate1Month: "За месяц",
+                optDate3Months: "За 3 месяца",
+                optDate6Months: "За 6 месяцев",
+                optDate1Year: "За год",
+                optDate2Years: "За 2 года",
+                optDate3Years: "За 3 года",
+                optDate5Years: "За 5 лет",
+                optDateClear: "Очистить даты",
                 tooltipSince: "С этой даты",
                 tooltipUntil: "По эту дату",
                 labelFromUser: "От этих аккаунтов (from:)",
@@ -2703,22 +2813,51 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
         .adv-form-group input[type=text],.adv-form-group input[type=number],.adv-form-group input[type=date],.adv-form-group select{width:100%;background-color:var(--modal-input-bg,#202327);border:1px solid var(--modal-input-border,#38444d);border-radius:4px;padding:8px 12px;color:var(--modal-text-primary,#e7e9ea);font-size:15px;box-sizing:border-box}
         .adv-form-group input:focus,.adv-form-group select:focus{outline:0;border-color:var(--modal-primary-color)}
         .adv-form-group input::placeholder{color:var(--modal-text-secondary,#536471)}
-        .adv-form-group-date-container{display:flex;gap:10px}
+        .adv-form-group-date-container {display:flex;gap:8px;align-items: center;}
+        .adv-form-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            gap: 12px;
+        }
+        .adv-form-group-header label {
+            margin-bottom: 0;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .adv-select-mini {
+            background-color: var(--modal-input-bg, #202327);
+            color: var(--modal-text-primary, #e7e9ea);
+            border: 1px solid var(--modal-input-border, #38444d);
+            border-radius: 18px !important;
+            font-size: 13px !important;
+            height: 34px;
+            line-height: normal;
+            padding: 0 8px;
+            width: auto;
+            min-width: 90px;
+            max-width: 200px;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            outline: none;
+        }
+        .adv-select-mini:hover {
+            border-color: var(--modal-text-secondary, #8b98a5);
+        }
+        .adv-select-mini:focus {
+            border-color: var(--modal-primary-color);
+        }
+        .adv-form-group-date-container input[type=date] {flex:1;min-width: 0;width: auto !important;}
+        .adv-date-separator {color:var(--modal-text-secondary, #8b98a5);font-weight:700;user-select:none;flex-shrink:0;padding: 0 2px;}
         .adv-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .adv-checkbox-group{background-color:var(--modal-input-bg,#202327);border:1px solid var(--modal-input-border,#38444d);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}
         .adv-checkbox-group span{font-weight:700;font-size:14px;color:var(--modal-text-primary,#e7e9ea)}
         .adv-checkbox-item{display:flex;align-items:center}
         .adv-checkbox-item input{margin-right:8px; accent-color:var(--modal-primary-color);}
         .adv-checkbox-item label{color:var(--modal-text-secondary,#8b98a5);margin-bottom:0}
-        .adv-checkbox-item input[type="checkbox"]:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .adv-checkbox-item input[type="checkbox"]:disabled + label {
-          opacity: 0.5;
-          cursor: not-allowed;
-          text-decoration: line-through;
-        }
+        .adv-checkbox-item input[type="checkbox"]:disabled {opacity:0.5; cursor:not-allowed;}
+        .adv-checkbox-item input[type="checkbox"]:disabled + label {opacity:0.5;cursor:not-allowed;text-decoration:line-through;}
         .adv-modal-footer{padding:12px 16px;border-top:1px solid var(--modal-border,#333);display:flex;justify-content:flex-end;gap:12px}
         .adv-modal-button{padding:5px 16px;border-radius:9999px;border:1px solid var(--modal-text-secondary,#536471);background-color:transparent;color:var(--modal-text-primary,#e7e9ea);font-weight:700;cursor:pointer;transition:background-color .2s}
         .adv-modal-button:hover{background-color:var(--modal-button-hover-bg,rgba(231,233,234,.1))}
@@ -4214,9 +4353,26 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
                             </div>
                         </div>
                         <div class="adv-form-group">
-                            <label data-i18n="labelDateRange"></label>
+                            <div class="adv-form-group-header">
+                                <label data-i18n="labelDateRange"></label>
+                                <select id="adv-date-shortcut" class="adv-select-mini" data-i18n-title="labelDateShortcut">
+                                    <option value="" data-i18n="labelDateShortcut" selected disabled style="display:none">Quick...</option>
+                                    <option value="1d" data-i18n="optDate1Day">Past 24h</option>
+                                    <option value="1w" data-i18n="optDate1Week">Past week</option>
+                                    <option value="1m" data-i18n="optDate1Month">Past month</option>
+                                    <option value="3m" data-i18n="optDate3Months">Past 3 months</option>
+                                    <option value="6m" data-i18n="optDate6Months">Past 6 months</option>
+                                    <option value="1y" data-i18n="optDate1Year">Past year</option>
+                                    <option value="2y" data-i18n="optDate2Years">Past 2 years</option>
+                                    <option value="3y" data-i18n="optDate3Years">Past 3 years</option>
+                                    <option value="5y" data-i18n="optDate5Years">Past 5 years</option>
+                                    <option disabled>──────────</option>
+                                    <option value="clear" data-i18n="optDateClear">Clear</option>
+                                </select>
+                            </div>
                             <div class="adv-form-group-date-container">
                                 <input type="date" id="adv-since" data-i18n-title="tooltipSince">
+                                <span class="adv-date-separator">~</span>
                                 <input type="date" id="adv-until" data-i18n-title="tooltipUntil">
                             </div>
                         </div>
@@ -10287,6 +10443,124 @@ const __X_ADV_SEARCH_MAIN_LOGIC__ = function() {
             }
         });
 
+        /* --- Date Shortcut Logic --- */
+        const dateShortcutSel = document.getElementById('adv-date-shortcut');
+        const sinceInput = document.getElementById('adv-since');
+        const untilInput = document.getElementById('adv-until');
+
+        if (dateShortcutSel && sinceInput && untilInput) {
+            const toYMD = (date) => {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            };
+
+            // ▼ 日付からショートカットを逆算して選択状態を同期する関数
+            const updateShortcutFromInputs = () => {
+                // ユーザーがショートカットを操作中の場合はループ防止のため処理しない
+                if (document.activeElement === dateShortcutSel) return;
+
+                const sVal = sinceInput.value;
+                const uVal = untilInput.value;
+
+                // 相対日付ショートカットは「Untilが空」であることが前提
+                if (uVal !== '' || sVal === '') {
+                    if (dateShortcutSel.value !== '') dateShortcutSel.value = '';
+                    return;
+                }
+
+                const now = new Date();
+                const calcTargetDate = (fn) => {
+                    const d = new Date(now);
+                    fn(d);
+                    return toYMD(d);
+                };
+
+                // 定義と日付の対応表
+                const targets = {
+                    '1d': calcTargetDate(d => d.setDate(d.getDate() - 1)),
+                    '1w': calcTargetDate(d => d.setDate(d.getDate() - 7)),
+                    '1m': calcTargetDate(d => d.setMonth(d.getMonth() - 1)),
+                    '3m': calcTargetDate(d => d.setMonth(d.getMonth() - 3)),
+                    '6m': calcTargetDate(d => d.setMonth(d.getMonth() - 6)),
+                    '1y': calcTargetDate(d => d.setFullYear(d.getFullYear() - 1)),
+                    '2y': calcTargetDate(d => d.setFullYear(d.getFullYear() - 2)),
+                    '3y': calcTargetDate(d => d.setFullYear(d.getFullYear() - 3)),
+                    '5y': calcTargetDate(d => d.setFullYear(d.getFullYear() - 5)),
+                };
+
+                // 一致するショートカットを探す
+                const match = Object.entries(targets).find(([key, dateStr]) => dateStr === sVal);
+                const nextVal = match ? match[0] : '';
+
+                // 値が変わる場合のみ更新（無駄な描画を抑制）
+                if (dateShortcutSel.value !== nextVal) {
+                    dateShortcutSel.value = nextVal;
+                }
+            };
+
+            // ▼ 1. プログラムによる値変更（リロードやURL解析によるセット）を検知する仕掛け
+            // input.value = '...' とされた時にも updateShortcutFromInputs を走らせる
+            const hookValueProperty = (input) => {
+                const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+                Object.defineProperty(input, 'value', {
+                    configurable: true,
+                    enumerable: true,
+                    get: function() {
+                        return descriptor.get.call(this);
+                    },
+                    set: function(v) {
+                        descriptor.set.call(this, v);
+                        // 値がセットされた直後に同期チェックを実行
+                        updateShortcutFromInputs();
+                    }
+                });
+            };
+            hookValueProperty(sinceInput);
+            hookValueProperty(untilInput);
+
+            // ▼ 2. ユーザーによる手動入力（カレンダー操作やキー入力）の検知
+            ['input', 'change'].forEach(evt => {
+                sinceInput.addEventListener(evt, updateShortcutFromInputs);
+                untilInput.addEventListener(evt, updateShortcutFromInputs);
+            });
+
+            // ▼ 3. ショートカットプルダウン変更時の処理（日付をセット）
+            dateShortcutSel.addEventListener('change', () => {
+                const val = dateShortcutSel.value;
+                // 'clear'以外で値がない場合は無視
+                if (!val && val !== 'clear') return;
+
+                const now = new Date();
+                let targetDate = new Date();
+
+                if (val === 'clear') {
+                    sinceInput.value = '';
+                    untilInput.value = '';
+                    dateShortcutSel.value = '';
+                } else {
+                    untilInput.value = ''; // 期間指定はUntil空
+                    switch (val) {
+                        case '1d': targetDate.setDate(now.getDate() - 1); break;
+                        case '1w': targetDate.setDate(now.getDate() - 7); break;
+                        case '1m': targetDate.setMonth(now.getMonth() - 1); break;
+                        case '3m': targetDate.setMonth(now.getMonth() - 3); break;
+                        case '6m': targetDate.setMonth(now.getMonth() - 6); break;
+                        case '1y': targetDate.setFullYear(now.getFullYear() - 1); break;
+                        case '2y': targetDate.setFullYear(now.getFullYear() - 2); break;
+                        case '3y': targetDate.setFullYear(now.getFullYear() - 3); break;
+                        case '5y': targetDate.setFullYear(now.getFullYear() - 5); break;
+                    }
+                    sinceInput.value = toYMD(targetDate);
+                }
+
+                // 検索ボックスへの反映
+                if (typeof syncFromModalToSearchBox === 'function') {
+                    syncFromModalToSearchBox();
+                }
+            });
+        }
         const muteEmptyEl = document.getElementById('adv-mute-empty');
         const muteListEl  = document.getElementById('adv-mute-list');
         const muteInputEl = document.getElementById('adv-mute-input');
