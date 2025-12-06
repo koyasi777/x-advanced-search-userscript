@@ -1,10 +1,27 @@
-# Advanced Search for X (Twitter) 🔍
+<div align="center">
+  <img src="extension/icons/icon-128.png" alt="Advanced Search for X Logo" width="100" />
 
-X (旧Twitter) の検索体験を劇的に向上させる、多機能なブラウザ拡張スクリプトです。
+  # Advanced Search for X (Twitter) 🔍
+
+  <p>
+    <strong>X (旧Twitter) の検索体験を劇的に向上させる、多機能なブラウザ拡張スクリプト</strong>
+  </p>
+
+  <p>
+    <a href="https://github.com/koyasi777/advanced-search-for-x-twitter/raw/main/x-advanced-search.user.js">
+      <img src="https://img.shields.io/badge/Install-Script-blue?style=for-the-badge&logo=tampermonkey" alt="Install">
+    </a>
+  </p>
+
+  <p>
+    <img src="https://img.shields.io/badge/version-6.2.8-blue.svg?style=flat-square" alt="Version">
+    <img src="https://img.shields.io/badge/license-MIT-green.svg?style=flat-square" alt="License">
+  </p>
+</div>
+
+---
+
 複雑な検索コマンドを覚える必要はありません。直感的な操作で高度な検索を行い、お気に入りやリストをフォルダで整理し、高度なミュート機能でタイムラインを快適にします。
-
-![Version](https://img.shields.io/badge/version-6.2.8-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ## ✨ 主な機能
 
@@ -41,10 +58,10 @@ X (旧Twitter) の検索体験を劇的に向上させる、多機能なブラ�
 このツールを使用するには、ブラウザにユーザースクリプトマネージャー（拡張機能）が必要です。
 
 1.  **マネージャーの導入:** 以下のいずれかの拡張機能をブラウザにインストールしてください。
-    * [Violentmonkey](https://violentmonkey.github.io/)
+    * [Violentmonkey](https://violentmonkey.github.io/) 
     * [Tampermonkey](https://www.tampermonkey.net/)
 2.  **スクリプトのインストール:**
-    * [ここをクリックしてインストール](https://github.com/koyasi777/advanced-search-for-x-twitter/raw/main/x-advanced-search.user.js)
+    * 上部の **[Install Script]** ボタン、または [ここをクリック](https://github.com/koyasi777/advanced-search-for-x-twitter/raw/main/x-advanced-search.user.js) してインストールしてください。
 3.  **X (Twitter) を開く:**
     * ページを再読み込みすると、画面右上に「虫眼鏡アイコン 🔍」が出現します。
 
